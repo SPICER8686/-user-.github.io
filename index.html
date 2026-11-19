@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>TACTICAL 6 — 1v1 3D FPS</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.3.5/dist/mqtt.min.js"></script>
 <style>
   :root {
     --safe-top: max(env(safe-area-inset-top, 0px), 26px);
@@ -1183,52 +1183,43 @@
     });
   }
 
-  // ==================== ONLINE P2P (PEERJS + BROADCAST FALLBACK) ====================
-  let peer = null;
-  let conn = null;
+  // ==================== ONLINE MULTIPLAYER (MQTT WSS + BROADCAST) ====================
+  let mqttClient = null;
   let bc = null;
   let isOnlineMatch = false;
   let isHost = false;
-  let mmTimeout = null;
-  const PEER_OPTS = {
-    config: {
-      iceServers: [
-        { urls: 'stun:stun.l.google.com:19302' },
-        { urls: 'stun:stun1.l.google.com:19302' }
-      ]
-    }
-  };
+  let myNetId = 'p_' + Math.random().toString(36).slice(2, 10);
+  let roomTopic = '';
+  let lobbyTopic = '';
+  let mmPingTimer = null;
+  let mmBrokerIdx = 0;
+  const BROKERS = [
+    'wss://broker.emqx.io:8084/mqtt',
+    'wss://broker.hivemq.com:8884/mqtt'
+  ];
 
   function cleanupNetwork() {
-    if (mmTimeout) { clearTimeout(mmTimeout); mmTimeout = null; }
-    try { if (conn) conn.close(); } catch (e) {}
-    try { if (peer) peer.destroy(); } catch (e) {}
+    if (mmPingTimer) { clearInterval(mmPingTimer); mmPingTimer = null; }
+    try { if (mqttClient) mqttClient.end(true); } catch (e) {}
     try { if (bc) bc.close(); } catch (e) {}
-    conn = null; peer = null; bc = null; isOnlineMatch = false;
+    mqttClient = null; bc = null; isOnlineMatch = false;
+    roomTopic = ''; lobbyTopic = '';
   }
 
   function sendNet(msg) {
-    if (isOnlineMatch && conn && conn.open) {
-      try { conn.send(msg); } catch (e) {}
-    } else if (isOnlineMatch && bc) {
-      try { bc.postMessage({ sender: config.name, msg }); } catch (e) {}
+    if (!isOnlineMatch) return;
+    const payload = { from: myNetId, msg };
+    if (mqttClient && mqttClient.connected && roomTopic) {
+      try { mqttClient.publish(roomTopic, JSON.stringify(payload), { qos: 0 }); } catch (e) {}
+    }
+    if (bc) {
+      try { bc.postMessage(payload); } catch (e) {}
     }
   }
 
   function handleNetMessage(msg) {
     if (!msg || typeof msg !== 'object') return;
-    if (msg.type === 'hello') {
-      pEnemy.name = msg.name || 'ONLINE';
-      pEnemy.rankIndex = msg.rankIndex || 0;
-      pEnemy.rankPoints = msg.rankPoints || 0;
-      if (isHost && matchState === 'matchmaking') {
-        startNewMatch(true);
-      }
-    } else if (msg.type === 'start' && !isHost) {
-      pEnemy.name = msg.name || 'ONLINE';
-      pEnemy.rankIndex = msg.rankIndex || 0;
-      startNewMatch(true);
-    } else if (msg.type === 'state') {
+    if (msg.type === 'state') {
       pEnemy.pos.set(msg.x, 0, msg.z);
       pEnemy.yaw = msg.yw;
       pEnemy.pitch = msg.pt;
@@ -1242,6 +1233,10 @@
       );
     } else if (msg.type === 'hitSelf') {
       applyDamageToSelf(msg.dmg, msg.part, msg.fromPos);
+    } else if (msg.type === 'roundEnd') {
+      if (matchState === 'playing') {
+        endRound(true, msg.reason || 'ELIMINATED', true);
+      }
     } else if (msg.type === 'ability') {
       triggerEnemyAbilityVisual(msg.unit, msg.x, msg.z, msg.yw);
     } else if (msg.type === 'step') {
@@ -1249,28 +1244,9 @@
     }
   }
 
-  function setupConnHandlers(c) {
-    conn = c;
-    conn.on('open', () => {
-      if (mmTimeout) { clearTimeout(mmTimeout); mmTimeout = null; }
-      isOnlineMatch = true;
-      sendNet({ type: 'hello', name: config.name, rankIndex: config.rankIndex, rankPoints: config.rankPoints });
-      if (isHost) {
-        sendNet({ type: 'start', name: config.name, rankIndex: config.rankIndex });
-        startNewMatch(true);
-      }
-    });
-    conn.on('data', handleNetMessage);
-    conn.on('close', () => {
-      if (isOnlineMatch && matchState !== 'lobby' && matchState !== 'match_end' && matchState !== 'replay') {
-        // Fallback smoothly if peer disconnects
-        isOnlineMatch = false;
-      }
-    });
-  }
-
   function startMatchmaking(mode) {
     cleanupNetwork();
+    matchState = 'matchmaking';
     showScreen('screen-matchmaking');
     const titleEl = document.getElementById('mm-title');
     const statusEl = document.getElementById('mm-status');
@@ -1278,11 +1254,10 @@
     const instantBtn = document.getElementById('btn-mm-instant');
 
     const modeLabel = mode === 'random' ? 'ランダムマッチ' : (mode === 'rank' ? 'ランクマッチ' : 'フレンド対戦');
-    titleEl.textContent = `${modeLabel} — マッチング中`;
-    instantBtn.style.display = 'inline-block';
-    instantBtn.textContent = mode === 'friend' ? '模擬フレンド戦でテスト' : '今すぐ模擬対戦で開始';
+    titleEl.textContent = `${modeLabel} — オンラインマッチング中`;
+    instantBtn.style.display = 'none';
 
-    let roomId = '';
+    let channelKey = '';
     if (mode === 'friend') {
       const pass = (document.getElementById('input-passphrase').value || '').trim();
       if (!pass) {
@@ -1290,119 +1265,137 @@
         subEl.textContent = '';
         return;
       }
-      const clean = pass.toLowerCase().replace(/[^a-z0-9_-]/g, '_');
-      roomId = `tactical6-friend-${clean}`;
-      statusEl.textContent = `合言葉「${pass}」でルームを探しています...`;
-      subEl.textContent = '同じ合言葉の相手が接続すると自動で開始します';
+      channelKey = 'friend_' + encodeURIComponent(pass.toLowerCase());
+      statusEl.textContent = `合言葉「${pass}」でオンラインサーバーに接続中...`;
+      subEl.textContent = '同じ合言葉を入力したフレンドが参加すると自動で対戦が始まります';
+    } else if (mode === 'rank') {
+      channelKey = 'rank_global';
+      statusEl.textContent = 'ランクマッチサーバーに接続中...';
+      subEl.textContent = '現在オンラインでランクマッチ待機中のプレイヤーを探しています（NPCとは当たりません）';
     } else {
-      roomId = mode === 'rank' ? `tactical6-rank-r${config.rankIndex}-slot0` : 'tactical6-random-slot0';
-      statusEl.textContent = 'プレイヤーを検索しています (P2P)...';
-      subEl.textContent = '待機中の相手が見つからない場合は模擬オンライン対戦に切り替えられます';
+      channelKey = 'random_global';
+      statusEl.textContent = 'ランダムマッチサーバーに接続中...';
+      subEl.textContent = '現在オンラインでランダムマッチ待機中のプレイヤーを探しています（NPCとは当たりません）';
     }
 
-    // Same-browser tab fallback via BroadcastChannel
+    lobbyTopic = `tactical6/v1/lobby/${channelKey}`;
+
+    const pairWithPeer = (peerId, peerName, peerRankIdx, peerRankPts, iAmHost, sharedRoom) => {
+      if (isOnlineMatch || matchState !== 'matchmaking') return;
+      if (mmPingTimer) { clearInterval(mmPingTimer); mmPingTimer = null; }
+      isOnlineMatch = true;
+      isHost = iAmHost;
+      roomTopic = sharedRoom;
+      pEnemy.name = peerName || 'ONLINE';
+      pEnemy.rankIndex = peerRankIdx || 0;
+      pEnemy.rankPoints = peerRankPts || 0;
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.unsubscribe(lobbyTopic);
+        mqttClient.subscribe(roomTopic);
+      }
+      startNewMatch(true);
+    };
+
+    // Same-browser tab support via BroadcastChannel
     try {
       if (typeof BroadcastChannel !== 'undefined') {
-        bc = new BroadcastChannel(roomId);
+        bc = new BroadcastChannel(lobbyTopic);
         bc.onmessage = (ev) => {
-          if (!ev.data || ev.data.sender === config.name) return;
-          if (ev.data.msg && ev.data.msg.type === 'bc_join' && !isOnlineMatch) {
-            isOnlineMatch = true;
-            isHost = true;
-            pEnemy.name = ev.data.sender || 'FRIEND';
-            bc.postMessage({ sender: config.name, msg: { type: 'bc_ack', name: config.name, rankIndex: config.rankIndex } });
-            startNewMatch(true);
-          } else if (ev.data.msg && ev.data.msg.type === 'bc_ack' && !isOnlineMatch) {
-            isOnlineMatch = true;
-            isHost = false;
-            pEnemy.name = ev.data.msg.name || 'FRIEND';
-            startNewMatch(true);
-          } else if (isOnlineMatch) {
-            handleNetMessage(ev.data.msg);
+          const d = ev.data;
+          if (!d || d.from === myNetId) return;
+          if (!isOnlineMatch && d.type === 'seek') {
+            const pairRoom = `tactical6/v1/room/${[myNetId, d.from].sort().join('_')}`;
+            const iAmHost = myNetId < d.from;
+            bc.postMessage({ type: 'accept', from: myNetId, to: d.from, name: config.name, rankIndex: config.rankIndex, rankPoints: config.rankPoints, room: pairRoom });
+            pairWithPeer(d.from, d.name, d.rankIndex, d.rankPoints, iAmHost, pairRoom);
+          } else if (!isOnlineMatch && d.type === 'accept' && d.to === myNetId) {
+            pairWithPeer(d.from, d.name, d.rankIndex, d.rankPoints, myNetId < d.from, d.room);
+          } else if (isOnlineMatch && d.msg) {
+            handleNetMessage(d.msg);
           }
         };
-        bc.postMessage({ sender: config.name, msg: { type: 'bc_join' } });
       }
     } catch (e) {}
 
-    try {
-      if (typeof Peer === 'undefined') throw new Error('PeerJS unavailable');
-      peer = new Peer(PEER_OPTS);
-      peer.on('open', () => {
-        const tryConn = peer.connect(roomId, { reliable: true });
-        let connected = false;
-        const joinTimer = setTimeout(() => {
-          if (!connected && !isOnlineMatch) {
-            try { tryConn.close(); } catch (e) {}
-            try { peer.destroy(); } catch (e) {}
-            isHost = true;
-            peer = new Peer(roomId, PEER_OPTS);
-            peer.on('open', () => {
-              statusEl.textContent = mode === 'friend'
-                ? 'ルームを作成しました。フレンドの参加を待っています...'
-                : 'オンラインマッチング待機中 (ホスト)...';
-            });
-            peer.on('connection', (incoming) => {
-              setupConnHandlers(incoming);
-            });
-            peer.on('error', () => {
-              if (mode === 'friend') {
-                statusEl.textContent = '外部P2Pサーバーへの接続が制限されています（プレビュー環境など）。';
-                subEl.textContent = 'HTMLファイルを外部公開すると別端末同士で通信できます。別タブ間通信または下のボタンでテスト可能です。';
-              } else {
-                launchSimulatedOnline(mode);
-              }
-            });
-          }
-        }, 2500);
-
-        tryConn.on('open', () => {
-          connected = true;
-          clearTimeout(joinTimer);
-          isHost = false;
-          setupConnHandlers(tryConn);
-        });
-        tryConn.on('error', () => {});
-      });
-      peer.on('error', () => {
-        if (mode === 'friend') {
-          statusEl.textContent = '外部P2Pサーバーへの接続が制限されています（プレビュー環境など）。';
-          subEl.textContent = 'HTMLファイルを外部公開すると別端末同士で通信できます。別タブ間通信または下のボタンでテスト可能です。';
-        } else {
-          launchSimulatedOnline(mode);
-        }
-      });
-    } catch (e) {
-      if (mode === 'friend') {
-        statusEl.textContent = '外部P2Pサーバーに接続できませんでした。';
-        subEl.textContent = '下のボタンから模擬フレンド戦で動作テストできます。';
-      } else {
-        launchSimulatedOnline(mode);
+    // Public MQTT over WebSocket for real cross-device online multiplayer
+    const connectBroker = (bIdx) => {
+      if (matchState !== 'matchmaking' || isOnlineMatch) return;
+      if (typeof mqtt === 'undefined') {
+        statusEl.textContent = '通信ライブラリの読み込みに失敗しました。';
+        return;
       }
-    }
+      const url = BROKERS[bIdx % BROKERS.length];
+      try {
+        mqttClient = mqtt.connect(url, {
+          clientId: 't6_' + myNetId,
+          clean: true,
+          connectTimeout: 6000,
+          reconnectPeriod: 3000
+        });
+      } catch (e) {
+        statusEl.textContent = 'オンラインサーバーに接続できませんでした。';
+        return;
+      }
 
-    if (mode !== 'friend') {
-      mmTimeout = setTimeout(() => {
-        if (matchState === 'matchmaking' && !isOnlineMatch) {
-          launchSimulatedOnline(mode);
+      mqttClient.on('connect', () => {
+        if (matchState !== 'matchmaking' || isOnlineMatch) return;
+        statusEl.textContent = mode === 'friend'
+          ? `サーバー接続完了！合言葉「${document.getElementById('input-passphrase').value.trim()}」の相手を待機中...`
+          : 'サーバー接続完了！オンラインの対戦相手を検索中...';
+        mqttClient.subscribe(lobbyTopic);
+        const sendSeek = () => {
+          if (matchState !== 'matchmaking' || isOnlineMatch) return;
+          const seekMsg = JSON.stringify({
+            type: 'seek', from: myNetId, name: config.name,
+            rankIndex: config.rankIndex, rankPoints: config.rankPoints
+          });
+          if (mqttClient && mqttClient.connected) mqttClient.publish(lobbyTopic, seekMsg);
+          if (bc) bc.postMessage(JSON.parse(seekMsg));
+        };
+        sendSeek();
+        if (mmPingTimer) clearInterval(mmPingTimer);
+        mmPingTimer = setInterval(sendSeek, 1500);
+      });
+
+      mqttClient.on('message', (topic, raw) => {
+        try {
+          const d = JSON.parse(raw.toString());
+          if (!d || d.from === myNetId) return;
+          if (topic === lobbyTopic && !isOnlineMatch) {
+            if (d.type === 'seek') {
+              const pairRoom = `tactical6/v1/room/${[myNetId, d.from].sort().join('_')}`;
+              const iAmHost = myNetId < d.from;
+              const acc = JSON.stringify({
+                type: 'accept', from: myNetId, to: d.from,
+                name: config.name, rankIndex: config.rankIndex, rankPoints: config.rankPoints,
+                room: pairRoom
+              });
+              mqttClient.publish(lobbyTopic, acc);
+              pairWithPeer(d.from, d.name, d.rankIndex, d.rankPoints, iAmHost, pairRoom);
+            } else if (d.type === 'accept' && d.to === myNetId) {
+              pairWithPeer(d.from, d.name, d.rankIndex, d.rankPoints, myNetId < d.from, d.room);
+            }
+          } else if (topic === roomTopic && isOnlineMatch && d.msg) {
+            handleNetMessage(d.msg);
+          }
+        } catch (e) {}
+      });
+
+      mqttClient.on('error', () => {
+        if (bIdx + 1 < BROKERS.length && !isOnlineMatch && matchState === 'matchmaking') {
+          try { mqttClient.end(true); } catch (e) {}
+          connectBroker(bIdx + 1);
+        } else if (!isOnlineMatch && matchState === 'matchmaking') {
+          statusEl.textContent = 'オンラインサーバーへの接続に失敗しました。ネット環境をご確認ください。';
         }
-      }, 6500);
-    }
+      });
+    };
+
+    connectBroker(mmBrokerIdx);
   }
 
   function launchSimulatedOnline(mode) {
-    cleanupNetwork();
-    const names = ['Kaito_JP', 'SoraFPS', 'ViperX', 'Ren_T6', 'Nyx77', 'Akira_Aim', 'ZeroEdge'];
-    pEnemy.name = names[Math.floor(Math.random() * names.length)];
-    if (mode === 'rank') {
-      const offset = Math.floor(Math.random() * 5) - 2; // -2 to +2 ranks
-      pEnemy.rankIndex = Math.max(0, Math.min(RANKS.length - 1, config.rankIndex + offset));
-      pEnemy.rankPoints = Math.floor(Math.random() * 190);
-      npcDifficulty = pEnemy.rankIndex >= 6 ? 'expert' : (pEnemy.rankIndex >= 3 ? 'hard' : 'normal');
-    } else {
-      npcDifficulty = 'normal';
-    }
-    startNewMatch(false);
+    // Only used if explicitly called; never auto-triggered for online modes
   }
 
   // ==================== MATCH & ROUND FLOW ====================
@@ -1471,8 +1464,11 @@
     banner.classList.add('active');
   }
 
-  function endRound(selfWon, reason) {
+  function endRound(selfWon, reason, fromNet = false) {
     if (matchState !== 'playing') return;
+    if (isOnlineMatch && !selfWon && !fromNet) {
+      sendNet({ type: 'roundEnd', reason });
+    }
     matchState = 'round_end';
     stateTimer = 3.2; // Never start next round immediately!
 
