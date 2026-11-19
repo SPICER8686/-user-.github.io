@@ -1151,7 +1151,7 @@
   const pEnemy = {
     name: 'BOT', unit: 0, hp: 100, ammo: MAG_SIZE, reloading: 0,
     fireCd: 0, abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false,
-    pos: new THREE.Vector3(0, 0, -32), targetPos: new THREE.Vector3(0, 0, -32), yaw: Math.PI, targetYaw: Math.PI, pitch: 0,
+    pos: new THREE.Vector3(0, 0, -32), targetPos: new THREE.Vector3(0, 0, -32), vel: new THREE.Vector3(), yaw: Math.PI, targetYaw: Math.PI, pitch: 0,
     stepDist: 0, muzzleT: 0,
     rankIndex: 0, rankPoints: 0,
     aiStrafeDir: 1, aiStrafeT: 0, aiBurstT: 0
@@ -1202,6 +1202,7 @@
 
   function cleanupNetwork() {
     if (mmPingTimer) { clearInterval(mmPingTimer); mmPingTimer = null; }
+    if (rtcReadyTimer) { clearInterval(rtcReadyTimer); rtcReadyTimer = null; }
     try { if (rtcDc) rtcDc.close(); } catch (e) {}
     try { if (rtcPc) rtcPc.close(); } catch (e) {}
     try { if (mqttClient) mqttClient.end(true); } catch (e) {}
@@ -1210,15 +1211,21 @@
     roomTopic = ''; lobbyTopic = '';
   }
 
-  function sendNet(msg) {
+  let rtcReadyTimer = null;
+  let rtcOfferSent = false;
+
+  function sendNet(msg, reliable = false) {
     if (!isOnlineMatch) return;
     const payload = { from: myNetId, msg };
     const raw = JSON.stringify(payload);
-    if (rtcDc && rtcDc.readyState === 'open') {
+    if (!reliable && rtcDc && rtcDc.readyState === 'open') {
       try { rtcDc.send(raw); return; } catch (e) {}
     }
+    if (reliable && rtcDc && rtcDc.readyState === 'open') {
+      try { rtcDc.send(raw); } catch (e) {}
+    }
     if (mqttClient && mqttClient.connected && roomTopic) {
-      try { mqttClient.publish(roomTopic, raw, { qos: 0 }); } catch (e) {}
+      try { mqttClient.publish(roomTopic, raw, { qos: reliable ? 1 : 0 }); } catch (e) {}
     }
     if (bc) {
       try { bc.postMessage(payload); } catch (e) {}
@@ -1227,11 +1234,13 @@
 
   function startWebRTCUpgrade() {
     if (typeof RTCPeerConnection === 'undefined') return;
+    rtcOfferSent = false;
     try {
       rtcPc = new RTCPeerConnection({
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
+          { urls: 'stun:stun1.l.google.com:19302' },
+          { urls: 'stun:stun2.l.google.com:19302' }
         ]
       });
       rtcPc.onicecandidate = (ev) => {
@@ -1241,6 +1250,9 @@
       };
       const setupDc = (dc) => {
         rtcDc = dc;
+        dc.onopen = () => {
+          if (rtcReadyTimer) { clearInterval(rtcReadyTimer); rtcReadyTimer = null; }
+        };
         dc.onmessage = (ev) => {
           try {
             const d = JSON.parse(ev.data);
@@ -1250,13 +1262,17 @@
       };
       if (isHost) {
         setupDc(rtcPc.createDataChannel('t6', { ordered: false, maxRetransmits: 0 }));
-        rtcPc.createOffer().then(offer => rtcPc.setLocalDescription(offer)).then(() => {
-          if (mqttClient && mqttClient.connected && roomTopic) {
-            mqttClient.publish(roomTopic, JSON.stringify({ from: myNetId, sig: { sdp: rtcPc.localDescription } }));
-          }
-        }).catch(() => {});
       } else {
         rtcPc.ondatachannel = (ev) => setupDc(ev.channel);
+        if (rtcReadyTimer) clearInterval(rtcReadyTimer);
+        rtcReadyTimer = setInterval(() => {
+          if (!isOnlineMatch || (rtcDc && rtcDc.readyState === 'open')) {
+            clearInterval(rtcReadyTimer); rtcReadyTimer = null; return;
+          }
+          if (mqttClient && mqttClient.connected && roomTopic) {
+            mqttClient.publish(roomTopic, JSON.stringify({ from: myNetId, sig: { ready: true } }));
+          }
+        }, 700);
       }
     } catch (e) {}
   }
@@ -1265,6 +1281,7 @@
     if (!msg || typeof msg !== 'object') return;
     if (msg.type === 'state') {
       pEnemy.targetPos.set(msg.x, 0, msg.z);
+      pEnemy.vel.set(msg.vx || 0, 0, msg.vz || 0);
       pEnemy.targetYaw = msg.yw;
       pEnemy.pitch = msg.pt;
       pEnemy.shield = !!msg.sh;
@@ -1279,7 +1296,7 @@
       applyDamageToSelf(msg.dmg, msg.part, msg.fromPos);
     } else if (msg.type === 'roundEnd') {
       if (matchState === 'playing') {
-        endRound(true, msg.reason || 'ELIMINATED', true);
+        endRound(!msg.winnerIsSender, msg.reason || 'ELIMINATED', true);
       }
     } else if (msg.type === 'ability') {
       triggerEnemyAbilityVisual(msg.unit, msg.x, msg.z, msg.yw);
@@ -1423,7 +1440,14 @@
           } else if (topic === roomTopic && isOnlineMatch) {
             if (d.msg) handleNetMessage(d.msg);
             else if (d.sig && rtcPc) {
-              if (d.sig.sdp) {
+              if (d.sig.ready && isHost && !rtcOfferSent) {
+                rtcOfferSent = true;
+                rtcPc.createOffer().then(offer => rtcPc.setLocalDescription(offer)).then(() => {
+                  if (mqttClient && mqttClient.connected && roomTopic) {
+                    mqttClient.publish(roomTopic, JSON.stringify({ from: myNetId, sig: { sdp: rtcPc.localDescription } }));
+                  }
+                }).catch(() => {});
+              } else if (d.sig.sdp) {
                 rtcPc.setRemoteDescription(new RTCSessionDescription(d.sig.sdp)).then(() => {
                   if (d.sig.sdp.type === 'offer') {
                     return rtcPc.createAnswer().then(ans => rtcPc.setLocalDescription(ans)).then(() => {
@@ -1531,8 +1555,8 @@
 
   function endRound(selfWon, reason, fromNet = false) {
     if (matchState !== 'playing') return;
-    if (isOnlineMatch && !selfWon && !fromNet) {
-      sendNet({ type: 'roundEnd', reason });
+    if (isOnlineMatch && !fromNet) {
+      sendNet({ type: 'roundEnd', reason, winnerIsSender: selfWon }, true);
     }
     matchState = 'round_end';
     stateTimer = 3.2; // Never start next round immediately!
@@ -1659,7 +1683,8 @@
       spreadNdcY = (Math.random() - 0.5) * 2 * spreadAmt;
     }
 
-    // Raycast from camera with movement spread
+    // Ensure enemy hitboxes match current rendered position before raycasting
+    enemyRig.group.updateMatrixWorld(true);
     raycaster.setFromCamera(new THREE.Vector2(spreadNdcX, spreadNdcY), camera);
     raycaster.far = 120;
 
@@ -1683,13 +1708,12 @@
         } else {
           showHitmarker(part === 'head');
           playSpatialSound(part === 'head' ? 'headshot' : 'hit', null, true);
+          pEnemy.hp = Math.max(0, pEnemy.hp - dmg);
           if (isOnlineMatch) {
-            sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } });
-          } else {
-            pEnemy.hp = Math.max(0, pEnemy.hp - dmg);
-            if (pEnemy.hp <= 0) {
-              endRound(true, part === 'head' ? 'HEADSHOT (100 DMG)' : 'BODY/LEG SHOT');
-            }
+            sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } }, true);
+          }
+          if (pEnemy.hp <= 0) {
+            endRound(true, part === 'head' ? 'HEADSHOT (100 DMG)' : 'BODY/LEG SHOT');
           }
         }
       }
@@ -2428,18 +2452,30 @@
       if (!isOnlineMatch) {
         updateNPCAI(dt);
       } else {
-        const lerpF = Math.min(1, dt * 16);
+        // Dead-reckoning prediction + smooth exponential blend
+        pEnemy.targetPos.addScaledVector(pEnemy.vel, dt);
+        const lerpF = Math.min(1, dt * 18);
         pEnemy.pos.lerp(pEnemy.targetPos, lerpF);
         let dyaw = pEnemy.targetYaw - pEnemy.yaw;
         while (dyaw > Math.PI) dyaw -= Math.PI * 2;
         while (dyaw < -Math.PI) dyaw += Math.PI * 2;
         pEnemy.yaw += dyaw * lerpF;
+
+        const isP2P = rtcDc && rtcDc.readyState === 'open';
+        const syncInterval = isP2P ? 0.033 : 0.068;
         netSyncAccum += dt;
-        if (netSyncAccum >= 0.045) {
+        if (netSyncAccum >= syncInterval) {
           netSyncAccum = 0;
+          const prevX = pSelf._lastX ?? pSelf.pos.x;
+          const prevZ = pSelf._lastZ ?? pSelf.pos.z;
+          const vx = (pSelf.pos.x - prevX) / syncInterval;
+          const vz = (pSelf.pos.z - prevZ) / syncInterval;
+          pSelf._lastX = pSelf.pos.x;
+          pSelf._lastZ = pSelf.pos.z;
           sendNet({
             type: 'state',
             x: +pSelf.pos.x.toFixed(2), z: +pSelf.pos.z.toFixed(2),
+            vx: +vx.toFixed(2), vz: +vz.toFixed(2),
             yw: +pSelf.yaw.toFixed(3), pt: +pSelf.pitch.toFixed(3), sh: pSelf.shield
           });
         }
