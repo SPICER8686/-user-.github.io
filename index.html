@@ -377,7 +377,7 @@
 
           <div id="mode-panel-random" class="mode-panel" style="display:none;">
             <div style="font-size:12px;color:#cbd5e1;margin-bottom:6px;">
-              ランダムマッチ中のプレイヤーとP2P接続でマッチングします（待機中に相手が見つからない場合は同等レートのオンライン模擬プレイヤーと対戦可能）。
+              ランダムマッチで待機中のオンラインプレイヤー同士をリアルタイムにマッチングします。
             </div>
           </div>
 
@@ -1183,23 +1183,35 @@
     });
   }
 
-  // ==================== ONLINE P2P (PEERJS) ====================
+  // ==================== ONLINE P2P (PEERJS + BROADCAST FALLBACK) ====================
   let peer = null;
   let conn = null;
+  let bc = null;
   let isOnlineMatch = false;
   let isHost = false;
   let mmTimeout = null;
+  const PEER_OPTS = {
+    config: {
+      iceServers: [
+        { urls: 'stun:stun.l.google.com:19302' },
+        { urls: 'stun:stun1.l.google.com:19302' }
+      ]
+    }
+  };
 
   function cleanupNetwork() {
     if (mmTimeout) { clearTimeout(mmTimeout); mmTimeout = null; }
     try { if (conn) conn.close(); } catch (e) {}
     try { if (peer) peer.destroy(); } catch (e) {}
-    conn = null; peer = null; isOnlineMatch = false;
+    try { if (bc) bc.close(); } catch (e) {}
+    conn = null; peer = null; bc = null; isOnlineMatch = false;
   }
 
   function sendNet(msg) {
     if (isOnlineMatch && conn && conn.open) {
       try { conn.send(msg); } catch (e) {}
+    } else if (isOnlineMatch && bc) {
+      try { bc.postMessage({ sender: config.name, msg }); } catch (e) {}
     }
   }
 
@@ -1267,7 +1279,8 @@
 
     const modeLabel = mode === 'random' ? 'ランダムマッチ' : (mode === 'rank' ? 'ランクマッチ' : 'フレンド対戦');
     titleEl.textContent = `${modeLabel} — マッチング中`;
-    instantBtn.style.display = mode === 'friend' ? 'none' : 'inline-block';
+    instantBtn.style.display = 'inline-block';
+    instantBtn.textContent = mode === 'friend' ? '模擬フレンド戦でテスト' : '今すぐ模擬対戦で開始';
 
     let roomId = '';
     if (mode === 'friend') {
@@ -1287,30 +1300,58 @@
       subEl.textContent = '待機中の相手が見つからない場合は模擬オンライン対戦に切り替えられます';
     }
 
+    // Same-browser tab fallback via BroadcastChannel
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        bc = new BroadcastChannel(roomId);
+        bc.onmessage = (ev) => {
+          if (!ev.data || ev.data.sender === config.name) return;
+          if (ev.data.msg && ev.data.msg.type === 'bc_join' && !isOnlineMatch) {
+            isOnlineMatch = true;
+            isHost = true;
+            pEnemy.name = ev.data.sender || 'FRIEND';
+            bc.postMessage({ sender: config.name, msg: { type: 'bc_ack', name: config.name, rankIndex: config.rankIndex } });
+            startNewMatch(true);
+          } else if (ev.data.msg && ev.data.msg.type === 'bc_ack' && !isOnlineMatch) {
+            isOnlineMatch = true;
+            isHost = false;
+            pEnemy.name = ev.data.msg.name || 'FRIEND';
+            startNewMatch(true);
+          } else if (isOnlineMatch) {
+            handleNetMessage(ev.data.msg);
+          }
+        };
+        bc.postMessage({ sender: config.name, msg: { type: 'bc_join' } });
+      }
+    } catch (e) {}
+
     try {
       if (typeof Peer === 'undefined') throw new Error('PeerJS unavailable');
-      // Try joining existing host first; if unavailable, become host
-      peer = new Peer();
+      peer = new Peer(PEER_OPTS);
       peer.on('open', () => {
         const tryConn = peer.connect(roomId, { reliable: true });
         let connected = false;
         const joinTimer = setTimeout(() => {
-          if (!connected) {
+          if (!connected && !isOnlineMatch) {
             try { tryConn.close(); } catch (e) {}
-            // Become host with deterministic roomId
-            peer.destroy();
+            try { peer.destroy(); } catch (e) {}
             isHost = true;
-            peer = new Peer(roomId);
+            peer = new Peer(roomId, PEER_OPTS);
             peer.on('open', () => {
               statusEl.textContent = mode === 'friend'
                 ? 'ルームを作成しました。フレンドの参加を待っています...'
-                : 'マッチング待機中 (ホスト)...';
+                : 'オンラインマッチング待機中 (ホスト)...';
             });
             peer.on('connection', (incoming) => {
               setupConnHandlers(incoming);
             });
             peer.on('error', () => {
-              if (mode !== 'friend') launchSimulatedOnline(mode);
+              if (mode === 'friend') {
+                statusEl.textContent = '外部P2Pサーバーへの接続が制限されています（プレビュー環境など）。';
+                subEl.textContent = 'HTMLファイルを外部公開すると別端末同士で通信できます。別タブ間通信または下のボタンでテスト可能です。';
+              } else {
+                launchSimulatedOnline(mode);
+              }
             });
           }
         }, 2500);
@@ -1324,12 +1365,20 @@
         tryConn.on('error', () => {});
       });
       peer.on('error', () => {
-        if (mode !== 'friend') launchSimulatedOnline(mode);
-        else statusEl.textContent = 'P2P接続に失敗しました。ネットワーク環境をご確認ください。';
+        if (mode === 'friend') {
+          statusEl.textContent = '外部P2Pサーバーへの接続が制限されています（プレビュー環境など）。';
+          subEl.textContent = 'HTMLファイルを外部公開すると別端末同士で通信できます。別タブ間通信または下のボタンでテスト可能です。';
+        } else {
+          launchSimulatedOnline(mode);
+        }
       });
     } catch (e) {
-      if (mode !== 'friend') launchSimulatedOnline(mode);
-      else statusEl.textContent = 'P2P接続を利用できません。';
+      if (mode === 'friend') {
+        statusEl.textContent = '外部P2Pサーバーに接続できませんでした。';
+        subEl.textContent = '下のボタンから模擬フレンド戦で動作テストできます。';
+      } else {
+        launchSimulatedOnline(mode);
+      }
     }
 
     if (mode !== 'friend') {
