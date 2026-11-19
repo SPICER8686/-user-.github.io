@@ -1151,7 +1151,7 @@
   const pEnemy = {
     name: 'BOT', unit: 0, hp: 100, ammo: MAG_SIZE, reloading: 0,
     fireCd: 0, abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false,
-    pos: new THREE.Vector3(0, 0, -32), yaw: Math.PI, pitch: 0,
+    pos: new THREE.Vector3(0, 0, -32), targetPos: new THREE.Vector3(0, 0, -32), yaw: Math.PI, targetYaw: Math.PI, pitch: 0,
     stepDist: 0, muzzleT: 0,
     rankIndex: 0, rankPoints: 0,
     aiStrafeDir: 1, aiStrafeT: 0, aiBurstT: 0
@@ -1186,6 +1186,8 @@
   // ==================== ONLINE MULTIPLAYER (MQTT WSS + BROADCAST) ====================
   let mqttClient = null;
   let bc = null;
+  let rtcPc = null;
+  let rtcDc = null;
   let isOnlineMatch = false;
   let isHost = false;
   let myNetId = 'p_' + Math.random().toString(36).slice(2, 10);
@@ -1200,28 +1202,70 @@
 
   function cleanupNetwork() {
     if (mmPingTimer) { clearInterval(mmPingTimer); mmPingTimer = null; }
+    try { if (rtcDc) rtcDc.close(); } catch (e) {}
+    try { if (rtcPc) rtcPc.close(); } catch (e) {}
     try { if (mqttClient) mqttClient.end(true); } catch (e) {}
     try { if (bc) bc.close(); } catch (e) {}
-    mqttClient = null; bc = null; isOnlineMatch = false;
+    rtcDc = null; rtcPc = null; mqttClient = null; bc = null; isOnlineMatch = false;
     roomTopic = ''; lobbyTopic = '';
   }
 
   function sendNet(msg) {
     if (!isOnlineMatch) return;
     const payload = { from: myNetId, msg };
+    const raw = JSON.stringify(payload);
+    if (rtcDc && rtcDc.readyState === 'open') {
+      try { rtcDc.send(raw); return; } catch (e) {}
+    }
     if (mqttClient && mqttClient.connected && roomTopic) {
-      try { mqttClient.publish(roomTopic, JSON.stringify(payload), { qos: 0 }); } catch (e) {}
+      try { mqttClient.publish(roomTopic, raw, { qos: 0 }); } catch (e) {}
     }
     if (bc) {
       try { bc.postMessage(payload); } catch (e) {}
     }
   }
 
+  function startWebRTCUpgrade() {
+    if (typeof RTCPeerConnection === 'undefined') return;
+    try {
+      rtcPc = new RTCPeerConnection({
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      });
+      rtcPc.onicecandidate = (ev) => {
+        if (ev.candidate && mqttClient && mqttClient.connected && roomTopic) {
+          mqttClient.publish(roomTopic, JSON.stringify({ from: myNetId, sig: { ice: ev.candidate } }));
+        }
+      };
+      const setupDc = (dc) => {
+        rtcDc = dc;
+        dc.onmessage = (ev) => {
+          try {
+            const d = JSON.parse(ev.data);
+            if (d && d.from !== myNetId && d.msg) handleNetMessage(d.msg);
+          } catch (e) {}
+        };
+      };
+      if (isHost) {
+        setupDc(rtcPc.createDataChannel('t6', { ordered: false, maxRetransmits: 0 }));
+        rtcPc.createOffer().then(offer => rtcPc.setLocalDescription(offer)).then(() => {
+          if (mqttClient && mqttClient.connected && roomTopic) {
+            mqttClient.publish(roomTopic, JSON.stringify({ from: myNetId, sig: { sdp: rtcPc.localDescription } }));
+          }
+        }).catch(() => {});
+      } else {
+        rtcPc.ondatachannel = (ev) => setupDc(ev.channel);
+      }
+    } catch (e) {}
+  }
+
   function handleNetMessage(msg) {
     if (!msg || typeof msg !== 'object') return;
     if (msg.type === 'state') {
-      pEnemy.pos.set(msg.x, 0, msg.z);
-      pEnemy.yaw = msg.yw;
+      pEnemy.targetPos.set(msg.x, 0, msg.z);
+      pEnemy.targetYaw = msg.yw;
       pEnemy.pitch = msg.pt;
       pEnemy.shield = !!msg.sh;
     } else if (msg.type === 'fire') {
@@ -1292,6 +1336,7 @@
       if (mqttClient && mqttClient.connected) {
         mqttClient.unsubscribe(lobbyTopic);
         mqttClient.subscribe(roomTopic);
+        startWebRTCUpgrade();
       }
       startNewMatch(true);
     };
@@ -1375,8 +1420,23 @@
             } else if (d.type === 'accept' && d.to === myNetId) {
               pairWithPeer(d.from, d.name, d.rankIndex, d.rankPoints, myNetId < d.from, d.room);
             }
-          } else if (topic === roomTopic && isOnlineMatch && d.msg) {
-            handleNetMessage(d.msg);
+          } else if (topic === roomTopic && isOnlineMatch) {
+            if (d.msg) handleNetMessage(d.msg);
+            else if (d.sig && rtcPc) {
+              if (d.sig.sdp) {
+                rtcPc.setRemoteDescription(new RTCSessionDescription(d.sig.sdp)).then(() => {
+                  if (d.sig.sdp.type === 'offer') {
+                    return rtcPc.createAnswer().then(ans => rtcPc.setLocalDescription(ans)).then(() => {
+                      if (mqttClient && mqttClient.connected) {
+                        mqttClient.publish(roomTopic, JSON.stringify({ from: myNetId, sig: { sdp: rtcPc.localDescription } }));
+                      }
+                    });
+                  }
+                }).catch(() => {});
+              } else if (d.sig.ice) {
+                rtcPc.addIceCandidate(new RTCIceCandidate(d.sig.ice)).catch(() => {});
+              }
+            }
           }
         } catch (e) {}
       });
@@ -1439,7 +1499,8 @@
       p.scanGlowT = 0; p.shield = false; p.muzzleT = 0;
       p.recoilPitch = 0; p.recoilYaw = 0;
       p.pos.set((Math.random() - 0.5) * 8, 0, zPos);
-      p.yaw = yaw; p.pitch = 0;
+      if (p.targetPos) p.targetPos.copy(p.pos);
+      p.yaw = yaw; p.targetYaw = yaw; p.pitch = 0;
     };
 
     const selfZ = isOnlineMatch && !isHost ? -32 : 32;
@@ -1447,6 +1508,10 @@
     resetP(pSelf, selfZ, selfYaw);
     resetP(pEnemy, -selfZ, selfYaw === 0 ? Math.PI : 0);
 
+    aimTouchId = null; fireTouchId = null; stickTouchId = null; isFiringTouch = false;
+    btnFire.classList.remove('firing');
+    stickInput = { x: 0, y: 0, mag: 0 };
+    stickKnob.style.left = '50%'; stickKnob.style.top = '50%';
     updateHUD();
     matchState = 'round_intro';
     stateTimer = 2.2;
@@ -1912,19 +1977,17 @@
     stickInput = { x: dx / maxR, y: dy / maxR, mag: Math.min(1, dist / maxR) };
   }
 
-  // Right aim zone
+  // Right aim zone (always allow new touch takeover + recover on cancel/lostcapture)
   aimZone.addEventListener('pointerdown', e => {
     initAudio();
-    if (aimTouchId === null) {
-      aimTouchId = e.pointerId;
-      lastAimPos = { x: e.clientX, y: e.clientY };
-      aimZone.setPointerCapture(e.pointerId);
-    }
+    aimTouchId = e.pointerId;
+    lastAimPos = { x: e.clientX, y: e.clientY };
+    try { aimZone.setPointerCapture(e.pointerId); } catch (err) {}
   });
   aimZone.addEventListener('pointermove', e => {
     if (e.pointerId === aimTouchId && matchState === 'playing') {
-      const dx = e.clientX - lastAimPos.x;
-      const dy = e.clientY - lastAimPos.y;
+      const dx = Math.max(-90, Math.min(90, e.clientX - lastAimPos.x));
+      const dy = Math.max(-90, Math.min(90, e.clientY - lastAimPos.y));
       lastAimPos = { x: e.clientX, y: e.clientY };
       const s = 0.0042 * config.sens;
       pSelf.yaw -= dx * s;
@@ -1934,6 +1997,18 @@
   const endAim = e => { if (e.pointerId === aimTouchId) aimTouchId = null; };
   aimZone.addEventListener('pointerup', endAim);
   aimZone.addEventListener('pointercancel', endAim);
+  aimZone.addEventListener('lostpointercapture', endAim);
+
+  window.addEventListener('pointerup', e => {
+    if (e.pointerId === aimTouchId) aimTouchId = null;
+    if (e.pointerId === fireTouchId) { fireTouchId = null; isFiringTouch = false; btnFire.classList.remove('firing'); }
+    if (e.pointerId === stickTouchId) resetStick(e);
+  });
+  window.addEventListener('pointercancel', e => {
+    if (e.pointerId === aimTouchId) aimTouchId = null;
+    if (e.pointerId === fireTouchId) { fireTouchId = null; isFiringTouch = false; btnFire.classList.remove('firing'); }
+    if (e.pointerId === stickTouchId) resetStick(e);
+  });
 
   // Fire button (also allows dragging to aim while shooting!)
   btnFire.addEventListener('pointerdown', e => {
@@ -2353,12 +2428,19 @@
       if (!isOnlineMatch) {
         updateNPCAI(dt);
       } else {
+        const lerpF = Math.min(1, dt * 16);
+        pEnemy.pos.lerp(pEnemy.targetPos, lerpF);
+        let dyaw = pEnemy.targetYaw - pEnemy.yaw;
+        while (dyaw > Math.PI) dyaw -= Math.PI * 2;
+        while (dyaw < -Math.PI) dyaw += Math.PI * 2;
+        pEnemy.yaw += dyaw * lerpF;
         netSyncAccum += dt;
         if (netSyncAccum >= 0.045) {
           netSyncAccum = 0;
           sendNet({
             type: 'state',
-            x: pSelf.pos.x, z: pSelf.pos.z, yw: pSelf.yaw, pt: pSelf.pitch, sh: pSelf.shield
+            x: +pSelf.pos.x.toFixed(2), z: +pSelf.pos.z.toFixed(2),
+            yw: +pSelf.yaw.toFixed(3), pt: +pSelf.pitch.toFixed(3), sh: pSelf.shield
           });
         }
       }
