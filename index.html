@@ -386,7 +386,7 @@
               ランク順: アイアン → ブロンズ → シルバー → ゴールド → プラチナ → ダイヤ → エメラルド → マスター → イモータル → チャンピオン（各200pt）
             </div>
             <div style="font-size:11px;color:#94a3b8;">
-              標準増減 ±20pt。格上に勝つと大きく上昇し、格下に負けると大きく減少します。
+              6ゲーム先取制。標準増減 ±20pt。格上に勝つと大きく上昇し、格下に負けると大きく減少します。
             </div>
           </div>
 
@@ -567,7 +567,7 @@
   const EYE_HEIGHT = 1.60;
   const ABILITY_CD = 20.0;
   const MAG_SIZE = 20;
-  const BASE_RELOAD_TIME = 1.65;
+  const BASE_RELOAD_TIME = 3.0;
 
   // ==================== PERSISTENT SETTINGS & RANK ====================
   let config = {
@@ -901,7 +901,26 @@
     [-6, -22, 2.5, 2.2, 2.5, 'crate'], [6, 22, 2.5, 2.2, 2.5, 'crate'],
     [-22, 8, 5.5, 2.8, 1.8, 'wall'], [22, -8, 5.5, 2.8, 1.8, 'wall'],
     [-8, 15, 2.4, 2.4, 2.4, 'crate'], [8, -15, 2.4, 2.4, 2.4, 'crate'],
-    [-32, 0, 2.6, 3.2, 2.6, 'metal'], [32, 0, 2.6, 3.2, 2.6, 'metal']
+    [-32, 0, 2.6, 3.2, 2.6, 'metal'], [32, 0, 2.6, 3.2, 2.6, 'metal'],
+    [-5, -6, 2.2, 2.4, 2.2, 'crate'], [5, 6, 2.2, 2.4, 2.2, 'crate'],
+    [5, -6, 2.2, 2.4, 2.2, 'crate'], [-5, 6, 2.2, 2.4, 2.2, 'crate'],
+    [-16, -6, 4.0, 3.0, 1.8, 'wall'], [16, 6, 4.0, 3.0, 1.8, 'wall'],
+    [16, -6, 4.0, 3.0, 1.8, 'wall'], [-16, 6, 4.0, 3.0, 1.8, 'wall'],
+    [-22, -32, 4.5, 2.8, 2.2, 'wall'], [22, 32, 4.5, 2.8, 2.2, 'wall'],
+    [22, -32, 4.5, 2.8, 2.2, 'wall'], [-22, 32, 4.5, 2.8, 2.2, 'wall'],
+    [-11, -33, 2.6, 2.2, 2.6, 'crate'], [11, 33, 2.6, 2.2, 2.6, 'crate'],
+    [11, -33, 2.6, 2.2, 2.6, 'crate'], [-11, 33, 2.6, 2.2, 2.6, 'crate'],
+    [-34, -14, 2.8, 3.4, 4.0, 'metal'], [34, 14, 2.8, 3.4, 4.0, 'metal'],
+    [34, -14, 2.8, 3.4, 4.0, 'metal'], [-34, 14, 2.8, 3.4, 4.0, 'metal'],
+    // Tall long architectural walls & corridors
+    [-19, 0, 1.8, 5.2, 16.0, 'wall'], [19, 0, 1.8, 5.2, 16.0, 'wall'],
+    [-29, -12, 10.0, 5.0, 1.8, 'wall'], [29, 12, 10.0, 5.0, 1.8, 'wall'],
+    [29, -12, 10.0, 5.0, 1.8, 'wall'], [-29, 12, 10.0, 5.0, 1.8, 'wall'],
+    [-8, -28, 12.0, 4.8, 1.8, 'wall'], [8, 28, 12.0, 4.8, 1.8, 'wall'],
+    [-26, -24, 1.8, 5.0, 10.0, 'wall'], [26, 24, 1.8, 5.0, 10.0, 'wall'],
+    [26, -24, 1.8, 5.0, 10.0, 'wall'], [-26, 24, 1.8, 5.0, 10.0, 'wall'],
+    [-13, -16, 6.0, 4.5, 1.6, 'metal'], [13, 16, 6.0, 4.5, 1.6, 'metal'],
+    [13, -16, 6.0, 4.5, 1.6, 'metal'], [-13, 16, 6.0, 4.5, 1.6, 'metal']
   ];
   layout.forEach(o => addObstacle(o[0], o[1], o[2], o[3], o[4], o[5]));
 
@@ -1005,7 +1024,12 @@
   // ==================== VISUAL EFFECTS (BULLETS, SMOKE, BEAMS, ILLUSIONS) ====================
   const fxList = []; // { mesh, vel, life, maxLife, type }
 
-  function spawnBulletTracer(start, end) {
+  let pendingReplayShots = [];
+
+  function spawnBulletTracer(start, end, fromReplay = false) {
+    if (!fromReplay && matchState === 'playing') {
+      pendingReplayShots.push({ sx: start.x, sy: start.y, sz: start.z, ex: end.x, ey: end.y, ez: end.z });
+    }
     const dir = new THREE.Vector3().subVectors(end, start);
     const dist = dir.length();
     if (dist < 0.1) return;
@@ -1095,6 +1119,8 @@
   let stateTimer = 0;
   let roundNum = 1;
   let suddenDeath = false;
+  let selfGames = 0;
+  let enemyGames = 0;
 
   const selfRig = createCharacterRig(false, false);
   selfRig.group.visible = false; // hidden in 1st-person, visible in replay!
@@ -1139,7 +1165,7 @@
   let replaySpeed = 1;
   let replayCamMode = 'god'; // god | self | enemy
   let godAngle = 0.6;
-  let godPitch = 0.72;
+  let lastReplayRenderIdx = -1;
 
   function recordReplayFrame(events = []) {
     replayFrames.push({
@@ -1152,6 +1178,7 @@
         x: pEnemy.pos.x, z: pEnemy.pos.z, yw: pEnemy.yaw, pt: pEnemy.pitch,
         hp: pEnemy.hp, u: pEnemy.unit, sh: pEnemy.shield, sc: pEnemy.scanGlowT > 0, mf: pEnemy.muzzleT > 0
       },
+      shots: pendingReplayShots.splice(0),
       ev: events
     });
   }
@@ -1350,7 +1377,10 @@
     pSelf.unit = 0;
     pEnemy.unit = 0;
     roundNum = 1;
+    selfGames = 0;
+    enemyGames = 0;
     replayFrames = [];
+    pendingReplayShots = [];
     replayAccum = 0;
 
     setupRound();
@@ -1912,7 +1942,9 @@
     document.getElementById('hud-enemy-unit').textContent = `${pEnemy.unit + 1}機目: ${UNITS[pEnemy.unit].name}`;
     document.getElementById('hud-self-hp').style.width = `${pSelf.hp}%`;
     document.getElementById('hud-enemy-hp').style.width = `${pEnemy.hp}%`;
-    document.getElementById('hud-round-label').textContent = suddenDeath ? 'SUDDEN DEATH' : `ROUND ${roundNum}`;
+    const rText = suddenDeath ? 'SUDDEN DEATH' : `ROUND ${roundNum}`;
+    document.getElementById('hud-round-label').textContent =
+      selectedMode === 'rank' ? `GAME ${selfGames + enemyGames + 1} (${selfGames}-${enemyGames}) | ${rText}` : rText;
 
     const renderPips = (elId, unitIdx, cls) => {
       const el = document.getElementById(elId);
@@ -1958,6 +1990,8 @@
     selfRig.group.visible = true;
     enemyRig.group.visible = true;
     replayIdx = 0;
+    lastReplayRenderIdx = -1;
+    clearFx();
     replayPlaying = true;
     document.getElementById('btn-replay-play').textContent = '⏸';
     const scrub = document.getElementById('replay-scrubber');
@@ -2170,10 +2204,39 @@
       stateTimer -= dt;
       if (stateTimer <= 0) {
         if (pSelf.unit >= 6 || pEnemy.unit >= 6) {
-          finishMatch(pEnemy.unit >= 6);
+          const gameWon = pEnemy.unit >= 6;
+          if (selectedMode === 'rank') {
+            if (gameWon) selfGames++; else enemyGames++;
+            if (selfGames >= 6 || enemyGames >= 6) {
+              finishMatch(selfGames >= 6);
+            } else {
+              matchState = 'game_end';
+              stateTimer = 3.5;
+              const bTitle = document.getElementById('banner-title');
+              const bSub = document.getElementById('banner-sub');
+              const bDet = document.getElementById('banner-detail');
+              bTitle.className = gameWon ? 'text-win' : 'text-lose';
+              bTitle.textContent = gameWon ? `GAME WIN (${selfGames} - ${enemyGames})` : `GAME LOSE (${selfGames} - ${enemyGames})`;
+              bSub.className = '';
+              bSub.textContent = '6ゲーム先取 — 次のゲームへ進みます';
+              bDet.textContent = `現在スコア: ${pSelf.name} ${selfGames}勝 - ${enemyGames}勝 ${pEnemy.name}`;
+              document.getElementById('banner-actions').innerHTML = '';
+              document.getElementById('banner-overlay').classList.add('active');
+            }
+          } else {
+            finishMatch(gameWon);
+          }
         } else {
           setupRound();
         }
+      }
+    } else if (matchState === 'game_end') {
+      stateTimer -= dt;
+      if (stateTimer <= 0) {
+        pSelf.unit = 0;
+        pEnemy.unit = 0;
+        roundNum = 1;
+        setupRound();
       }
     } else if (matchState === 'playing') {
       // Timers
@@ -2291,8 +2354,26 @@
         replayIdx = Math.min(replayFrames.length - 1, replayIdx + dt * 20 * replaySpeed);
         if (replayIdx >= replayFrames.length - 1) replayPlaying = false;
       }
-      const f = replayFrames[Math.floor(replayIdx)];
-      document.getElementById('replay-scrubber').value = Math.floor(replayIdx);
+      const curIdx = Math.floor(replayIdx);
+      if (curIdx !== lastReplayRenderIdx) {
+        if (curIdx > lastReplayRenderIdx && curIdx - lastReplayRenderIdx <= 6) {
+          for (let ri = Math.max(0, lastReplayRenderIdx + 1); ri <= curIdx; ri++) {
+            const rf = replayFrames[ri];
+            if (rf && rf.shots) {
+              rf.shots.forEach(sh => {
+                spawnBulletTracer(
+                  new THREE.Vector3(sh.sx, sh.sy, sh.sz),
+                  new THREE.Vector3(sh.ex, sh.ey, sh.ez),
+                  true
+                );
+              });
+            }
+          }
+        }
+        lastReplayRenderIdx = curIdx;
+      }
+      const f = replayFrames[curIdx];
+      document.getElementById('replay-scrubber').value = curIdx;
       const sec = Math.floor(f.t);
       document.getElementById('replay-time').textContent =
         `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
