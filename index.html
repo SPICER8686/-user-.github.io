@@ -20,6 +20,7 @@
   * { box-sizing: border-box; user-select: none; -webkit-user-select: none; touch-action: none; }
   html, body {
     margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+    overscroll-behavior: none; touch-action: none;
     background: #03060c; color: #f1f5f9;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
@@ -94,8 +95,8 @@
   }
   .player-pill input {
     background: rgba(15, 23, 42, 0.9); border: 1px solid var(--border);
-    color: #fff; border-radius: 6px; padding: 3px 8px; font-size: 12px; width: 120px;
-    user-select: text; -webkit-user-select: text; touch-action: auto;
+    color: #fff; border-radius: 6px; padding: 2px 8px; font-size: 16px; width: 130px;
+    user-select: text; -webkit-user-select: text; touch-action: manipulation;
   }
   .rank-badge {
     padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 800;
@@ -292,6 +293,24 @@
     width: 48px; height: 48px;
     background: rgba(30, 41, 59, 0.85); border: 2px solid #94a3b8; font-size: 10px;
   }
+  #btn-scope {
+    width: 48px; height: 48px;
+    background: rgba(15, 23, 42, 0.85); border: 2px solid #38bdf8; font-size: 10px;
+  }
+  #btn-scope.active {
+    background: rgba(2, 132, 199, 0.9); border-color: #fef08a; color: #fef08a;
+  }
+  #scope-overlay {
+    position: absolute; inset: 0; pointer-events: none; z-index: 14; display: none;
+    background: radial-gradient(circle at center, transparent 34%, rgba(2, 6, 18, 0.72) 52%, rgba(0, 0, 0, 0.96) 72%);
+  }
+  #scope-overlay.active { display: block; }
+  #scope-ring {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    width: 52vh; height: 52vh; max-width: 68%; max-height: 68%;
+    border: 2px solid rgba(56, 189, 248, 0.65); border-radius: 50%;
+    box-shadow: 0 0 25px rgba(56, 189, 248, 0.25) inset;
+  }
 
   /* Round / Match Banner */
   #banner-overlay {
@@ -358,11 +377,37 @@
       <div class="lobby-grid">
         <div class="card">
           <h3>対戦モード選択</h3>
-          <div class="mode-tabs" id="mode-tabs">
+          <div class="mode-tabs" id="mode-tabs" style="grid-template-columns:repeat(5,1fr);">
             <div class="mode-tab active" data-mode="npc">NPC対戦</div>
+            <div class="mode-tab" data-mode="pve">PvE</div>
             <div class="mode-tab" data-mode="random">ランダム</div>
             <div class="mode-tab" data-mode="rank">ランクマッチ</div>
             <div class="mode-tab" data-mode="friend">フレンド</div>
+          </div>
+          <div id="fmt-row" style="display:flex;align-items:center;gap:8px;margin-top:2px;">
+            <span style="font-size:11px;font-weight:700;color:#94a3b8;">対戦形式:</span>
+            <button class="btn btn-sm btn-primary fmt-btn active" data-fmt="1v1">1v1 (6機タイマン)</button>
+            <button class="btn btn-sm fmt-btn" data-fmt="5v5">5v5 (チーム戦)</button>
+          </div>
+
+          <div id="mode-panel-pve" class="mode-panel" style="display:none;">
+            <div style="font-size:12px;color:#cbd5e1;margin-bottom:6px;">
+              プレイヤーチーム（あなた＋味方NPC） vs 同人数の敵NPCチームで戦うPvEモードです。
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;">チーム人数:</span>
+              <button class="btn btn-sm btn-primary pve-size-btn active" data-size="2">2人 (2v2)</button>
+              <button class="btn btn-sm pve-size-btn" data-size="3">3人 (3v3)</button>
+              <button class="btn btn-sm pve-size-btn" data-size="4">4人 (4v4)</button>
+              <button class="btn btn-sm pve-size-btn" data-size="5">5人 (5v5)</button>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;">敵NPC強さ:</span>
+              <button class="btn btn-sm btn-primary pve-diff-btn active" data-diff="easy">初級</button>
+              <button class="btn btn-sm pve-diff-btn" data-diff="normal">中級</button>
+              <button class="btn btn-sm pve-diff-btn" data-diff="hard">上級</button>
+              <button class="btn btn-sm pve-diff-btn" data-diff="expert">達人</button>
+            </div>
           </div>
 
           <div id="mode-panel-npc" class="mode-panel">
@@ -396,7 +441,7 @@
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
               <input id="input-passphrase" type="text" placeholder="合言葉 (例: sakura77)" maxlength="20"
-                style="flex:1;background:#0f172a;border:1px solid var(--border);color:#fff;padding:7px 10px;border-radius:8px;font-size:12px;user-select:text;-webkit-user-select:text;touch-action:auto;">
+                style="flex:1;background:#0f172a;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:8px;font-size:16px;user-select:text;-webkit-user-select:text;touch-action:manipulation;">
             </div>
           </div>
 
@@ -451,6 +496,7 @@
           <div class="ui-drag-handle" data-ctrl="fire" style="width:36px;height:36px;border-color:#f87171;background:rgba(239,68,68,0.25);">射撃</div>
           <div class="ui-drag-handle" data-ctrl="ability" style="width:30px;height:30px;">能力</div>
           <div class="ui-drag-handle" data-ctrl="reload" style="width:26px;height:26px;border-color:#94a3b8;">リロード</div>
+          <div class="ui-drag-handle" data-ctrl="scope" style="width:26px;height:26px;border-color:#fef08a;">2x</div>
         </div>
         <div style="display:flex;justify-content:flex-end;">
           <button class="btn btn-sm" id="btn-reset-ui">配置を初期値に戻す</button>
@@ -503,6 +549,10 @@
         <div class="hm-l hm-3"></div><div class="hm-l hm-4"></div>
       </div>
 
+      <div id="spectate-bar" style="display:none;position:absolute;bottom:66px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);border:1px solid #38bdf8;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:800;pointer-events:auto;z-index:28;gap:10px;align-items:center;">
+        <span id="spectate-label">観戦中: ALLY-1</span>
+        <button class="btn btn-sm btn-primary" id="btn-spec-next">視点切替</button>
+      </div>
       <div id="ammo-box">
         <div id="ammo-text">20 / ∞</div>
         <div id="move-state-text">STAND</div>
@@ -514,9 +564,11 @@
         <div id="stick-walk-ring"></div>
         <div id="stick-knob"></div>
       </div>
+      <div id="scope-overlay"><div id="scope-ring"></div></div>
       <div class="ctrl-btn" id="btn-fire">SHOT</div>
       <div class="ctrl-btn" id="btn-ability">能力</div>
       <div class="ctrl-btn" id="btn-reload">R</div>
+      <div class="ctrl-btn" id="btn-scope">2x</div>
     </div>
 
     <!-- ROUND / MATCH BANNER -->
@@ -544,6 +596,7 @@
         <button class="btn btn-sm" id="btn-replay-speed">1x</button>
       </div>
     </div>
+
   </div>
 </div>
 
@@ -580,7 +633,8 @@
       stick: { x: 14, y: 74 },
       fire: { x: 86, y: 74 },
       ability: { x: 74, y: 80 },
-      reload: { x: 90, y: 50 }
+      reload: { x: 90, y: 50 },
+      scope: { x: 78, y: 52 }
     }
   };
   try {
@@ -632,7 +686,13 @@
     }
   }
 
-  function playSpatialSound(type, worldPos, isSelf = false) {
+  let pendingReplaySounds = [];
+
+  function playSpatialSound(type, worldPos, isSelf = false, fromReplay = false) {
+    if (!fromReplay && matchState === 'playing') {
+      const sp = worldPos || pSelf.pos;
+      pendingReplaySounds.push({ type, x: +sp.x.toFixed(1), y: +(sp.y || 1).toFixed(1), z: +sp.z.toFixed(1) });
+    }
     if (config.muted) return;
     initAudio();
     if (!audioCtx) return;
@@ -1158,6 +1218,16 @@
   };
 
   // ==================== REPLAY RECORDER ====================
+  let teamFormat = '1v1'; // '1v1' | '5v5' | 'pve'
+  let pveTeamSize = 2; // 2..5
+  let isScoped = false;
+  let selfTeamScore = 0;
+  let enemyTeamScore = 0;
+  let teamAllies = [];
+  let teamEnemies = [];
+  let allyUnits = [0, 0, 0, 0];
+  let enemyUnits = [0, 0, 0, 0];
+  let specIdx = 0;
   let replayFrames = [];
   let replayAccum = 0;
   let replayIdx = 0;
@@ -1179,6 +1249,7 @@
         hp: pEnemy.hp, u: pEnemy.unit, sh: pEnemy.shield, sc: pEnemy.scanGlowT > 0, mf: pEnemy.muzzleT > 0
       },
       shots: pendingReplayShots.splice(0),
+      sounds: pendingReplaySounds.splice(0),
       ev: events
     });
   }
@@ -1330,11 +1401,11 @@
       statusEl.textContent = `合言葉「${pass}」でオンラインサーバーに接続中...`;
       subEl.textContent = '同じ合言葉を入力したフレンドが参加すると自動で対戦が始まります';
     } else if (mode === 'rank') {
-      channelKey = 'rank_global';
+      channelKey = 'rank_' + teamFormat;
       statusEl.textContent = 'ランクマッチサーバーに接続中...';
       subEl.textContent = '現在オンラインでランクマッチ待機中のプレイヤーを探しています（NPCとは当たりません）';
     } else {
-      channelKey = 'random_global';
+      channelKey = 'random_' + teamFormat;
       statusEl.textContent = 'ランダムマッチサーバーに接続中...';
       subEl.textContent = '現在オンラインでランダムマッチ待機中のプレイヤーを探しています（NPCとは当たりません）';
     }
@@ -1488,6 +1559,17 @@
     if (id) document.getElementById(id).classList.add('active');
   }
 
+  function isTeamMode() { return teamFormat === '5v5' || selectedMode === 'pve'; }
+  function getTeamSize() { return selectedMode === 'pve' ? pveTeamSize : (teamFormat === '5v5' ? 5 : 1); }
+
+  function setScoped(val) {
+    isScoped = !!val;
+    document.getElementById('scope-overlay').classList.toggle('active', isScoped);
+    document.getElementById('btn-scope').classList.toggle('active', isScoped);
+    camera.fov = isScoped ? 36 : 72; // 2x optical zoom!
+    camera.updateProjectionMatrix();
+  }
+
   function startNewMatch(online) {
     isOnlineMatch = online;
     showScreen(null);
@@ -1497,8 +1579,8 @@
     enemyRig.group.visible = true;
 
     pSelf.name = config.name || 'PLAYER1';
-    if (!online && selectedMode === 'npc') {
-      pEnemy.name = `NPC (${npcDifficulty.toUpperCase()})`;
+    if (!online && (selectedMode === 'npc' || selectedMode === 'pve')) {
+      pEnemy.name = `NPC-${npcDifficulty.toUpperCase()}`;
     }
     pSelf.unit = 0;
     pEnemy.unit = 0;
@@ -1506,7 +1588,13 @@
     selfGames = 0;
     enemyGames = 0;
     replayFrames = [];
+    selfTeamScore = 0;
+    enemyTeamScore = 0;
+    allyUnits = [0, 0, 0, 0];
+    enemyUnits = [0, 0, 0, 0];
+    specIdx = 0;
     pendingReplayShots = [];
+    pendingReplaySounds = [];
     replayAccum = 0;
 
     setupRound();
@@ -1527,10 +1615,65 @@
       p.yaw = yaw; p.targetYaw = yaw; p.pitch = 0;
     };
 
+    // Clear previous 5v5 rigs if any
+    teamAllies.forEach(a => scene.remove(a.rig.group));
+    teamEnemies.forEach(e => scene.remove(e.rig.group));
+    teamAllies = [];
+    teamEnemies = [];
+
     const selfZ = isOnlineMatch && !isHost ? -32 : 32;
     const selfYaw = isOnlineMatch && !isHost ? Math.PI : 0;
     resetP(pSelf, selfZ, selfYaw);
     resetP(pEnemy, -selfZ, selfYaw === 0 ? Math.PI : 0);
+
+    document.getElementById('spectate-bar').style.display = 'none';
+    gunGroup.visible = true;
+    enemyRig.group.visible = true;
+
+    setScoped(false);
+    if (isTeamMode()) {
+      const tSize = getTeamSize();
+      suddenDeath = false;
+      pSelf.pos.set(-14, 0, selfZ);
+      if (pSelf.unit >= 6) pSelf.hp = 0;
+      pEnemy.pos.set(14, 0, -selfZ);
+      pEnemy.targetPos.copy(pEnemy.pos);
+      if (pEnemy.unit >= 6) { pEnemy.hp = 0; enemyRig.group.visible = false; }
+
+      for (let i = 1; i < tSize; i++) {
+        const idx = i - 1;
+        const u = allyUnits[idx];
+        const alive = u < 6;
+        const ax = -14 + i * 7;
+        const aRig = createCharacterRig(false, false);
+        aRig.group.position.set(ax, 0, selfZ);
+        aRig.group.rotation.y = selfYaw;
+        aRig.group.visible = alive;
+        scene.add(aRig.group);
+        teamAllies.push({
+          name: `ALLY-${i}`, hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, selfZ),
+          yaw: selfYaw, rig: aRig, fireCd: Math.random() * 0.4, strafeDir: i % 2 ? 1 : -1, strafeT: 1,
+          abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false
+        });
+      }
+      for (let i = 1; i < tSize; i++) {
+        const idx = i - 1;
+        const u = enemyUnits[idx];
+        const alive = u < 6;
+        const ex = -14 + i * 7;
+        const eRig = createCharacterRig(true, false);
+        eRig.group.position.set(ex, 0, -selfZ);
+        eRig.group.rotation.y = selfYaw === 0 ? Math.PI : 0;
+        eRig.group.visible = alive;
+        eRig.hitboxes.forEach(hb => { hb.userData.teamIdx = idx; });
+        scene.add(eRig.group);
+        teamEnemies.push({
+          name: `ENEMY-${i}`, hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ex, 0, -selfZ),
+          yaw: selfYaw === 0 ? Math.PI : 0, rig: eRig, fireCd: Math.random() * 0.4, strafeDir: i % 2 ? -1 : 1, strafeT: 1,
+          abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false
+        });
+      }
+    }
 
     aimTouchId = null; fireTouchId = null; stickTouchId = null; isFiringTouch = false;
     btnFire.classList.remove('firing');
@@ -1548,7 +1691,9 @@
 
     bTitle.className = suddenDeath ? 'text-sd' : '';
     bTitle.textContent = suddenDeath ? 'SUDDEN DEATH!' : `ROUND ${roundNum}`;
-    bSub.textContent = `${pSelf.unit + 1}機目 (${UNITS[pSelf.unit].name})  VS  ${pEnemy.unit + 1}機目 (${UNITS[pEnemy.unit].name})`;
+    bSub.textContent = isTeamMode()
+      ? `${getTeamSize()}v${getTeamSize()} TEAM BATTLE — BLUE ${selfTeamScore} : ${enemyTeamScore} RED`
+      : `${pSelf.unit + 1}機目 (${UNITS[pSelf.unit].name})  VS  ${pEnemy.unit + 1}機目 (${UNITS[pEnemy.unit].name})`;
     bDet.textContent = suddenDeath ? '6機目 vs 6機目 — アビリティなしの純粋1v1！' : '位置・弾薬・アビリティリセット完了';
     banner.classList.add('active');
   }
@@ -1578,9 +1723,17 @@
     bDet.textContent = `決着: ${reason} — 次のラウンドまで待機中...`;
     banner.classList.add('active');
 
-    // Loser advances to next unit; winner keeps current unit
-    if (selfWon) pEnemy.unit++;
-    else pSelf.unit++;
+    if (isTeamMode()) {
+      if (selfWon) selfTeamScore++; else enemyTeamScore++;
+      if (pSelf.hp <= 0 && pSelf.unit < 6) pSelf.unit++;
+      if (pEnemy.hp <= 0 && pEnemy.unit < 6) pEnemy.unit++;
+      teamAllies.forEach((a, idx) => { if (a.hp <= 0 && allyUnits[idx] < 6) allyUnits[idx]++; });
+      teamEnemies.forEach((e, idx) => { if (e.hp <= 0 && enemyUnits[idx] < 6) enemyUnits[idx]++; });
+    } else {
+      // Loser advances to next unit; winner keeps current unit
+      if (selfWon) pEnemy.unit++;
+      else pSelf.unit++;
+    }
     roundNum++;
 
     recordReplayFrame([selfWon ? 'ROUND_WIN' : 'ROUND_LOSE']);
@@ -1651,17 +1804,18 @@
     document.getElementById('hud').classList.remove('active');
     document.getElementById('banner-overlay').classList.remove('active');
     document.getElementById('replay-ui').classList.remove('active');
+
     showScreen('screen-lobby');
   }
 
   // ==================== COMBAT & ABILITIES ====================
   function fireSelfWeapon() {
-    if (matchState !== 'playing') return;
+    if (matchState !== 'playing' || pSelf.hp <= 0) return;
     if (pSelf.reloading > 0 || pSelf.fireCd > 0) return;
     if (pSelf.ammo <= 0) { startReload(pSelf, true); return; }
 
     const isCluster = pSelf.clusterT > 0;
-    pSelf.fireCd = isCluster ? 0.0425 : 0.085;
+    pSelf.fireCd = isCluster ? 0.062 : 0.085;
     if (!isCluster) pSelf.ammo--;
 
     pSelf.muzzleT = 0.07;
@@ -1688,7 +1842,10 @@
     raycaster.setFromCamera(new THREE.Vector2(spreadNdcX, spreadNdcY), camera);
     raycaster.far = 120;
 
-    const targets = [...obstacleMeshes, ...enemyRig.hitboxes];
+    const extraEnemyHbs = isTeamMode()
+      ? teamEnemies.filter(e => e.hp > 0).flatMap(e => e.rig.hitboxes)
+      : [];
+    const targets = [...obstacleMeshes, ...(pEnemy.hp > 0 ? enemyRig.hitboxes : []), ...extraEnemyHbs];
     const hits = raycaster.intersectObjects(targets, false);
 
     const startPos = new THREE.Vector3();
@@ -1708,12 +1865,23 @@
         } else {
           showHitmarker(part === 'head');
           playSpatialSound(part === 'head' ? 'headshot' : 'hit', null, true);
-          pEnemy.hp = Math.max(0, pEnemy.hp - dmg);
-          if (isOnlineMatch) {
-            sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } }, true);
+          const tIdx = h.object.userData.teamIdx;
+          if (tIdx !== undefined && isTeamMode()) {
+            const te = teamEnemies[tIdx];
+            if (te && te.hp > 0) {
+              te.hp = Math.max(0, te.hp - dmg);
+              if (te.hp <= 0) te.rig.group.visible = false;
+            }
+          } else {
+            pEnemy.hp = Math.max(0, pEnemy.hp - dmg);
+            if (isOnlineMatch) {
+              sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } }, true);
+            }
+            if (pEnemy.hp <= 0 && isTeamMode()) enemyRig.group.visible = false;
           }
-          if (pEnemy.hp <= 0) {
-            endRound(true, part === 'head' ? 'HEADSHOT (100 DMG)' : 'BODY/LEG SHOT');
+          const enemyAlive = (pEnemy.hp > 0 ? 1 : 0) + teamEnemies.filter(e => e.hp > 0).length;
+          if (!isTeamMode() ? pEnemy.hp <= 0 : enemyAlive === 0) {
+            endRound(true, part === 'head' ? 'HEADSHOT (100 DMG)' : 'ELIMINATED');
           }
         }
       }
@@ -1748,7 +1916,7 @@
   }
 
   function useSelfAbility() {
-    if (matchState !== 'playing' || suddenDeath || pSelf.abCd > 0) return;
+    if (matchState !== 'playing' || pSelf.hp <= 0 || suddenDeath || pSelf.abCd > 0) return;
     pSelf.abCd = ABILITY_CD;
     playSpatialSound('ability', null, true);
     const u = pSelf.unit;
@@ -1788,7 +1956,7 @@
       pSelf.shield = true;
     } else if (u === 5) {
       // Cluster Cannon: Rapid fire (no ammo) + no recoil
-      pSelf.clusterT = 5.0;
+      pSelf.clusterT = 3.2;
     }
 
     if (isOnlineMatch) {
@@ -1830,25 +1998,34 @@
     setTimeout(() => { df.style.opacity = '0'; }, 140);
     updateHUD();
     if (pSelf.hp <= 0) {
+      if (isTeamMode()) {
+        const aliveAllies = teamAllies.filter(a => a.hp > 0);
+        if (aliveAllies.length > 0) {
+          gunGroup.visible = false;
+          document.getElementById('spectate-bar').style.display = 'flex';
+          return;
+        }
+      }
       endRound(false, part === 'head' ? 'HEADSHOT (100 DMG)' : 'ELIMINATED');
     }
   }
 
   // ==================== NPC AI LOGIC ====================
   function updateNPCAI(dt) {
-    if (isOnlineMatch || matchState !== 'playing') return;
+    if (isOnlineMatch || matchState !== 'playing' || pEnemy.hp <= 0) return;
     const diffCfg = {
-      easy:   { speed: 3.8, aimErr: 0.20, fireInt: 0.55, hsProb: 0.04 },
-      normal: { speed: 4.8, aimErr: 0.12, fireInt: 0.36, hsProb: 0.09 },
-      hard:   { speed: 5.7, aimErr: 0.06, fireInt: 0.25, hsProb: 0.16 },
-      expert: { speed: 6.4, aimErr: 0.03, fireInt: 0.19, hsProb: 0.24 }
-    }[npcDifficulty] || { speed: 4.8, aimErr: 0.12, fireInt: 0.36, hsProb: 0.09 };
+      easy:   { speed: 3.6, turnSpd: 3.2, aimJitter: 0.16, burstLen: 4, burstPause: 0.75, hsProb: 0.03 },
+      normal: { speed: 4.6, turnSpd: 4.5, aimJitter: 0.10, burstLen: 5, burstPause: 0.50, hsProb: 0.06 },
+      hard:   { speed: 5.5, turnSpd: 6.0, aimJitter: 0.06, burstLen: 6, burstPause: 0.35, hsProb: 0.11 },
+      expert: { speed: 6.2, turnSpd: 7.5, aimJitter: 0.038, burstLen: 7, burstPause: 0.25, hsProb: 0.16 }
+    }[npcDifficulty] || { speed: 4.6, turnSpd: 4.5, aimJitter: 0.10, burstLen: 5, burstPause: 0.50, hsProb: 0.06 };
 
     pEnemy.fireCd = Math.max(0, pEnemy.fireCd - dt);
     pEnemy.abCd = Math.max(0, pEnemy.abCd - dt);
     pEnemy.rushT = Math.max(0, pEnemy.rushT - dt);
     pEnemy.clusterT = Math.max(0, pEnemy.clusterT - dt);
     pEnemy.scanGlowT = Math.max(0, pEnemy.scanGlowT - dt);
+    pEnemy.aiBurstT = Math.max(0, (pEnemy.aiBurstT || 0) - dt);
     if (pEnemy.reloading > 0) {
       pEnemy.reloading -= dt;
       if (pEnemy.reloading <= 0) pEnemy.ammo = MAG_SIZE;
@@ -1856,12 +2033,23 @@
 
     const toPlayer = new THREE.Vector3().subVectors(pSelf.pos, pEnemy.pos);
     const dist = toPlayer.length();
-    const targetYaw = Math.atan2(-toPlayer.x, -toPlayer.z);
-    pEnemy.yaw = targetYaw;
+    const desiredYaw = Math.atan2(-toPlayer.x, -toPlayer.z);
+
+    // Human-like finite turn speed + continuous aim drift
+    if (pEnemy._aimErrT === undefined || pEnemy._aimErrT <= 0) {
+      pEnemy._aimErrT = 0.28 + Math.random() * 0.35;
+      pEnemy._aimOff = (Math.random() - 0.5) * 2 * diffCfg.aimJitter;
+    }
+    pEnemy._aimErrT -= dt;
+    let dYaw = (desiredYaw + (pEnemy._aimOff || 0)) - pEnemy.yaw;
+    while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+    while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+    const maxTurn = diffCfg.turnSpd * dt;
+    pEnemy.yaw += Math.max(-maxTurn, Math.min(maxTurn, dYaw));
 
     const eEye = new THREE.Vector3(pEnemy.pos.x, EYE_HEIGHT, pEnemy.pos.z);
     const sEye = new THREE.Vector3(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
-    const canSee = hasLineOfSight(eEye, sEye);
+    const canSee = pSelf.hp > 0 && hasLineOfSight(eEye, sEye);
 
     // Movement
     pEnemy.aiStrafeT -= dt;
@@ -1870,8 +2058,8 @@
       pEnemy.aiStrafeT = 0.8 + Math.random() * 1.4;
     }
     const spd = diffCfg.speed * (pEnemy.rushT > 0 ? 1.55 : 1.0);
-    const fx = -Math.sin(pEnemy.yaw); const fz = -Math.cos(pEnemy.yaw);
-    const rx = Math.cos(pEnemy.yaw); const rz = -Math.sin(pEnemy.yaw);
+    const fx = -Math.sin(pEnemy.yaw), fz = -Math.cos(pEnemy.yaw);
+    const rx = Math.cos(pEnemy.yaw), rz = -Math.sin(pEnemy.yaw);
 
     let mx = 0, mz = 0;
     if (!canSee || dist > 16) {
@@ -1904,37 +2092,54 @@
       else if (u === 2) { triggerEnemyAbilityVisual(2, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
       else if (u === 3) { triggerEnemyAbilityVisual(3, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
       else if (u === 4) { pEnemy.shield = true; triggerEnemyAbilityVisual(4, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
-      else if (u === 5) { pEnemy.clusterT = 5.0; triggerEnemyAbilityVisual(5, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
+      else if (u === 5) { pEnemy.clusterT = 3.2; triggerEnemyAbilityVisual(5, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
     }
 
-    // Shoot if visible
-    if (canSee && pEnemy.reloading <= 0 && pEnemy.fireCd <= 0) {
+    // Shoot with player's exact rifle fire rate (0.085s / 0.062s), 20-round mag & 3.0s reload
+    if (canSee && pEnemy.reloading <= 0 && pEnemy.fireCd <= 0 && pEnemy.aiBurstT <= 0) {
       if (pEnemy.ammo <= 0) {
         startReload(pEnemy, false);
+        playSpatialSound('reload', pEnemy.pos, false);
         return;
       }
       const isCluster = pEnemy.clusterT > 0;
-      pEnemy.fireCd = isCluster ? diffCfg.fireInt * 0.55 : diffCfg.fireInt;
+      pEnemy.fireCd = isCluster ? 0.062 : 0.085;
       if (!isCluster) pEnemy.ammo--;
+      pEnemy._burstCnt = (pEnemy._burstCnt || 0) + 1;
+      if (pEnemy._burstCnt >= diffCfg.burstLen) {
+        pEnemy._burstCnt = 0;
+        pEnemy.aiBurstT = diffCfg.burstPause + Math.random() * 0.25;
+      }
+
       pEnemy.muzzleT = 0.07;
       playSpatialSound('gunshot', pEnemy.pos, false);
 
+      // Actual aim direction with movement spread & recoil
+      const spread = diffCfg.aimJitter + 0.055; // moving spread like player
+      const shotYaw = pEnemy.yaw + (Math.random() - 0.5) * 2 * spread;
+      const shotPitch = (Math.random() - 0.5) * 2 * spread * 0.65;
+      const shotDir = new THREE.Vector3(
+        -Math.sin(shotYaw) * Math.cos(shotPitch),
+        Math.sin(shotPitch),
+        -Math.cos(shotYaw) * Math.cos(shotPitch)
+      ).normalize();
+
       const startPos = new THREE.Vector3(pEnemy.pos.x, 1.32, pEnemy.pos.z);
-      const aimOffset = new THREE.Vector3(
-        (Math.random() - 0.5) * diffCfg.aimErr * dist,
-        (Math.random() - 0.5) * diffCfg.aimErr * dist,
-        (Math.random() - 0.5) * diffCfg.aimErr * dist
-      );
-      const endPos = sEye.clone().add(aimOffset);
+      const endPos = eEye.clone().addScaledVector(shotDir, Math.min(60, dist + 6));
       spawnBulletTracer(startPos, endPos);
 
-      // Hit check
-      const hitChance = Math.max(0.15, 0.85 - dist * 0.015 - diffCfg.aimErr * 1.6);
-      if (Math.random() < hitChance) {
-        const isHS = Math.random() < diffCfg.hsProb;
+      // Check angular accuracy against player hitbox
+      const toEye = new THREE.Vector3().subVectors(sEye, eEye).normalize();
+      const angErr = shotDir.angleTo(toEye);
+      const hitAngleThreshold = Math.atan2(0.36, Math.max(2, dist));
+      if (angErr < hitAngleThreshold) {
+        const isHS = angErr < hitAngleThreshold * 0.28 && Math.random() < diffCfg.hsProb * 2.5;
         applyDamageToSelf(isHS ? 100 : 18, isHS ? 'head' : 'torso', pEnemy.pos);
       }
-      if (pEnemy.ammo <= 0 && !isCluster) startReload(pEnemy, false);
+      if (pEnemy.ammo <= 0 && !isCluster) {
+        startReload(pEnemy, false);
+        playSpatialSound('reload', pEnemy.pos, false);
+      }
     }
   }
 
@@ -1945,6 +2150,7 @@
   const btnFire = document.getElementById('btn-fire');
   const btnAbility = document.getElementById('btn-ability');
   const btnReload = document.getElementById('btn-reload');
+  const btnScope = document.getElementById('btn-scope');
 
   let stickInput = { x: 0, y: 0, mag: 0 };
   let stickTouchId = null;
@@ -1964,6 +2170,7 @@
     place(btnFire, config.ui.fire);
     place(btnAbility, config.ui.ability);
     place(btnReload, config.ui.reload);
+    if (config.ui.scope) place(btnScope, config.ui.scope);
   }
   applyUILayout();
 
@@ -2013,7 +2220,7 @@
       const dx = Math.max(-90, Math.min(90, e.clientX - lastAimPos.x));
       const dy = Math.max(-90, Math.min(90, e.clientY - lastAimPos.y));
       lastAimPos = { x: e.clientX, y: e.clientY };
-      const s = 0.0042 * config.sens;
+      const s = 0.0042 * config.sens * (isScoped ? 0.55 : 1.0);
       pSelf.yaw -= dx * s;
       pSelf.pitch = Math.max(-1.25, Math.min(1.25, pSelf.pitch - dy * s));
     }
@@ -2049,7 +2256,7 @@
       const dx = e.clientX - lastFireAimPos.x;
       const dy = e.clientY - lastFireAimPos.y;
       lastFireAimPos = { x: e.clientX, y: e.clientY };
-      const s = 0.0038 * config.sens;
+      const s = 0.0038 * config.sens * (isScoped ? 0.55 : 1.0);
       pSelf.yaw -= dx * s;
       pSelf.pitch = Math.max(-1.25, Math.min(1.25, pSelf.pitch - dy * s));
     }
@@ -2065,6 +2272,7 @@
 
   btnAbility.addEventListener('pointerdown', e => { e.stopPropagation(); initAudio(); useSelfAbility(); });
   btnReload.addEventListener('pointerdown', e => { e.stopPropagation(); initAudio(); startReload(pSelf, true); });
+  btnScope.addEventListener('pointerdown', e => { e.stopPropagation(); initAudio(); if (matchState === 'playing' && pSelf.hp > 0) setScoped(!isScoped); });
 
   // Desktop keyboard convenience
   window.addEventListener('keydown', e => {
@@ -2099,8 +2307,21 @@
         el.appendChild(d);
       }
     };
-    renderPips('hud-self-pips', pSelf.unit, 'self');
-    renderPips('hud-enemy-pips', pEnemy.unit, 'enemy');
+    if (isTeamMode()) {
+      const tSize = getTeamSize();
+      const tSub = tSize - 1;
+      const aAlive = (pSelf.hp > 0 ? 1 : 0) + teamAllies.filter(a => a.hp > 0).length;
+      const eAlive = (pEnemy.hp > 0 ? 1 : 0) + teamEnemies.filter(e => e.hp > 0).length;
+      const aRemain = (pSelf.unit < 6 ? 1 : 0) + allyUnits.slice(0, tSub).filter(u => u < 6).length;
+      const eRemain = (pEnemy.unit < 6 ? 1 : 0) + enemyUnits.slice(0, tSub).filter(u => u < 6).length;
+      document.getElementById('hud-self-unit').textContent = `残り ${aAlive}/${tSize}人 (残機あり${aRemain})`;
+      document.getElementById('hud-enemy-unit').textContent = `残り ${eAlive}/${tSize}人 (残機あり${eRemain})`;
+      document.getElementById('hud-self-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < aAlive ? 'alive self' : ''}"></div>`).join('');
+      document.getElementById('hud-enemy-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < eAlive ? 'alive enemy' : ''}"></div>`).join('');
+    } else {
+      renderPips('hud-self-pips', pSelf.unit, 'self');
+      renderPips('hud-enemy-pips', pEnemy.unit, 'enemy');
+    }
 
     document.getElementById('ammo-text').textContent =
       pSelf.reloading > 0 ? `RELOAD ${pSelf.reloading.toFixed(1)}s` : `${pSelf.ammo} / ∞`;
@@ -2196,6 +2417,173 @@
       selectedMode = tab.dataset.mode;
       document.querySelectorAll('.mode-panel').forEach(p => p.style.display = 'none');
       document.getElementById(`mode-panel-${selectedMode}`).style.display = 'block';
+      document.getElementById('fmt-row').style.display = selectedMode === 'pve' ? 'none' : 'flex';
+    });
+  });
+
+  document.getElementById('btn-spec-next').addEventListener('click', () => {
+    specIdx++;
+  });
+
+  document.querySelectorAll('.fmt-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.fmt-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
+      b.classList.add('active', 'btn-primary');
+      teamFormat = b.dataset.fmt;
+    });
+  });
+
+  function update5v5Bots(dt) {
+    if (matchState !== 'playing') return;
+    const allBlues = [{ pos: pSelf.pos, hp: pSelf.hp, isPlayer: true }, ...teamAllies];
+    const allReds = [{ pos: pEnemy.pos, hp: pEnemy.hp, isMainEnemy: true }, ...teamEnemies];
+
+    const stepBot = (bot, targets, isRedBot) => {
+      if (bot.hp <= 0) return;
+      if (bot.ammo === undefined) { bot.ammo = MAG_SIZE; bot.reloading = 0; bot.burstCnt = 0; bot.burstPause = 0; }
+      bot.fireCd = Math.max(0, bot.fireCd - dt);
+      bot.abCd = Math.max(0, (bot.abCd || 0) - dt);
+      bot.rushT = Math.max(0, (bot.rushT || 0) - dt);
+      bot.clusterT = Math.max(0, (bot.clusterT || 0) - dt);
+      bot.scanGlowT = Math.max(0, (bot.scanGlowT || 0) - dt);
+      bot.burstPause = Math.max(0, bot.burstPause - dt);
+      bot.rig.shieldMat.opacity = bot.shield ? 0.55 : 0;
+      bot.rig.scanMat.opacity = bot.scanGlowT > 0 ? 0.85 : 0;
+      if (bot.reloading > 0) {
+        bot.reloading -= dt;
+        if (bot.reloading <= 0) bot.ammo = MAG_SIZE;
+      }
+
+      const aliveT = targets.filter(t => t.hp > 0);
+      if (aliveT.length === 0) return;
+      let nearest = aliveT[0], minD = Infinity;
+      for (const t of aliveT) {
+        const d = bot.pos.distanceTo(t.pos);
+        if (d < minD) { minD = d; nearest = t; }
+      }
+      const toT = new THREE.Vector3().subVectors(nearest.pos, bot.pos);
+      const desiredYaw = Math.atan2(-toT.x, -toT.z);
+      let dYaw = desiredYaw - bot.yaw;
+      while (dYaw > Math.PI) dYaw -= Math.PI * 2;
+      while (dYaw < -Math.PI) dYaw += Math.PI * 2;
+      const maxT = 4.5 * dt;
+      bot.yaw += Math.max(-maxT, Math.min(maxT, dYaw));
+      bot.rig.group.position.copy(bot.pos);
+      bot.rig.group.rotation.y = bot.yaw;
+
+      const fx = -Math.sin(bot.yaw), fz = -Math.cos(bot.yaw);
+      const rx = Math.cos(bot.yaw), rz = -Math.sin(bot.yaw);
+      bot.strafeT -= dt;
+      if (bot.strafeT <= 0) { bot.strafeDir *= -1; bot.strafeT = 1.0 + Math.random(); }
+      const spd = 4.2 * (bot.rushT > 0 ? 1.55 : 1.0);
+      const mx = (minD > 14 ? fx : 0) + rx * 0.6 * bot.strafeDir;
+      const mz = (minD > 14 ? fz : 0) + rz * 0.6 * bot.strafeDir;
+      const ml = Math.hypot(mx, mz) || 1;
+      bot.pos.x += (mx / ml) * spd * dt;
+      bot.pos.z += (mz / ml) * spd * dt;
+      resolveCircleObstacles(bot.pos, PLAYER_RADIUS);
+
+      const bEye = new THREE.Vector3(bot.pos.x, EYE_HEIGHT, bot.pos.z);
+      const tEye = new THREE.Vector3(nearest.pos.x, EYE_HEIGHT, nearest.pos.z);
+      // Bot uses its unit ability (all 6 abilities!)
+      if (bot.abCd <= 0 && (minD < 26 || hasLineOfSight(bEye, tEye))) {
+        bot.abCd = ABILITY_CD;
+        const u = bot.unit;
+        playSpatialSound('ability', bot.pos, false);
+        if (u === 0) {
+          bot.pos.x += fx * 8.5; bot.pos.z += fz * 8.5;
+          resolveCircleObstacles(bot.pos, PLAYER_RADIUS);
+          spawnSmokePlume(bot.pos);
+        } else if (u === 1) {
+          bot.rushT = 5.5;
+        } else if (u === 2) {
+          const il = createCharacterRig(isRedBot, true);
+          il.group.position.copy(bot.pos);
+          il.group.rotation.y = bot.yaw;
+          scene.add(il.group);
+          illusions.push({ mesh: il.group, owner: isRedBot ? 'enemy' : 'self', life: 12.0 });
+        } else if (u === 3) {
+          spawnScannerBeam(bot.pos, bot.yaw);
+          aliveT.forEach(t => {
+            const toE = new THREE.Vector3().subVectors(t.pos, bot.pos);
+            const fd = toE.x * fx + toE.z * fz;
+            const sd = Math.abs(toE.x * (-fz) + toE.z * fx);
+            if (fd > 0 && fd < 42 && sd < 1.8) {
+              if (t.isPlayer) pSelf.scanGlowT = 6.0;
+              else if (t.isMainEnemy) pEnemy.scanGlowT = 6.0;
+              else t.scanGlowT = 6.0;
+            }
+          });
+        } else if (u === 4) {
+          bot.shield = true;
+        } else if (u === 5) {
+          bot.clusterT = 3.2;
+        }
+      }
+
+      if (bot.reloading <= 0 && bot.fireCd <= 0 && bot.burstPause <= 0 && hasLineOfSight(bEye, tEye)) {
+        if (bot.ammo <= 0) {
+          bot.reloading = bot.rushT > 0 ? BASE_RELOAD_TIME * 0.5 : BASE_RELOAD_TIME;
+          playSpatialSound('reload', bot.pos, false);
+          return;
+        }
+        const isCluster = bot.clusterT > 0;
+        bot.fireCd = isCluster ? 0.062 : 0.085;
+        if (!isCluster) bot.ammo--;
+        bot.burstCnt++;
+        if (bot.burstCnt >= 4) {
+          bot.burstCnt = 0;
+          bot.burstPause = 0.45 + Math.random() * 0.35;
+        }
+        playSpatialSound('gunshot', bot.pos, false);
+        const spread = 0.14;
+        const sy = bot.yaw + (Math.random() - 0.5) * 2 * spread;
+        const sp = (Math.random() - 0.5) * 2 * spread * 0.6;
+        const sDir = new THREE.Vector3(-Math.sin(sy)*Math.cos(sp), Math.sin(sp), -Math.cos(sy)*Math.cos(sp)).normalize();
+        const endP = bEye.clone().addScaledVector(sDir, Math.min(60, minD + 5));
+        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), endP);
+
+        const toEye = new THREE.Vector3().subVectors(tEye, bEye).normalize();
+        if (sDir.angleTo(toEye) < Math.atan2(0.35, Math.max(2, minD))) {
+          if (nearest.isPlayer) {
+            applyDamageToSelf(18, 'torso', bot.pos);
+          } else if (nearest.shield) {
+            nearest.shield = false;
+            playSpatialSound('shieldBreak', nearest.pos, false);
+          } else {
+            nearest.hp = Math.max(0, nearest.hp - 18);
+            if (nearest.hp <= 0 && nearest.rig) nearest.rig.group.visible = false;
+            if (nearest.hp <= 0 && nearest.isMainEnemy) enemyRig.group.visible = false;
+          }
+        }
+        if (bot.ammo <= 0 && !isCluster) {
+          bot.reloading = bot.rushT > 0 ? BASE_RELOAD_TIME * 0.5 : BASE_RELOAD_TIME;
+          playSpatialSound('reload', bot.pos, false);
+        }
+      }
+    };
+
+    teamAllies.forEach(a => stepBot(a, allReds, false));
+    teamEnemies.forEach(e => stepBot(e, allBlues, true));
+
+    const bAlive = allBlues.filter(b => b.hp > 0).length;
+    const rAlive = allReds.filter(r => r.hp > 0).length;
+    if (rAlive === 0) endRound(true, 'TEAM ELIMINATED');
+    else if (bAlive === 0) endRound(false, 'TEAM WIPED OUT');
+  }
+
+  document.querySelectorAll('.pve-size-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.pve-size-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
+      b.classList.add('active', 'btn-primary');
+      pveTeamSize = parseInt(b.dataset.size, 10);
+    });
+  });
+  document.querySelectorAll('.pve-diff-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.pve-diff-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
+      b.classList.add('active', 'btn-primary');
+      npcDifficulty = b.dataset.diff;
     });
   });
 
@@ -2210,7 +2598,7 @@
 
   document.getElementById('btn-start-match').addEventListener('click', () => {
     initAudio();
-    if (selectedMode === 'npc') startNewMatch(false);
+    if (selectedMode === 'npc' || selectedMode === 'pve') startNewMatch(false);
     else startMatchmaking(selectedMode);
   });
 
@@ -2267,7 +2655,8 @@
       stick: { x: 14, y: 74 },
       fire: { x: 86, y: 74 },
       ability: { x: 74, y: 80 },
-      reload: { x: 90, y: 50 }
+      reload: { x: 90, y: 50 },
+      scope: { x: 78, y: 52 }
     };
     syncSettingsHandles();
     applyUILayout();
@@ -2347,8 +2736,14 @@
     } else if (matchState === 'round_end') {
       stateTimer -= dt;
       if (stateTimer <= 0) {
-        if (pSelf.unit >= 6 || pEnemy.unit >= 6) {
-          const gameWon = pEnemy.unit >= 6;
+        const tSub = getTeamSize() - 1;
+        const blueAllOut = pSelf.unit >= 6 && allyUnits.slice(0, tSub).every(u => u >= 6);
+        const redAllOut = pEnemy.unit >= 6 && enemyUnits.slice(0, tSub).every(u => u >= 6);
+        const isMatchDone = isTeamMode()
+          ? (blueAllOut || redAllOut)
+          : (pSelf.unit >= 6 || pEnemy.unit >= 6);
+        if (isMatchDone) {
+          const gameWon = isTeamMode() ? redAllOut : (pEnemy.unit >= 6);
           if (selectedMode === 'rank') {
             if (gameWon) selfGames++; else enemyGames++;
             if (selfGames >= 6 || enemyGames >= 6) {
@@ -2449,6 +2844,7 @@
       if (isFiringTouch) fireSelfWeapon();
 
       // Update NPC or send online state
+      if (isTeamMode()) update5v5Bots(dt);
       if (!isOnlineMatch) {
         updateNPCAI(dt);
       } else {
@@ -2481,15 +2877,29 @@
         }
       }
 
-      // Sync Camera & Gun Viewmodel
-      camera.position.set(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
-      camera.rotation.order = 'YXZ';
-      camera.rotation.y = pSelf.yaw + pSelf.recoilYaw;
-      camera.rotation.x = pSelf.pitch + pSelf.recoilPitch;
+      // Sync Camera (or Ally Spectate POV if dead in 5v5)
+      if (isTeamMode() && pSelf.hp <= 0) {
+        gunGroup.visible = false;
+        const aliveAllies = teamAllies.filter(a => a.hp > 0);
+        if (aliveAllies.length > 0) {
+          document.getElementById('spectate-bar').style.display = 'flex';
+          const target = aliveAllies[specIdx % aliveAllies.length];
+          document.getElementById('spectate-label').textContent = `観戦中: ${target.name} (${target.unit + 1}機目)`;
+          camera.position.set(target.pos.x, EYE_HEIGHT, target.pos.z);
+          camera.rotation.order = 'YXZ';
+          camera.rotation.y = target.yaw;
+          camera.rotation.x = 0;
+        }
+      } else {
+        camera.position.set(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = pSelf.yaw + pSelf.recoilYaw;
+        camera.rotation.x = pSelf.pitch + pSelf.recoilPitch;
+        gunGroup.visible = true;
+      }
 
       muzzleMesh.material.opacity = pSelf.muzzleT > 0 ? 0.95 : 0;
       muzzleLight.intensity = pSelf.muzzleT > 0 ? 3.5 : 0;
-      gunGroup.visible = true;
       gunGroup.position.z = -0.38 + pSelf.recoilPitch * 0.9;
       gunGroup.rotation.x = pSelf.reloading > 0 ? -0.55 : pSelf.recoilPitch * 1.4;
 
@@ -2531,6 +2941,11 @@
                 );
               });
             }
+            if (rf && rf.sounds && replayPlaying) {
+              rf.sounds.forEach(sn => {
+                playSpatialSound(sn.type, new THREE.Vector3(sn.x, sn.y, sn.z), false, true);
+              });
+            }
           }
         }
         lastReplayRenderIdx = curIdx;
@@ -2559,6 +2974,7 @@
         godAngle += dt * 0.15;
         camera.position.set(Math.sin(godAngle) * 46, 36, Math.cos(godAngle) * 46);
         camera.lookAt(0, 0, 0);
+        updateAudioListener(camera.position, godAngle, -0.55);
       } else if (replayCamMode === 'self') {
         selfRig.group.visible = false;
         enemyRig.group.visible = true;
@@ -2566,6 +2982,7 @@
         camera.rotation.order = 'YXZ';
         camera.rotation.y = f.s.yw;
         camera.rotation.x = f.s.pt;
+        updateAudioListener(camera.position, f.s.yw, f.s.pt);
       } else {
         selfRig.group.visible = true;
         enemyRig.group.visible = false;
@@ -2573,11 +2990,30 @@
         camera.rotation.order = 'YXZ';
         camera.rotation.y = f.e.yw;
         camera.rotation.x = f.e.pt;
+        updateAudioListener(camera.position, f.e.yw, f.e.pt);
       }
     }
-
     renderer.render(scene, camera);
   }
+
+  // Prevent browser pinch-zoom, double-tap zoom, and iOS gesture zoom
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev => {
+    document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+  });
+  document.addEventListener('touchstart', e => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  document.addEventListener('touchmove', e => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', e => {
+    const tag = e.target && e.target.tagName;
+    if (tag === 'INPUT' || tag === 'BUTTON') return;
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, { passive: false });
 
   window.onload = () => {
     onResize();
