@@ -2489,7 +2489,9 @@
       const h = hits[0];
       endPos = h.point.clone();
       const part = h.object.userData && h.object.userData.part;
-      if (part === 'glassOrb') {
+      if (matchState !== 'playing') {
+        // Visual shots only after round has already ended
+      } else if (part === 'glassOrb') {
         const oi = h.object.userData.orbIdx;
         const orb = glassOrbs[oi];
         if (orb) {
@@ -4040,7 +4042,23 @@
       }
 
       // Update NPC or send online state
-      if (isTeamMode()) update5v5Bots(dt);
+      if (isTeamMode()) {
+        update5v5Bots(dt);
+        teamAllies.forEach(a => {
+          if (a.hp <= 0) {
+            a.rig.group.position.set(a.pos.x, 0.22, a.pos.z);
+            a.rig.group.rotation.x = -Math.PI / 2;
+            a.rig.legL.rotation.x = 0; a.rig.legR.rotation.x = 0;
+          }
+        });
+        teamEnemies.forEach(e => {
+          if (e.hp <= 0) {
+            e.rig.group.position.set(e.pos.x, 0.22, e.pos.z);
+            e.rig.group.rotation.x = -Math.PI / 2;
+            e.rig.legL.rotation.x = 0; e.rig.legR.rotation.x = 0;
+          }
+        });
+      }
       if (!isOnlineMatch || selectedMode === 'pve') {
         updateNPCAI(dt);
       } else {
