@@ -2736,11 +2736,11 @@
   function updateNPCAI(dt) {
     if ((isOnlineMatch && selectedMode !== 'pve') || matchState !== 'playing' || pEnemy.hp <= 0) return;
     const diffCfg = {
-      easy:   { speed: 3.6, turnSpd: 3.2, aimJitter: 0.16, burstLen: 4, burstPause: 0.75, hsProb: 0.03 },
-      normal: { speed: 4.6, turnSpd: 4.5, aimJitter: 0.10, burstLen: 5, burstPause: 0.50, hsProb: 0.06 },
-      hard:   { speed: 5.5, turnSpd: 6.0, aimJitter: 0.06, burstLen: 6, burstPause: 0.35, hsProb: 0.11 },
-      expert: { speed: 6.2, turnSpd: 7.5, aimJitter: 0.038, burstLen: 7, burstPause: 0.25, hsProb: 0.16 }
-    }[npcDifficulty] || { speed: 4.6, turnSpd: 4.5, aimJitter: 0.10, burstLen: 5, burstPause: 0.50, hsProb: 0.06 };
+      easy:   { speed: 3.0, turnSpd: 2.2, aimJitter: 0.25, burstLen: 2, burstPause: 1.25, hsProb: 0.00, react: 0.55 },
+      normal: { speed: 4.0, turnSpd: 3.5, aimJitter: 0.15, burstLen: 3, burstPause: 0.85, hsProb: 0.02, react: 0.30 },
+      hard:   { speed: 5.2, turnSpd: 5.2, aimJitter: 0.08, burstLen: 4, burstPause: 0.50, hsProb: 0.06, react: 0.15 },
+      expert: { speed: 6.0, turnSpd: 7.2, aimJitter: 0.045, burstLen: 6, burstPause: 0.30, hsProb: 0.12, react: 0.05 }
+    }[npcDifficulty] || { speed: 4.0, turnSpd: 3.5, aimJitter: 0.15, burstLen: 3, burstPause: 0.85, hsProb: 0.02, react: 0.30 };
 
     pEnemy.fireCd = Math.max(0, pEnemy.fireCd - dt);
     pEnemy.abCd = Math.max(0, pEnemy.abCd - dt);
@@ -2772,6 +2772,8 @@
     const eEye = new THREE.Vector3(pEnemy.pos.x, EYE_HEIGHT, pEnemy.pos.z);
     const sEye = new THREE.Vector3(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
     const canSee = pSelf.hp > 0 && hasLineOfSight(eEye, sEye);
+    if (!canSee) pEnemy._reactT = diffCfg.react;
+    else if ((pEnemy._reactT || 0) > 0) pEnemy._reactT -= dt;
 
     // Movement
     pEnemy.aiStrafeT -= dt;
@@ -2817,7 +2819,7 @@
     }
 
     // Shoot with player's exact rifle fire rate (0.085s / 0.062s), 20-round mag & 3.0s reload
-    if (canSee && pEnemy.shadowCastT <= 0 && pEnemy.shadowT <= 0 && pEnemy.reloading <= 0 && pEnemy.fireCd <= 0 && pEnemy.aiBurstT <= 0) {
+    if (canSee && (pEnemy._reactT || 0) <= 0 && pEnemy.shadowCastT <= 0 && pEnemy.shadowT <= 0 && pEnemy.reloading <= 0 && pEnemy.fireCd <= 0 && pEnemy.aiBurstT <= 0) {
       if (pEnemy.ammo <= 0) {
         startReload(pEnemy, false);
         playSpatialSound('reload', pEnemy.pos, false);
@@ -3387,7 +3389,10 @@
           bot.burstPause = 0.35 + Math.random() * 0.25;
         }
         playSpatialSound(isSil ? 'gunshotSilenced' : 'gunshot', bot.pos, false);
-        const spread = 0.022;
+        const pDiffSpread = chosen.isPlayer
+          ? ({ easy: 0.14, normal: 0.08, hard: 0.04, expert: 0.022 }[npcDifficulty] || 0.08)
+          : 0.022;
+        const spread = pDiffSpread;
         const sy = bot.yaw + (Math.random() - 0.5) * 2 * spread;
         const sp = (Math.random() - 0.5) * 2 * spread * 0.6;
         const sDir = new THREE.Vector3(-Math.sin(sy)*Math.cos(sp), Math.sin(sp), -Math.cos(sy)*Math.cos(sp)).normalize();
@@ -3397,7 +3402,8 @@
         const toEye = new THREE.Vector3().subVectors(tEye, bEye).normalize();
         const hitTol = Math.atan2(0.46, Math.max(2, minD));
         if (sDir.angleTo(toEye) < hitTol) {
-          const isHS = sDir.angleTo(toEye) < hitTol * 0.25 && Math.random() < 0.45;
+          const hsMult = chosen.isPlayer ? ({ easy: 0.0, normal: 0.08, hard: 0.22, expert: 0.40 }[npcDifficulty] || 0.1) : 0.45;
+          const isHS = sDir.angleTo(toEye) < hitTol * 0.25 && Math.random() < hsMult;
           const bDmg = isHS ? 100 : 18;
           if (chosen.isPlayer) {
             applyDamageToSelf(bDmg, isHS ? 'head' : 'torso', bot.pos);
