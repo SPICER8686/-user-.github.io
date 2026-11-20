@@ -1296,6 +1296,16 @@
 
   let currentMapIdx = 0;
 
+  const roofMeshes = [];
+  function addRoof(x, y, z, w, h, d, tex) {
+    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.85, metalness: 0.15 });
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    mesh.position.set(x, y, z);
+    mesh.receiveShadow = true;
+    scene.add(mesh);
+    roofMeshes.push(mesh);
+  }
+
   function buildMap(mapIdx) {
     currentMapIdx = ((mapIdx % MAPS.length) + MAPS.length) % MAPS.length;
     const m = MAPS[currentMapIdx];
@@ -1303,19 +1313,32 @@
     floorMesh.material.map = m.floorTex;
     floorMesh.material.needsUpdate = true;
     scene.background = new THREE.Color(m.sky);
-    scene.fog = new THREE.FogExp2(m.sky, 0.0085);
+    scene.fog = new THREE.FogExp2(m.sky, 0.015);
 
     obstacleMeshes.forEach(mesh => scene.remove(mesh));
+    roofMeshes.forEach(mesh => scene.remove(mesh));
     obstacles.length = 0;
     obstacleMeshes.length = 0;
+    roofMeshes.length = 0;
 
-    // Perimeter walls
-    addObstacle(0, -ARENA_HALF - 1, ARENA_HALF * 2 + 4, 6, 2, 'wall');
-    addObstacle(0, ARENA_HALF + 1, ARENA_HALF * 2 + 4, 6, 2, 'wall');
-    addObstacle(-ARENA_HALF - 1, 0, 2, 6, ARENA_HALF * 2 + 4, 'wall');
-    addObstacle(ARENA_HALF + 1, 0, 2, 6, ARENA_HALF * 2 + 4, 'wall');
+    // Tall 9.5m Perimeter walls for strong enclosure
+    addObstacle(0, -ARENA_HALF - 1, ARENA_HALF * 2 + 4, 9.5, 2, 'wall');
+    addObstacle(0, ARENA_HALF + 1, ARENA_HALF * 2 + 4, 9.5, 2, 'wall');
+    addObstacle(-ARENA_HALF - 1, 0, 2, 9.5, ARENA_HALF * 2 + 4, 'wall');
+    addObstacle(ARENA_HALF + 1, 0, 2, 9.5, ARENA_HALF * 2 + 4, 'wall');
 
-    m.layout.forEach(o => addObstacle(o[0], o[1], o[2], o[3], o[4], o[5]));
+    // Raise tall partition walls (h >= 4.5) to 8.5m for claustrophobic indoor feel
+    m.layout.forEach(o => {
+      const h = o[3] >= 4.5 ? 8.5 : o[3];
+      addObstacle(o[0], o[1], o[2], h, o[4], o[5]);
+    });
+
+    // Overhead corridor ceilings & doorway lintels (enclosed indoor feel!)
+    addRoof(0, 6.8, -28, 76, 0.8, 14, m.wallTex);
+    addRoof(0, 6.8,  28, 76, 0.8, 14, m.wallTex);
+    addRoof(-28, 6.8, 0, 22, 0.8, 38, texMetal);
+    addRoof( 28, 6.8, 0, 22, 0.8, 38, texMetal);
+    addRoof(0, 8.2, 0, 32, 0.8, 8, m.wallTex);
   }
 
   buildMap(0);
@@ -1421,7 +1444,7 @@
     shieldMesh.position.set(0, 1.0, 0);
     group.add(shieldMesh);
 
-    return { group, legL, legR, torso, head, enemyMuzzle, scanMat, shieldMat, hitboxes };
+    return { group, legL, legR, torso, head, enemyMuzzle, scanMat, shieldMat, hitboxes, matBody, matHead, matGun };
   }
 
   // ==================== VISUAL EFFECTS (BULLETS, SMOKE, BEAMS, ILLUSIONS) ====================
@@ -1796,16 +1819,28 @@
       return;
     }
     if (msg.type === 'state') {
-      pEnemy.targetPos.set(msg.x, 0, msg.z);
-      pEnemy.vel.set(msg.vx || 0, 0, msg.vz || 0);
-      pEnemy.targetYaw = msg.yw;
-      pEnemy.pitch = msg.pt;
-      if (!pEnemy._shieldBrokenAt || performance.now() - pEnemy._shieldBrokenAt > 1000) {
-        pEnemy.shield = !!msg.sh;
+      if (selectedMode === 'pve' && teamAllies.length > 0) {
+        const ally = teamAllies[0];
+        if (!ally.targetPos) ally.targetPos = ally.pos.clone();
+        ally.targetPos.set(msg.x, 0, msg.z);
+        ally.targetYaw = msg.yw;
+        ally.shield = !!msg.sh;
+      } else {
+        pEnemy.targetPos.set(msg.x, 0, msg.z);
+        pEnemy.vel.set(msg.vx || 0, 0, msg.vz || 0);
+        pEnemy.targetYaw = msg.yw;
+        pEnemy.pitch = msg.pt;
+        if (!pEnemy._shieldBrokenAt || performance.now() - pEnemy._shieldBrokenAt > 1000) {
+          pEnemy.shield = !!msg.sh;
+        }
       }
     } else if (msg.type === 'fire') {
-      pEnemy.muzzleT = 0.08;
-      playSpatialSound('gunshot', pEnemy.pos, false);
+      if (selectedMode === 'pve' && teamAllies.length > 0) {
+        playSpatialSound('gunshot', teamAllies[0].pos, false);
+      } else {
+        pEnemy.muzzleT = 0.08;
+        playSpatialSound('gunshot', pEnemy.pos, false);
+      }
       spawnBulletTracer(
         new THREE.Vector3(msg.ox, msg.oy, msg.oz),
         new THREE.Vector3(msg.tx, msg.ty, msg.tz)
@@ -1871,6 +1906,7 @@
       isHost = iAmHost;
       roomTopic = sharedRoom;
       pEnemy.name = peerName || 'ONLINE';
+      window._onlinePeerName = pEnemy.name;
       pEnemy.rankIndex = peerRankIdx || 0;
       pEnemy.rankPoints = peerRankPts || 0;
       if (mqttClient && mqttClient.connected) {
@@ -2105,7 +2141,7 @@
     enemyRig.group.visible = true;
 
     pSelf.name = config.name || 'PLAYER1';
-    if (!isOnlineMatch && (selectedMode === 'npc' || selectedMode === 'pve')) {
+    if ((!isOnlineMatch && selectedMode === 'npc') || selectedMode === 'pve') {
       pEnemy.name = `NPC-${npcDifficulty.toUpperCase()}`;
     }
     pSelf.unit = 0;
@@ -2166,8 +2202,8 @@
     teamAllies = [];
     teamEnemies = [];
 
-    const selfZ = isOnlineMatch && !isHost ? -32 : 32;
-    const selfYaw = isOnlineMatch && !isHost ? Math.PI : 0;
+    const selfZ = (isOnlineMatch && !isHost && selectedMode !== 'pve') ? -32 : 32;
+    const selfYaw = (isOnlineMatch && !isHost && selectedMode !== 'pve') ? Math.PI : 0;
     resetP(pSelf, selfZ, selfYaw);
     resetP(pEnemy, -selfZ, selfYaw === 0 ? Math.PI : 0);
 
@@ -2204,8 +2240,9 @@
         aRig.group.rotation.y = selfYaw;
         aRig.group.visible = alive;
         scene.add(aRig.group);
+        const isOnlineAlly = (selectedMode === 'pve' && isOnlineMatch && i === 1);
         teamAllies.push({
-          name: `ALLY-${i}`, hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, selfZ),
+          name: isOnlineAlly ? (window._onlinePeerName || 'PARTNER') : `ALLY-${i}`, isOnlineAlly, hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, selfZ),
           yaw: selfYaw, rig: aRig, fireCd: Math.random() * 0.4, strafeDir: i % 2 ? 1 : -1, strafeT: 1,
           abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false
         });
@@ -3016,8 +3053,9 @@
   canvas.addEventListener('contextmenu', e => e.preventDefault());
   document.getElementById('viewport-16-9').addEventListener('contextmenu', e => e.preventDefault());
 
-  canvas.addEventListener('mousedown', e => {
+  const enterPcPointerLock = (e) => {
     if (isLiveUiEdit || listeningKeyAction) return;
+    if (e.target && (e.target.tagName === 'BUTTON' || e.target.closest('.hud-top-actions') || e.target.closest('#spectate-bar'))) return;
     if (matchState !== 'playing' && matchState !== 'round_end') return;
     initAudio();
     if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
@@ -3031,7 +3069,10 @@
     }
     if (mCode === config.keys.ability) useSelfAbility();
     if (mCode === config.keys.reload) startReload(pSelf, true);
-  });
+  };
+  canvas.addEventListener('mousedown', enterPcPointerLock);
+  aimZone.addEventListener('mousedown', enterPcPointerLock);
+  
 
   window.addEventListener('mouseup', e => {
     const mCode = 'Mouse' + e.button;
@@ -3249,6 +3290,13 @@
 
     const stepBot = (bot, targets, isRedBot) => {
       if (bot.hp <= 0) return;
+      if (bot.isOnlineAlly) {
+        if (bot.targetPos) bot.pos.lerp(bot.targetPos, Math.min(1, dt * 18));
+        if (bot.targetYaw !== undefined) bot.yaw = bot.targetYaw;
+        bot.rig.group.position.copy(bot.pos);
+        bot.rig.group.rotation.y = bot.yaw;
+        return;
+      }
       if (bot.ammo === undefined) { bot.ammo = MAG_SIZE; bot.reloading = 0; bot.burstCnt = 0; bot.burstPause = 0; }
       bot.fireCd = Math.max(0, bot.fireCd - dt);
       bot.abCd = Math.max(0, (bot.abCd || 0) - dt);
@@ -3261,7 +3309,9 @@
         bot.shadowT -= dt;
         if (bot.shadowT <= 0) { bot.shadowT = 0; playSpatialSound('shadowBreak', bot.pos, false); }
       }
-      bot.rig.group.visible = (bot.shadowT || 0) <= 0;
+      const bOp = (bot.shadowT || 0) > 0 ? 0.22 : 1.0;
+      bot.rig.matBody.transparent = bOp < 1; bot.rig.matBody.opacity = bOp;
+      bot.rig.matHead.transparent = bOp < 1; bot.rig.matHead.opacity = bOp;
       bot.scanGlowT = Math.max(0, (bot.scanGlowT || 0) - dt);
       bot.burstPause = Math.max(0, bot.burstPause - dt);
       bot.rig.shieldMat.opacity = bot.shield ? 0.55 : 0;
@@ -3985,7 +4035,9 @@
 
       muzzleMesh.material.opacity = pSelf.muzzleT > 0 ? 0.95 : 0;
       muzzleLight.intensity = pSelf.muzzleT > 0 ? 3.5 : 0;
-      gunGroup.visible = gunGroup.visible && pSelf.shadowT <= 0 && pSelf.shadowCastT <= 0;
+      gunGroup.visible = gunGroup.visible && pSelf.shadowCastT <= 0;
+      gunMat.transparent = pSelf.shadowT > 0;
+      gunMat.opacity = pSelf.shadowT > 0 ? 0.28 : 1.0;
       scope.visible = !isScoped;
       gunGroup.position.x = isScoped ? 0.0 : 0.24;
       gunGroup.position.y = isScoped ? -0.105 : -0.22;
@@ -4010,7 +4062,9 @@
         enemyRig.legL.rotation.x = walkSwing;
         enemyRig.legR.rotation.x = -walkSwing;
       }
-      enemyRig.group.visible = pEnemy.shadowT <= 0;
+      const eOp = pEnemy.shadowT > 0 ? 0.22 : 1.0;
+      enemyRig.matBody.transparent = eOp < 1; enemyRig.matBody.opacity = eOp;
+      enemyRig.matHead.transparent = eOp < 1; enemyRig.matHead.opacity = eOp;
       enemyRig.scanMat.opacity = pEnemy.scanGlowT > 0 ? 0.85 : 0;
       enemyRig.shieldMat.opacity = pEnemy.shield ? 0.55 : 0;
 
