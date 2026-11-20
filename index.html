@@ -708,12 +708,25 @@
     <div id="replay-ui">
       <div class="replay-top">
         <div class="replay-cam-group">
-          <button class="btn btn-sm btn-primary replay-cam-btn" data-cam="god">神視点</button>
+          <button class="btn btn-sm btn-primary replay-cam-btn" data-cam="ghost">幽霊視点</button>
           <button class="btn btn-sm replay-cam-btn" data-cam="self">自分視点</button>
           <button class="btn btn-sm replay-cam-btn" data-cam="enemy">相手視点</button>
           <button class="btn btn-sm" id="btn-replay-cycle" style="display:none;">全員視点切替</button>
         </div>
         <button class="btn btn-sm btn-danger" id="btn-exit-replay">リプレイ終了</button>
+      </div>
+      <div id="ghost-touch-zone" style="position:absolute;inset:0;z-index:-1;pointer-events:auto;"></div>
+      <div id="ghost-fly-pad" style="position:absolute;bottom:64px;left:16px;display:flex;gap:4px;align-items:center;pointer-events:auto;">
+        <button class="btn btn-sm ghost-move-btn" data-gdir="left">◀</button>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <button class="btn btn-sm ghost-move-btn" data-gdir="fwd">▲前進</button>
+          <button class="btn btn-sm ghost-move-btn" data-gdir="back">▼後退</button>
+        </div>
+        <button class="btn btn-sm ghost-move-btn" data-gdir="right">▶</button>
+        <div style="display:flex;flex-direction:column;gap:4px;margin-left:6px;">
+          <button class="btn btn-sm ghost-move-btn" data-gdir="up">↑上昇</button>
+          <button class="btn btn-sm ghost-move-btn" data-gdir="down">↓下降</button>
+        </div>
       </div>
       <div class="replay-bar">
         <button class="btn btn-sm" id="btn-replay-play">⏸</button>
@@ -918,15 +931,28 @@
       osc.connect(og); og.connect(outNode);
       osc.start(now); osc.stop(now + 0.11);
     } else if (type === 'footstep') {
+      // Louder, clearer 3D spatial footsteps (thud + crisp boot tap)
       const osc = audioCtx.createOscillator();
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(105, now);
-      osc.frequency.exponentialRampToValueAtTime(38, now + 0.07);
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(125, now);
+      osc.frequency.exponentialRampToValueAtTime(42, now + 0.10);
       const g = audioCtx.createGain();
-      g.gain.setValueAtTime(isSelf ? 0.14 : 0.36, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      g.gain.setValueAtTime(isSelf ? 0.28 : 0.88, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.11);
       osc.connect(g); g.connect(outNode);
-      osc.start(now); osc.stop(now + 0.09);
+      osc.start(now); osc.stop(now + 0.12);
+
+      if (noiseBuffer) {
+        const n = audioCtx.createBufferSource();
+        n.buffer = noiseBuffer;
+        const nf = audioCtx.createBiquadFilter();
+        nf.type = 'bandpass'; nf.frequency.value = 820; nf.Q.value = 1.4;
+        const ng = audioCtx.createGain();
+        ng.gain.setValueAtTime(isSelf ? 0.16 : 0.52, now);
+        ng.gain.exponentialRampToValueAtTime(0.001, now + 0.07);
+        n.connect(nf); nf.connect(ng); ng.connect(outNode);
+        n.start(now); n.stop(now + 0.08);
+      }
     } else if (type === 'reload') {
       [0, 0.25].forEach((offset, i) => {
         const osc = audioCtx.createOscillator();
@@ -1313,7 +1339,7 @@
     floorMesh.material.map = m.floorTex;
     floorMesh.material.needsUpdate = true;
     scene.background = new THREE.Color(m.sky);
-    scene.fog = new THREE.FogExp2(m.sky, 0.015);
+    scene.fog = new THREE.FogExp2(m.sky, 0.019);
 
     obstacleMeshes.forEach(mesh => scene.remove(mesh));
     roofMeshes.forEach(mesh => scene.remove(mesh));
@@ -1321,24 +1347,25 @@
     obstacleMeshes.length = 0;
     roofMeshes.length = 0;
 
-    // Tall 9.5m Perimeter walls for strong enclosure
-    addObstacle(0, -ARENA_HALF - 1, ARENA_HALF * 2 + 4, 9.5, 2, 'wall');
-    addObstacle(0, ARENA_HALF + 1, ARENA_HALF * 2 + 4, 9.5, 2, 'wall');
-    addObstacle(-ARENA_HALF - 1, 0, 2, 9.5, ARENA_HALF * 2 + 4, 'wall');
-    addObstacle(ARENA_HALF + 1, 0, 2, 9.5, ARENA_HALF * 2 + 4, 'wall');
+    // Towering 10.5m Perimeter walls for maximum enclosure
+    addObstacle(0, -ARENA_HALF - 1, ARENA_HALF * 2 + 4, 10.5, 2, 'wall');
+    addObstacle(0, ARENA_HALF + 1, ARENA_HALF * 2 + 4, 10.5, 2, 'wall');
+    addObstacle(-ARENA_HALF - 1, 0, 2, 10.5, ARENA_HALF * 2 + 4, 'wall');
+    addObstacle(ARENA_HALF + 1, 0, 2, 10.5, ARENA_HALF * 2 + 4, 'wall');
 
-    // Raise tall partition walls (h >= 4.5) to 8.5m for claustrophobic indoor feel
+    // Raise tall partition walls to 9.5m so rooms feel genuinely walled-in
     m.layout.forEach(o => {
-      const h = o[3] >= 4.5 ? 8.5 : o[3];
+      const h = o[3] >= 4.5 ? 9.5 : o[3];
       addObstacle(o[0], o[1], o[2], h, o[4], o[5]);
     });
 
-    // Overhead corridor ceilings & doorway lintels (enclosed indoor feel!)
-    addRoof(0, 6.8, -28, 76, 0.8, 14, m.wallTex);
-    addRoof(0, 6.8,  28, 76, 0.8, 14, m.wallTex);
-    addRoof(-28, 6.8, 0, 22, 0.8, 38, texMetal);
-    addRoof( 28, 6.8, 0, 22, 0.8, 38, texMetal);
-    addRoof(0, 8.2, 0, 32, 0.8, 8, m.wallTex);
+    // Full indoor ceilings & low corridor overhangs (5.4m - 7.8m) for intense enclosure
+    addRoof(0, 6.0, -30, 80, 0.8, 20, m.wallTex);
+    addRoof(0, 6.0,  30, 80, 0.8, 20, m.wallTex);
+    addRoof(-28, 5.6, 0, 24, 0.8, 42, texMetal);
+    addRoof( 28, 5.6, 0, 24, 0.8, 42, texMetal);
+    addRoof(0, 7.6, -10, 34, 0.8, 16, m.wallTex);
+    addRoof(0, 7.6,  10, 34, 0.8, 16, m.wallTex);
   }
 
   buildMap(0);
@@ -1674,7 +1701,11 @@
   let replayIdx = 0;
   let replayPlaying = true;
   let replaySpeed = 1;
-  let replayCamMode = 'god'; // god | self | enemy
+  let replayCamMode = 'ghost'; // ghost | self | enemy | teamPov
+  const ghostPos = new THREE.Vector3(0, 4.5, 22);
+  let ghostYaw = 0;
+  let ghostPitch = -0.22;
+  const ghostMoveHold = { fwd: false, back: false, left: false, right: false, up: false, down: false };
   let godAngle = 0.6;
   let lastReplayRenderIdx = -1;
 
@@ -1734,18 +1765,19 @@
   let rtcOfferSent = false;
   let lastEnemyNetTime = 0;
 
+  let netMsgSeq = 0;
+  const seenNetMsgIds = new Set();
+
   function sendNet(msg, reliable = false) {
     if (!isOnlineMatch) return;
-    const payload = { from: myNetId, msg };
+    const mid = reliable ? (myNetId + '_' + (++netMsgSeq)) : undefined;
+    const payload = { from: myNetId, mid, msg };
     const raw = JSON.stringify(payload);
-    if (!reliable && rtcDc && rtcDc.readyState === 'open') {
+    if (rtcDc && rtcDc.readyState === 'open') {
       try { rtcDc.send(raw); return; } catch (e) {}
     }
-    if (reliable && rtcDc && rtcDc.readyState === 'open') {
-      try { rtcDc.send(raw); } catch (e) {}
-    }
     if (mqttClient && mqttClient.connected && roomTopic) {
-      try { mqttClient.publish(roomTopic, raw, { qos: reliable ? 1 : 0 }); } catch (e) {}
+      try { mqttClient.publish(roomTopic, raw, { qos: reliable ? 1 : 0 }); return; } catch (e) {}
     }
     if (bc) {
       try { bc.postMessage(payload); } catch (e) {}
@@ -1776,7 +1808,10 @@
         dc.onmessage = (ev) => {
           try {
             const d = JSON.parse(ev.data);
-            if (d && d.from !== myNetId && d.msg) handleNetMessage(d.msg);
+            if (d && d.from !== myNetId && d.msg) {
+              if (d.mid) { if (seenNetMsgIds.has(d.mid)) return; seenNetMsgIds.add(d.mid); if (seenNetMsgIds.size > 400) seenNetMsgIds.clear(); }
+              handleNetMessage(d.msg);
+            }
           } catch (e) {}
         };
       };
@@ -1997,7 +2032,10 @@
               pairWithPeer(d.from, d.name, d.rankIndex, d.rankPoints, myNetId < d.from, d.room);
             }
           } else if (topic === roomTopic && isOnlineMatch) {
-            if (d.msg) handleNetMessage(d.msg);
+            if (d.msg) {
+              if (d.mid) { if (seenNetMsgIds.has(d.mid)) return; seenNetMsgIds.add(d.mid); if (seenNetMsgIds.size > 400) seenNetMsgIds.clear(); }
+              handleNetMessage(d.msg);
+            }
             else if (d.sig && rtcPc) {
               if (d.sig.ready && isHost && !rtcOfferSent) {
                 rtcOfferSent = true;
@@ -3204,7 +3242,8 @@
     replayEnemiesRigs.forEach(r => scene.remove(r.group));
     replayAlliesRigs = (replayFrames[0].allies || []).map(() => { const r = createCharacterRig(false, false); scene.add(r.group); return r; });
     replayEnemiesRigs = (replayFrames[0].enemies || []).map(() => { const r = createCharacterRig(true, false); scene.add(r.group); return r; });
-    setReplayCam('god');
+    ghostPos.set(0, 4.5, 22); ghostYaw = 0; ghostPitch = -0.22;
+    setReplayCam('ghost');
   }
 
   function setReplayCam(mode) {
@@ -3212,8 +3251,38 @@
     document.querySelectorAll('.replay-cam-btn').forEach(b => {
       b.classList.toggle('btn-primary', b.dataset.cam === mode);
     });
+    document.getElementById('ghost-fly-pad').style.display = mode === 'ghost' ? 'flex' : 'none';
     gunGroup.visible = (mode === 'self');
   }
+
+  // Ghost free-fly touch look & directional buttons
+  let ghostLookId = null, ghostLastPos = { x: 0, y: 0 };
+  const gZone = document.getElementById('ghost-touch-zone');
+  gZone.addEventListener('pointerdown', e => {
+    ghostLookId = e.pointerId;
+    ghostLastPos = { x: e.clientX, y: e.clientY };
+    try { gZone.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  gZone.addEventListener('pointermove', e => {
+    if (e.pointerId === ghostLookId && matchState === 'replay' && replayCamMode === 'ghost') {
+      const dx = e.clientX - ghostLastPos.x;
+      const dy = e.clientY - ghostLastPos.y;
+      ghostLastPos = { x: e.clientX, y: e.clientY };
+      ghostYaw -= dx * 0.0045 * config.sens;
+      ghostPitch = Math.max(-1.4, Math.min(1.4, ghostPitch - dy * 0.0045 * config.sens));
+    }
+  });
+  const endGhostLook = e => { if (e.pointerId === ghostLookId) ghostLookId = null; };
+  gZone.addEventListener('pointerup', endGhostLook);
+  gZone.addEventListener('pointercancel', endGhostLook);
+  document.querySelectorAll('.ghost-move-btn').forEach(b => {
+    const dir = b.dataset.gdir;
+    b.addEventListener('pointerdown', e => { e.stopPropagation(); ghostMoveHold[dir] = true; });
+    const clr = () => { ghostMoveHold[dir] = false; };
+    b.addEventListener('pointerup', clr);
+    b.addEventListener('pointercancel', clr);
+    b.addEventListener('pointerleave', clr);
+  });
 
   document.querySelectorAll('.replay-cam-btn').forEach(b => {
     b.addEventListener('click', () => setReplayCam(b.dataset.cam));
@@ -4133,13 +4202,27 @@
       enemyRig.scanMat.opacity = f.e.sc ? 0.85 : 0;
       enemyRig.enemyMuzzle.material.opacity = f.e.mf ? 0.95 : 0;
 
-      if (replayCamMode === 'god') {
+      if (replayCamMode === 'ghost') {
         selfRig.group.visible = true;
         enemyRig.group.visible = true;
-        godAngle += dt * 0.15;
-        camera.position.set(Math.sin(godAngle) * 46, 36, Math.cos(godAngle) * 46);
-        camera.lookAt(0, 0, 0);
-        updateAudioListener(camera.position, godAngle, -0.55);
+        const gSpd = 12.0;
+        const fx = -Math.sin(ghostYaw) * Math.cos(ghostPitch);
+        const fy = Math.sin(ghostPitch);
+        const fz = -Math.cos(ghostYaw) * Math.cos(ghostPitch);
+        const rx = Math.cos(ghostYaw), rz = -Math.sin(ghostYaw);
+        if (ghostMoveHold.fwd || keys[config.keys.up]) { ghostPos.x += fx * gSpd * dt; ghostPos.y += fy * gSpd * dt; ghostPos.z += fz * gSpd * dt; }
+        if (ghostMoveHold.back || keys[config.keys.down]) { ghostPos.x -= fx * gSpd * dt; ghostPos.y -= fy * gSpd * dt; ghostPos.z -= fz * gSpd * dt; }
+        if (ghostMoveHold.left || keys[config.keys.left]) { ghostPos.x -= rx * gSpd * dt; ghostPos.z -= rz * gSpd * dt; }
+        if (ghostMoveHold.right || keys[config.keys.right]) { ghostPos.x += rx * gSpd * dt; ghostPos.z += rz * gSpd * dt; }
+        if (ghostMoveHold.up || keys['Space']) ghostPos.y += gSpd * 0.7 * dt;
+        if (ghostMoveHold.down || keys['ShiftLeft']) ghostPos.y -= gSpd * 0.7 * dt;
+        ghostPos.y = Math.max(0.6, Math.min(28, ghostPos.y));
+        camera.position.copy(ghostPos);
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = ghostYaw;
+        camera.rotation.x = ghostPitch;
+        camera.rotation.z = 0;
+        updateAudioListener(camera.position, ghostYaw, ghostPitch);
       } else if (replayCamMode === 'self') {
         selfRig.group.visible = false;
         enemyRig.group.visible = true;
