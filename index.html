@@ -2180,6 +2180,7 @@
         ally.targetPos.set(msg.x, 0, msg.z);
         ally.targetYaw = msg.yw;
         ally.shield = !!msg.sh;
+        if (msg.hp !== undefined) ally.hp = msg.hp;
       } else {
         pEnemy.targetPos.set(msg.x, 0, msg.z);
         pEnemy.vel.set(msg.vx || 0, 0, msg.vz || 0);
@@ -2202,9 +2203,37 @@
       );
     } else if (msg.type === 'hitSelf') {
       applyDamageToSelf(msg.dmg, msg.part, msg.fromPos);
+    } else if (msg.type === 'pveHitNpc') {
+      if (selectedMode === 'pve') {
+        if (msg.idx === -1) {
+          pEnemy.hp = Math.max(0, pEnemy.hp - msg.dmg);
+          if (pEnemy.hp <= 0) { enemyRig.group.rotation.x = -Math.PI / 2; enemyRig.group.position.y = 0.22; }
+        } else if (teamEnemies[msg.idx]) {
+          const te = teamEnemies[msg.idx];
+          te.hp = Math.max(0, te.hp - msg.dmg);
+          if (te.hp <= 0) { te.rig.group.rotation.x = -Math.PI / 2; te.rig.group.position.y = 0.22; }
+        }
+      }
+    } else if (msg.type === 'pveNpcs' && selectedMode === 'pve' && !isHost) {
+      if (msg.main) {
+        pEnemy.targetPos.set(msg.main.x, 0, msg.main.z);
+        pEnemy.targetYaw = msg.main.yw;
+        pEnemy.hp = msg.main.hp;
+      }
+      if (Array.isArray(msg.subs)) {
+        msg.subs.forEach((sn, idx) => {
+          const te = teamEnemies[idx];
+          if (!te) return;
+          if (!te.targetPos) te.targetPos = te.pos.clone();
+          te.targetPos.set(sn.x, 0, sn.z);
+          te.targetYaw = sn.yw;
+          te.hp = sn.hp;
+        });
+      }
     } else if (msg.type === 'roundEnd') {
       if (matchState === 'playing') {
-        endRound(!msg.winnerIsSender, msg.reason || 'ELIMINATED', true);
+        const won = selectedMode === 'pve' ? msg.winnerIsSender : !msg.winnerIsSender;
+        endRound(won, msg.reason || 'ELIMINATED', true);
       }
     } else if (msg.type === 'ability') {
       triggerEnemyAbilityVisual(msg.unit, msg.x, msg.z, msg.yw);
@@ -2629,7 +2658,7 @@
     } else if (isTeamMode()) {
       const tSize = getTeamSize();
       suddenDeath = false;
-      pSelf.pos.set(spawnBluePos.x - 1.5, 0, selfZ);
+      pSelf.pos.set(spawnBluePos.x + (isOnlineMatch && !isHost && selectedMode === 'pve' ? 1.5 : -1.5), 0, selfZ);
       if (pSelf.unit >= 6) {
         pSelf.hp = 0;
         gunGroup.visible = false;
@@ -3099,6 +3128,9 @@
             const te = teamEnemies[tIdx];
             if (te && te.hp > 0) {
               te.hp = Math.max(0, te.hp - dmg);
+              if (isOnlineMatch && selectedMode === 'pve') {
+                sendNet({ type: 'pveHitNpc', idx: tIdx, dmg, part }, true);
+              }
               pSelf.dmgDealt += dmg;
               const killed = te.hp <= 0;
               recordDamageLog('out', te.name, dmg, part, killed);
@@ -3117,7 +3149,8 @@
             const killedEn = wasAlive && pEnemy.hp <= 0;
             recordDamageLog('out', pEnemy.name, dmg, part, killedEn);
             if (isOnlineMatch) {
-              sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } }, true);
+              if (selectedMode === 'pve') sendNet({ type: 'pveHitNpc', idx: -1, dmg, part }, true);
+              else sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } }, true);
             }
             if (killedEn) {
               pSelf.kills++; pEnemy.deaths++;
@@ -4350,7 +4383,17 @@
     };
 
     teamAllies.forEach(a => stepBot(a, allReds, false));
-    teamEnemies.forEach(e => stepBot(e, allBlues, true));
+    if (isOnlineMatch && selectedMode === 'pve' && !isHost) {
+      teamEnemies.forEach(e => {
+        if (e.hp <= 0) return;
+        if (e.targetPos) e.pos.lerp(e.targetPos, Math.min(1, dt * 16));
+        if (e.targetYaw !== undefined) e.yaw = e.targetYaw;
+        e.rig.group.position.copy(e.pos);
+        e.rig.group.rotation.y = e.yaw;
+      });
+    } else {
+      teamEnemies.forEach(e => stepBot(e, allBlues, true));
+    }
 
     const bAlive = allBlues.filter(b => b.hp > 0).length;
     const rAlive = allReds.filter(r => r.hp > 0).length;
@@ -4927,8 +4970,11 @@
           }
         });
       }
-      if ((!isOnlineMatch || selectedMode === 'pve') && selectedMode !== 'dm') {
+      if ((!isOnlineMatch || (selectedMode === 'pve' && isHost)) && selectedMode !== 'dm') {
         updateNPCAI(dt);
+      } else if (isOnlineMatch && selectedMode === 'pve' && !isHost) {
+        pEnemy.pos.lerp(pEnemy.targetPos, Math.min(1, dt * 16));
+        pEnemy.yaw = pEnemy.targetYaw;
       } else {
         // Dead-reckoning prediction + smooth exponential blend
         pEnemy.targetPos.addScaledVector(pEnemy.vel, dt);
@@ -4954,8 +5000,15 @@
             type: 'state',
             x: +pSelf.pos.x.toFixed(2), z: +pSelf.pos.z.toFixed(2),
             vx: +vx.toFixed(2), vz: +vz.toFixed(2),
-            yw: +pSelf.yaw.toFixed(3), pt: +pSelf.pitch.toFixed(3), sh: pSelf.shield
+            yw: +pSelf.yaw.toFixed(3), pt: +pSelf.pitch.toFixed(3), sh: pSelf.shield, hp: pSelf.hp
           });
+          if (selectedMode === 'pve' && isHost) {
+            sendNet({
+              type: 'pveNpcs',
+              main: { x: +pEnemy.pos.x.toFixed(2), z: +pEnemy.pos.z.toFixed(2), yw: +pEnemy.yaw.toFixed(3), hp: pEnemy.hp },
+              subs: teamEnemies.map(e => ({ x: +e.pos.x.toFixed(2), z: +e.pos.z.toFixed(2), yw: +e.yaw.toFixed(3), hp: e.hp }))
+            });
+          }
         }
       }
 
