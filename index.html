@@ -1159,6 +1159,46 @@
         osc.connect(g); g.connect(outNode);
         osc.start(now + idx * 0.018); osc.stop(now + idx * 0.018 + 0.16);
       });
+    } else if (type === 'countdownBeep' || type === 'countdownGo') {
+      const osc = audioCtx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(type === 'countdownGo' ? 1318.5 : 880, now);
+      const g = audioCtx.createGain();
+      g.gain.setValueAtTime(type === 'countdownGo' ? 0.28 : 0.22, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + (type === 'countdownGo' ? 0.22 : 0.08));
+      osc.connect(g); g.connect(audioCtx.destination);
+      osc.start(now); osc.stop(now + (type === 'countdownGo' ? 0.24 : 0.09));
+    } else if (type === 'matchVictory') {
+      // Triumphant rising fanfare + lush reverb chord
+      const notes = [261.63, 329.63, 392.00, 523.25];
+      notes.forEach((f, idx) => {
+        const osc = audioCtx.createOscillator();
+        osc.type = idx === 3 ? 'sawtooth' : 'triangle';
+        osc.frequency.setValueAtTime(f, now + idx * 0.11);
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0.01, now + idx * 0.11);
+        g.gain.linearRampToValueAtTime(idx === 3 ? 0.28 : 0.22, now + idx * 0.11 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.11 + (idx === 3 ? 1.5 : 0.35));
+        osc.connect(g); g.connect(audioCtx.destination);
+        if (reverbNode) g.connect(reverbNode);
+        osc.start(now + idx * 0.11); osc.stop(now + idx * 0.11 + 1.55);
+      });
+    } else if (type === 'matchDefeat') {
+      // Somber descending defeat chord
+      const notes = [246.94, 220.00, 196.00, 146.83];
+      notes.forEach((f, idx) => {
+        const osc = audioCtx.createOscillator();
+        osc.type = 'sawtooth';
+        const lpf = audioCtx.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 650;
+        osc.frequency.setValueAtTime(f, now + idx * 0.16);
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(0.01, now + idx * 0.16);
+        g.gain.linearRampToValueAtTime(0.22, now + idx * 0.16 + 0.03);
+        g.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.16 + (idx === 3 ? 1.4 : 0.4));
+        osc.connect(lpf); lpf.connect(g); g.connect(audioCtx.destination);
+        if (reverbNode) g.connect(reverbNode);
+        osc.start(now + idx * 0.16); osc.stop(now + idx * 0.16 + 1.45);
+      });
     } else if (type === 'roundWin' || type === 'roundLose') {
       const freqs = type === 'roundWin' ? [440, 554, 659] : [330, 277, 220];
       freqs.forEach((f, idx) => {
@@ -2124,6 +2164,10 @@
       beginMatchAfterMap();
       return;
     } else if (msg.type === 'leave') {
+      if (selectedMode === 'pve') {
+        if (teamAllies.length > 0) teamAllies[0].isOnlineAlly = false;
+        return;
+      }
       if (isOnlineMatch && matchState !== 'lobby' && matchState !== 'match_end' && matchState !== 'replay') {
         finishMatch(true, '対戦相手が退出したため不戦勝！');
       }
@@ -2462,6 +2506,9 @@
     if ((!isOnlineMatch && selectedMode === 'npc') || selectedMode === 'pve') {
       pEnemy.name = `NPC-${npcDifficulty.toUpperCase()}`;
     }
+    teamAllies.forEach(a => scene.remove(a.rig.group)); teamAllies = [];
+    teamEnemies.forEach(e => scene.remove(e.rig.group)); teamEnemies = [];
+    dmBots.forEach(b => scene.remove(b.rig.group)); dmBots = [];
     pSelf.unit = 0; pSelf.kills = 0; pSelf.deaths = 0; pSelf.assists = 0; pSelf.dmgDealt = 0;
     pEnemy.unit = 0; pEnemy.kills = 0; pEnemy.deaths = 0; pEnemy.assists = 0; pEnemy.dmgDealt = 0;
     roundNum = 1;
@@ -2534,6 +2581,9 @@
     resetP(pSelf, selfZ, selfYaw);
     resetP(pEnemy, -selfZ, selfYaw === 0 ? Math.PI : 0);
 
+    teamAllies.forEach(a => scene.remove(a.rig.group)); teamAllies = [];
+    teamEnemies.forEach(e => scene.remove(e.rig.group)); teamEnemies = [];
+    dmBots.forEach(b => scene.remove(b.rig.group)); dmBots = [];
     document.getElementById('spectate-bar').style.display = 'none';
     document.getElementById('death-damage-log').style.display = 'none';
     document.getElementById('scoreboard-modal').style.display = 'none';
@@ -2634,6 +2684,7 @@
     camera.rotation.order = 'YXZ';
     camera.rotation.z = 0;
     document.getElementById('round-result-top').style.display = 'none';
+    window._lastCdSec = 4;
     matchState = 'round_intro';
     stateTimer = 3.0;
 
@@ -2813,6 +2864,7 @@
   }
 
   function finishMatch(selfWon, customMsg = '') {
+    playSpatialSound(selfWon ? 'matchVictory' : 'matchDefeat', null, true);
     setScoped(false);
     document.getElementById('round-result-top').style.display = 'none';
     document.getElementById('spectate-bar').style.display = 'none';
@@ -4596,8 +4648,8 @@
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
 
-    // Online opponent disconnect / forfeit check + idle heartbeat
-    if (isOnlineMatch && (matchState === 'playing' || matchState === 'round_intro' || matchState === 'round_end' || matchState === 'game_end')) {
+    // Online disconnect check (skip forfeit in PvE since enemies are NPCs; self-disconnect = DEFEAT, opponent-disconnect = VICTORY)
+    if (isOnlineMatch && selectedMode !== 'pve' && (matchState === 'playing' || matchState === 'round_intro' || matchState === 'round_end' || matchState === 'game_end')) {
       if (matchState !== 'playing') {
         netSyncAccum += dt;
         if (netSyncAccum >= 1.2) {
@@ -4605,7 +4657,10 @@
           sendNet({ type: 'ping' });
         }
       }
-      if (lastEnemyNetTime > 0 && now - lastEnemyNetTime > 6500) {
+      const myConnAlive = (navigator.onLine !== false) && ((rtcDc && rtcDc.readyState === 'open') || (mqttClient && mqttClient.connected));
+      if (!myConnAlive) {
+        finishMatch(false, '自分の回線が切断されたため不戦敗…');
+      } else if (lastEnemyNetTime > 0 && now - lastEnemyNetTime > 6500) {
         finishMatch(true, '対戦相手が切断したため不戦勝！');
       }
     }
@@ -4650,6 +4705,10 @@
     } else if (matchState === 'round_intro') {
       stateTimer -= dt;
       const cnt = Math.max(1, Math.ceil(stateTimer));
+      if (cnt !== window._lastCdSec) {
+        window._lastCdSec = cnt;
+        playSpatialSound('countdownBeep', null, true);
+      }
       document.getElementById('banner-detail').textContent = `MAP: ${MAPS[currentMapIdx].name} — 開始まで: ${cnt}`;
       if (isTeamMode() && pSelf.hp <= 0) {
         gunGroup.visible = false;
@@ -4673,6 +4732,7 @@
       enemyRig.group.position.copy(pEnemy.pos);
       enemyRig.group.rotation.y = pEnemy.yaw;
       if (stateTimer <= 0) {
+        playSpatialSound('countdownGo', null, true);
         document.getElementById('banner-overlay').classList.remove('active');
         matchState = 'playing';
       }
