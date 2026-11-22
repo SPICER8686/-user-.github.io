@@ -306,22 +306,27 @@
     background: rgba(2, 132, 199, 0.9); border-color: #fef08a; color: #fef08a;
   }
   #scope-overlay {
-    position: absolute; inset: 0; pointer-events: none; z-index: 14; display: none;
+    position: absolute; inset: 0; pointer-events: none; z-index: 14; display: none !important; opacity: 0;
   }
-  #scope-overlay.active { display: block; }
+  #scope-overlay.active { display: none !important; }
   #scope-ring {
-    position: absolute; left: 50%; top: 53.5%; transform: translate(-50%, -50%);
+    position: absolute; left: 50%; top: 53.5%; transform: translate(-50%, -50%) scale(1.08);
     width: 34vh; height: 34vh; max-width: 44%; max-height: 56%;
     display: flex; align-items: center; justify-content: center;
+    transition: transform 0.14s ease-out;
+  }
+  #scope-overlay.active #scope-ring {
+    transform: translate(-50%, -50%) scale(1.0);
   }
 
   /* Round / Match Banner */
   #banner-overlay {
-    position: absolute; inset: 0; z-index: 35; display: none;
+    position: absolute; inset: 0; z-index: 35; display: none; pointer-events: none;
     flex-direction: column; align-items: center; justify-content: center;
     background: rgba(3, 6, 15, 0.65); backdrop-filter: blur(3px); text-align: center; padding: 12px 16px;
     transition: background 0.55s ease;
   }
+  #banner-actions, #match-end-table-wrap { pointer-events: auto; }
   #banner-overlay.fade-dark { background: rgba(2, 4, 12, 0.94); }
   @keyframes victorySlam {
     0% { opacity: 0; transform: scale(1.85) translateY(-10px); }
@@ -444,6 +449,7 @@
           <span>プレイヤー名:</span>
           <input id="input-player-name" type="text" maxlength="14" value="PLAYER1">
           <span id="lobby-rank-badge" class="rank-badge">アイアン 0pt</span>
+          <span id="lobby-record-badge" class="rank-badge" style="background:rgba(56,189,248,0.14);border-color:rgba(56,189,248,0.45);color:#7dd3fc;">0勝0敗 (K/D 0.00)</span>
           <button class="btn btn-sm" id="btn-open-settings">⚙ 設定</button>
         </div>
       </div>
@@ -451,94 +457,55 @@
       <div class="lobby-grid">
         <div class="card">
           <h3>対戦モード選択</h3>
-          <div class="mode-tabs" id="mode-tabs" style="grid-template-columns:repeat(6,1fr);">
-            <div class="mode-tab active" data-mode="npc">NPC対戦</div>
-            <div class="mode-tab" data-mode="pve">PvE</div>
-            <div class="mode-tab" data-mode="dm">デスマッチ</div>
-            <div class="mode-tab" data-mode="random">ランダム</div>
-            <div class="mode-tab" data-mode="rank">ランクマッチ</div>
-            <div class="mode-tab" data-mode="friend">フレンド</div>
-          </div>
-          <div id="fmt-row" style="display:flex;align-items:center;gap:8px;margin-top:2px;">
-            <span style="font-size:11px;font-weight:700;color:#94a3b8;">対戦形式:</span>
-            <button class="btn btn-sm btn-primary fmt-btn active" data-fmt="1v1">1v1 (6機タイマン)</button>
-            <button class="btn btn-sm fmt-btn" data-fmt="5v5">5v5 (チーム戦)</button>
+          <div class="mode-tabs" id="mode-tabs" style="grid-template-columns:repeat(3,1fr);">
+            <div class="mode-tab active" data-cat="npc">NPC</div>
+            <div class="mode-tab" data-cat="online">オンライン</div>
+            <div class="mode-tab" data-cat="custom">カスタム</div>
           </div>
 
-          <div id="mode-panel-dm" class="mode-panel" style="display:none;font-size:11px;">
-            <div style="color:#cbd5e1;margin-bottom:4px;">全員が敵の個人戦！制限時間6分・先に40キル（または最多キル）で勝利。</div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
-              <span style="font-weight:700;color:#94a3b8;">形式:</span>
-              <button class="btn btn-sm btn-primary dm-type-btn active" data-dm="npc">NPC戦</button>
-              <button class="btn btn-sm dm-type-btn" data-dm="online_fill">オンライン(NPC補充あり)</button>
-              <button class="btn btn-sm dm-type-btn" data-dm="online_only">オンラインのみ</button>
+          <!-- NPC PANEL -->
+          <div id="cat-panel-npc" class="mode-panel">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;">ルール:</span>
+              <button class="btn btn-sm btn-primary npc-sub-btn active" data-sub="1v1">1v1</button>
+              <button class="btn btn-sm npc-sub-btn" data-sub="5v5">5v5</button>
+              <button class="btn btn-sm npc-sub-btn" data-sub="dm">デスマッチ (15人)</button>
             </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-              <span style="font-weight:700;color:#94a3b8;">NPC強さ:</span>
-              <button class="btn btn-sm btn-primary dm-diff-btn active" data-diff="easy">初級</button>
-              <button class="btn btn-sm dm-diff-btn" data-diff="normal">中級</button>
-              <button class="btn btn-sm dm-diff-btn" data-diff="hard">上級</button>
-              <button class="btn btn-sm dm-diff-btn" data-diff="expert">達人</button>
+            <div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;">強さ:</span>
+              <button class="btn btn-sm btn-primary diff-btn active" data-diff="easy">初級</button>
+              <button class="btn btn-sm diff-btn" data-diff="normal">中級</button>
+              <button class="btn btn-sm diff-btn" data-diff="hard">上級</button>
+              <button class="btn btn-sm diff-btn" data-diff="expert">達人</button>
             </div>
           </div>
 
-          <div id="mode-panel-pve" class="mode-panel" style="display:none;font-size:11px;">
-            <div style="color:#cbd5e1;margin-bottom:4px;">オンラインの仲間と組み、同数の敵NPCチームと戦うPvEモードです。</div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
-              <span style="font-weight:700;color:#94a3b8;">マッチ:</span>
-              <button class="btn btn-sm btn-primary pve-mm-btn active" data-mm="random">ランダム</button>
-              <button class="btn btn-sm pve-mm-btn" data-mm="friend">フレンド</button>
-              <input id="input-pve-pass" type="text" placeholder="合言葉" maxlength="20"
-                style="display:none;background:#0f172a;border:1px solid var(--border);color:#fff;padding:2px 6px;border-radius:6px;font-size:16px;width:96px;user-select:text;-webkit-user-select:text;touch-action:manipulation;">
+          <!-- ONLINE PANEL -->
+          <div id="cat-panel-online" class="mode-panel" style="display:none;">
+            <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;">モード:</span>
+              <button class="btn btn-sm btn-primary onl-sub-btn active" data-sub="random">ランダム</button>
+              <button class="btn btn-sm onl-sub-btn" data-sub="rank">ランク</button>
+              <button class="btn btn-sm onl-sub-btn" data-sub="dm">デスマッチ</button>
             </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;margin-bottom:4px;">
-              <span style="font-weight:700;color:#94a3b8;">人数:</span>
-              <button class="btn btn-sm btn-primary pve-size-btn active" data-size="2">2人</button>
-              <button class="btn btn-sm pve-size-btn" data-size="3">3人</button>
-              <button class="btn btn-sm pve-size-btn" data-size="4">4人</button>
-              <button class="btn btn-sm pve-size-btn" data-size="5">5人</button>
+            <div id="onl-fmt-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:4px;">
+              <span style="font-size:11px;font-weight:700;color:#94a3b8;">形式:</span>
+              <button class="btn btn-sm btn-primary fmt-btn active" data-fmt="1v1">1v1 (6機)</button>
+              <button class="btn btn-sm fmt-btn" data-fmt="5v5">5v5 (チーム)</button>
             </div>
-            <div style="display:flex;align-items:center;gap:4px;flex-wrap:wrap;">
-              <span style="font-weight:700;color:#94a3b8;">強さ:</span>
-              <button class="btn btn-sm btn-primary pve-diff-btn active" data-diff="easy">初級</button>
-              <button class="btn btn-sm pve-diff-btn" data-diff="normal">中級</button>
-              <button class="btn btn-sm pve-diff-btn" data-diff="hard">上級</button>
-              <button class="btn btn-sm pve-diff-btn" data-diff="expert">達人</button>
+            <div id="onl-desc" style="font-size:11px;color:#94a3b8;">
+              ランダムマッチで待機中のプレイヤーと対戦します。
             </div>
           </div>
 
-          <div id="mode-panel-npc" class="mode-panel">
-            <div style="font-size:12px;color:#cbd5e1;margin-bottom:6px;">AI難易度を選択して6機対6機の1v1を開始します。</div>
-            <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
-              <button class="btn btn-sm diff-btn active" data-diff="easy">初級 (Easy)</button>
-              <button class="btn btn-sm diff-btn" data-diff="normal">中級 (Normal)</button>
-              <button class="btn btn-sm diff-btn" data-diff="hard">上級 (Hard)</button>
-              <button class="btn btn-sm diff-btn" data-diff="expert">達人 (Expert)</button>
-            </div>
-          </div>
-
-          <div id="mode-panel-random" class="mode-panel" style="display:none;">
-            <div style="font-size:12px;color:#cbd5e1;margin-bottom:6px;">
-              ランダムマッチで待機中のオンラインプレイヤー同士をリアルタイムにマッチングします。
-            </div>
-          </div>
-
-          <div id="mode-panel-rank" class="mode-panel" style="display:none;">
-            <div style="font-size:12px;color:#cbd5e1;margin-bottom:4px;">
-              ランク順: アイアン → ブロンズ → シルバー → ゴールド → プラチナ → ダイヤ → エメラルド → マスター → イモータル → チャンピオン（各200pt）
-            </div>
-            <div style="font-size:11px;color:#94a3b8;">
-              6ゲーム先取制。標準増減 ±20pt。格上に勝つと大きく上昇し、格下に負けると大きく減少します。
-            </div>
-          </div>
-
-          <div id="mode-panel-friend" class="mode-panel" style="display:none;">
-            <div style="font-size:12px;color:#cbd5e1;margin-bottom:6px;">
-              合言葉を入力して、同じ合言葉のフレンドとマッチングします。
+          <!-- CUSTOM PANEL -->
+          <div id="cat-panel-custom" class="mode-panel" style="display:none;">
+            <div style="font-size:11px;color:#cbd5e1;margin-bottom:6px;">
+              合言葉でカスタム設定画面に集合します（試合開始前なら途中参加OK／開始後は参加不可）。
             </div>
             <div style="display:flex;gap:8px;align-items:center;">
-              <input id="input-passphrase" type="text" placeholder="合言葉 (例: sakura77)" maxlength="20"
-                style="flex:1;background:#0f172a;border:1px solid var(--border);color:#fff;padding:6px 10px;border-radius:8px;font-size:16px;user-select:text;-webkit-user-select:text;touch-action:manipulation;">
+              <input id="input-passphrase" type="text" placeholder="合言葉 (例: room77)" maxlength="20"
+                style="flex:1;background:#0f172a;border:1px solid var(--border);color:#fff;padding:7px 10px;border-radius:8px;font-size:16px;user-select:text;-webkit-user-select:text;touch-action:manipulation;">
             </div>
           </div>
 
@@ -546,7 +513,7 @@
             <button class="btn btn-primary" id="btn-start-match" style="flex:1;padding:10px;font-size:14px;">対戦開始</button>
           </div>
           <div style="font-size:10px;color:#64748b;">
-            ルール: 体力100 (頭100 / 胴18 / 足18) ・20発リロード ・6機目vs6機目はアビリティなしサドンデス ・PC操作(WASD+マウス+R+Q)も補助対応
+            体力100 (頭100/胴18/足18)・20発リロード・PC(WASD+マウス+E+R+Tab) &amp; スマホ横画面対応
           </div>
         </div>
 
@@ -566,6 +533,40 @@
         <div style="display:flex;gap:8px;justify-content:center;margin-top:6px;">
           <button class="btn btn-sm" id="btn-mm-instant" style="display:none;">今すぐ模擬対戦で開始</button>
           <button class="btn btn-danger btn-sm" id="btn-mm-cancel">キャンセル</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOM ROOM LOBBY SCREEN -->
+    <div id="screen-custom" class="screen">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:6px;">
+        <div style="font-size:16px;font-weight:900;color:#38bdf8;">カスタムルーム <span id="cust-pass-lbl" style="color:#facc15;font-size:13px;"></span></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <select id="cust-map-select" style="background:#0f172a;color:#fff;border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:12px;">
+            <option value="-1">マップ: ランダム</option>
+            <option value="0">マップ: アルカディア</option>
+            <option value="1">マップ: サンセット・バザール</option>
+            <option value="2">マップ: フロスト・ドック</option>
+            <option value="3">マップ: ネオン・ラボ</option>
+          </select>
+          <button class="btn btn-sm" id="btn-cust-npc-mode">NPC追加: OFF</button>
+          <button class="btn btn-sm" id="btn-cust-spec">観戦へ</button>
+          <button class="btn btn-sm btn-primary" id="btn-cust-start">試合開始</button>
+          <button class="btn btn-sm btn-danger" id="btn-cust-leave">退出</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 0.85fr;gap:8px;flex:1;min-height:0;">
+        <div class="card" style="border-color:rgba(56,189,248,0.5);">
+          <h3 style="color:#38bdf8;">Aチーム (BLUE)</h3>
+          <div id="cust-blue-slots" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+        <div class="card" style="border-color:rgba(248,113,113,0.5);">
+          <h3 style="color:#f87171;">Bチーム (RED)</h3>
+          <div id="cust-red-slots" style="display:flex;flex-direction:column;gap:5px;"></div>
+        </div>
+        <div class="card">
+          <h3>観戦者 (幽霊視点)</h3>
+          <div id="cust-spec-list" style="display:flex;flex-direction:column;gap:4px;font-size:11px;color:#cbd5e1;"></div>
         </div>
       </div>
     </div>
@@ -604,6 +605,12 @@
         </div>
         <div style="font-size:11px;color:#94a3b8;font-weight:700;">PCキー設定（ボタンをクリックして変更／視点はマウス移動）：</div>
         <div id="pc-keybinds-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:5px;font-size:11px;"></div>
+        <div id="settings-career-summary" style="font-size:11px;color:#cbd5e1;background:rgba(15,23,42,0.65);border:1px solid rgba(56,189,248,0.25);border-radius:8px;padding:6px 8px;"></div>
+        <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+          <input id="transfer-code-input" type="text" placeholder="引き継ぎコード (T6:...)" style="flex:1;min-width:140px;background:#0f172a;border:1px solid var(--border);color:#fff;padding:5px 8px;border-radius:6px;font-size:11px;user-select:text;-webkit-user-select:text;">
+          <button class="btn btn-sm" id="btn-copy-transfer">📋 コード発行/コピー</button>
+          <button class="btn btn-sm btn-primary" id="btn-paste-transfer">📥 コード復元</button>
+        </div>
         <div style="display:flex;justify-content:space-between;align-items:center;gap:6px;flex-wrap:wrap;border-top:1px solid rgba(148,163,184,0.18);padding-top:8px;">
           <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
             <button class="btn btn-sm btn-primary" id="btn-export-save">💾 データ書き出し</button>
@@ -794,20 +801,21 @@
         <button class="btn btn-sm btn-danger" id="btn-exit-replay">リプレイ終了</button>
       </div>
       <div id="ghost-touch-zone" style="position:absolute;inset:0;z-index:-1;pointer-events:auto;"></div>
-      <div id="ghost-fly-pad" style="position:absolute;bottom:64px;left:18px;display:flex;gap:10px;align-items:center;pointer-events:auto;">
-        <div id="ghost-stick-zone" style="position:relative;width:96px;height:96px;border-radius:50%;background:rgba(15,23,42,0.55);border:2px solid rgba(56,189,248,0.55);touch-action:none;">
-          <div id="ghost-stick-knob" style="position:absolute;left:50%;top:50%;width:38px;height:38px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#38bdf8,#0284c7);pointer-events:none;"></div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:6px;">
-          <button class="btn btn-sm ghost-move-btn" data-gdir="up">↑上昇</button>
-          <button class="btn btn-sm ghost-move-btn" data-gdir="down">↓下降</button>
-        </div>
-      </div>
       <div class="replay-bar">
         <button class="btn btn-sm" id="btn-replay-play">⏸</button>
         <input type="range" id="replay-scrubber" min="0" max="100" value="0">
         <span id="replay-time" style="font-size:11px;font-weight:700;min-width:72px;text-align:right;">00:00</span>
         <button class="btn btn-sm" id="btn-replay-speed">1x</button>
+      </div>
+    </div>
+
+    <div id="ghost-fly-pad" style="position:absolute;bottom:64px;left:18px;z-index:30;display:none;gap:10px;align-items:center;pointer-events:auto;touch-action:none;">
+      <div id="ghost-stick-zone" style="position:relative;width:96px;height:96px;border-radius:50%;background:rgba(15,23,42,0.55);border:2px solid rgba(56,189,248,0.55);touch-action:none;">
+        <div id="ghost-stick-knob" style="position:absolute;left:50%;top:50%;width:38px;height:38px;transform:translate(-50%,-50%);border-radius:50%;background:radial-gradient(circle,#38bdf8,#0284c7);pointer-events:none;"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;touch-action:none;">
+        <button class="btn btn-sm ghost-move-btn" data-gdir="up" style="touch-action:none;">↑上昇</button>
+        <button class="btn btn-sm ghost-move-btn" data-gdir="down" style="touch-action:none;">↓下降</button>
       </div>
     </div>
 
@@ -841,6 +849,7 @@
     up: 'KeyW', down: 'KeyS', left: 'KeyA', right: 'KeyD',
     ability: 'KeyE', reload: 'KeyR', fire: 'Mouse0', scope: 'Mouse2'
   };
+  const DEFAULT_STATS = { matches: 0, wins: 0, losses: 0, kills: 0, deaths: 0, assists: 0, dmg: 0, dmWins: 0, history: [] };
   let config = {
     name: 'PLAYER1',
     sens: 1.0,
@@ -848,6 +857,8 @@
     scopeMode: 'toggle', // 'toggle' | 'hold'
     rankIndex: 0,
     rankPoints: 0,
+    updatedAt: 0,
+    stats: { ...DEFAULT_STATS },
     keys: { ...DEFAULT_KEYS },
     ui: {
       stick: { x: 14, y: 74 },
@@ -857,25 +868,71 @@
       scope: { x: 78, y: 52 }
     }
   };
-  try {
-    const saved = localStorage.getItem('tactical6_cfg_v1');
-    if (saved) {
-      const p = JSON.parse(saved);
-      config = { ...config, ...p, keys: { ...DEFAULT_KEYS, ...(p.keys || {}) }, ui: { ...config.ui, ...(p.ui || {}) } };
-    }
-  } catch (e) {}
+
+  function mergeSavedConfig(p) {
+    if (!p || typeof p !== 'object') return;
+    config = {
+      ...config,
+      ...p,
+      stats: { ...DEFAULT_STATS, ...(p.stats || {}), history: Array.isArray(p.stats?.history) ? p.stats.history.slice(0, 20) : (config.stats.history || []) },
+      keys: { ...DEFAULT_KEYS, ...(p.keys || {}) },
+      ui: { ...config.ui, ...(p.ui || {}) }
+    };
+  }
+
+  function writeIdbBackup(raw) {
+    try {
+      if (typeof indexedDB === 'undefined') return;
+      const req = indexedDB.open('tactical6_persistent_db', 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains('player_save')) req.result.createObjectStore('player_save');
+      };
+      req.onsuccess = () => {
+        try {
+          const tx = req.result.transaction('player_save', 'readwrite');
+          tx.objectStore('player_save').put(raw, 'tactical6_cfg_v1');
+        } catch (e) {}
+      };
+    } catch (e) {}
+  }
+
+  function readCookieBackup() {
+    try {
+      const m = document.cookie.match(/(?:^|;\s*)t6_save=([^;]+)/);
+      if (m) return JSON.parse(decodeURIComponent(m[1]));
+    } catch (e) {}
+    return null;
+  }
 
   function saveConfig() {
+    config.updatedAt = Date.now();
     const raw = JSON.stringify(config);
     try { localStorage.setItem('tactical6_cfg_v1', raw); } catch (e) {}
     try { window.name = 'T6SAVE:' + raw; } catch (e) {}
+    writeIdbBackup(raw);
+    try {
+      if (location.protocol === 'http:' || location.protocol === 'https:') {
+        const compact = { ...config, stats: { ...config.stats, history: [] } };
+        const enc = encodeURIComponent(JSON.stringify(compact));
+        if (enc.length < 3800) document.cookie = `t6_save=${enc}; max-age=31536000; path=/; SameSite=Lax`;
+      }
+    } catch (e) {}
   }
-  try {
-    if (!localStorage.getItem('tactical6_cfg_v1') && window.name && window.name.startsWith('T6SAVE:')) {
-      const p = JSON.parse(window.name.slice(7));
-      config = { ...config, ...p, keys: { ...DEFAULT_KEYS, ...(p.keys || {}) }, ui: { ...config.ui, ...(p.ui || {}) } };
-    }
-  } catch (e) {}
+
+  (function loadInitialConfig() {
+    const candidates = [];
+    try {
+      const ls = localStorage.getItem('tactical6_cfg_v1');
+      if (ls) candidates.push(JSON.parse(ls));
+    } catch (e) {}
+    try {
+      if (window.name && window.name.startsWith('T6SAVE:')) candidates.push(JSON.parse(window.name.slice(7)));
+    } catch (e) {}
+    const ck = readCookieBackup();
+    if (ck) candidates.push(ck);
+    candidates.sort((a, b) => (a?.updatedAt || 0) - (b?.updatedAt || 0));
+    candidates.forEach(c => mergeSavedConfig(c));
+  })();
 
   function getRankText(idx, pts) {
     return `${RANKS[Math.max(0, Math.min(RANKS.length - 1, idx))]} ${pts}pt`;
@@ -1351,6 +1408,7 @@
   const canvas = document.getElementById('three-canvas');
   const vpEl = document.getElementById('viewport-16-9');
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.autoClear = true;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
@@ -1571,32 +1629,103 @@
 
   buildMap(0);
 
-  // ==================== FIRST-PERSON RIFLE VIEWMODEL ====================
+  // ==================== FIRST-PERSON RIFLE VIEWMODEL (WITH 3D MOUNTED HCOG SCOPE & SILENCER) ====================
   const gunGroup = new THREE.Group();
-  const gunMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.75, roughness: 0.3 });
-  const gunAccent = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.6 });
-  const bodyBox = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.095, 0.48), gunMat);
-  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.016, 0.36, 8), gunMat);
-  barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.015, -0.38);
-  const scope = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.045, 0.16), gunMat);
-  scope.position.set(0, 0.068, -0.05);
-  const strip = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.014, 0.22), gunAccent);
-  strip.position.set(0, 0.02, -0.05);
-  const muzzleMesh = new THREE.Mesh(
-    new THREE.SphereGeometry(0.07, 8, 8),
-    new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0 })
+  const gunMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, metalness: 0.78, roughness: 0.28 });
+  const gunDarkMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.24 });
+  const gunAccent = new THREE.MeshStandardMaterial({ color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.65 });
+  const bodyBox = new THREE.Mesh(new THREE.BoxGeometry(0.072, 0.09, 0.46), gunMat);
+  const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.058, 0.066, 0.26), gunDarkMat);
+  handguard.position.set(0, 0.01, -0.32);
+  const magMesh = new THREE.Mesh(new THREE.BoxGeometry(0.036, 0.14, 0.068), gunDarkMat);
+  magMesh.position.set(0, -0.095, -0.04); magMesh.rotation.x = 0.16;
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.36, 10), gunDarkMat);
+  barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.015, -0.42);
+  const topRail = new THREE.Mesh(new THREE.BoxGeometry(0.044, 0.014, 0.34), gunDarkMat);
+  topRail.position.set(0, 0.051, -0.08);
+  const strip = new THREE.Mesh(new THREE.BoxGeometry(0.076, 0.013, 0.22), gunAccent);
+  strip.position.set(0, 0.018, -0.04);
+
+  // Detailed 3D Open-Top U-Shaped HCOG Bruiser Scope (with UI holographic reticle texture inside model)
+  const scope = new THREE.Group();
+  scope.position.set(0, 0.082, -0.05);
+  const scBase = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.014, 0.095), gunDarkMat);
+  scBase.position.set(0, -0.016, 0);
+  const scBridge = new THREE.Mesh(new THREE.BoxGeometry(0.048, 0.007, 0.075), gunMat);
+  scBridge.position.set(0, -0.006, 0);
+  const scAccentBar = new THREE.Mesh(new THREE.BoxGeometry(0.026, 0.004, 0.012), gunAccent);
+  scAccentBar.position.set(0, -0.009, 0.042);
+  const scWallL = new THREE.Mesh(new THREE.BoxGeometry(0.007, 0.044, 0.076), gunMat);
+  scWallL.position.set(-0.024, 0.014, 0); scWallL.rotation.z = 0.06;
+  const scWallR = new THREE.Mesh(new THREE.BoxGeometry(0.007, 0.044, 0.076), gunMat);
+  scWallR.position.set(0.024, 0.014, 0); scWallR.rotation.z = -0.06;
+
+  // High-res HCOG holographic glass & red chevron reticle texture mounted inside 3D scope
+  const holoCanvas = document.createElement('canvas');
+  holoCanvas.width = 256; holoCanvas.height = 256;
+  const hctx = holoCanvas.getContext('2d');
+  hctx.clearRect(0, 0, 256, 256);
+  hctx.fillStyle = 'rgba(56, 189, 248, 0.08)';
+  hctx.fillRect(0, 0, 256, 256);
+  // Subtle inner metallic bezel reflection
+  hctx.strokeStyle = 'rgba(148, 163, 184, 0.28)';
+  hctx.lineWidth = 4;
+  hctx.strokeRect(8, 8, 240, 240);
+  // Red Holographic Chevron (^) centered at (128, 128)
+  hctx.strokeStyle = '#ef4444';
+  hctx.lineWidth = 5;
+  hctx.lineCap = 'round';
+  hctx.lineJoin = 'round';
+  hctx.beginPath();
+  hctx.moveTo(114, 138); hctx.lineTo(128, 122); hctx.lineTo(142, 138);
+  hctx.stroke();
+  hctx.fillStyle = '#fca5a5';
+  hctx.beginPath(); hctx.arc(128, 125, 3.2, 0, Math.PI * 2); hctx.fill();
+  // Vertical & horizontal drop ticks
+  hctx.lineWidth = 3.5;
+  [[146,154],[160,168],[174,182]].forEach(([y1,y2]) => {
+    hctx.beginPath(); hctx.moveTo(128, y1); hctx.lineTo(128, y2); hctx.stroke();
+  });
+  hctx.strokeStyle = 'rgba(239, 68, 68, 0.72)';
+  hctx.lineWidth = 2.5;
+  hctx.beginPath(); hctx.moveTo(120, 150); hctx.lineTo(136, 150); hctx.stroke();
+  hctx.beginPath(); hctx.moveTo(122, 164); hctx.lineTo(134, 164); hctx.stroke();
+
+  const holoTex = new THREE.CanvasTexture(holoCanvas);
+  const scLens = new THREE.Mesh(
+    new THREE.PlaneGeometry(0.042, 0.040),
+    new THREE.MeshBasicMaterial({ map: holoTex, transparent: true, opacity: 0.96, side: THREE.DoubleSide, depthWrite: false })
   );
-  muzzleMesh.position.set(0, 0.015, -0.58);
+  scLens.position.set(0, 0.014, -0.008);
+  scope.add(scBase, scBridge, scAccentBar, scWallL, scWallR, scLens);
+
+  const muzzleMat = new THREE.MeshBasicMaterial({
+    color: 0xfef08a, transparent: true, opacity: 0,
+    blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+  });
+  const muzzleMesh = new THREE.Group();
+  const mzFinH = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.024), muzzleMat);
+  const mzFinV = new THREE.Mesh(new THREE.PlaneGeometry(0.024, 0.09), muzzleMat);
+  const mzCore = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 8), muzzleMat);
+  muzzleMesh.add(mzFinH, mzFinV, mzCore);
+  muzzleMesh.position.set(0, 0.015, -0.61);
   const muzzleLight = new THREE.PointLight(0xfde047, 0, 8);
-  muzzleLight.position.set(0, 0.05, -0.6);
-  const silencerMesh = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.024, 0.024, 0.24, 10),
-    new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.85, roughness: 0.25 })
+  muzzleLight.position.set(0, 0.05, -0.62);
+  const silencerMesh = new THREE.Group();
+  const silBody = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.025, 0.025, 0.25, 12),
+    gunDarkMat
   );
-  silencerMesh.rotation.x = Math.PI / 2;
-  silencerMesh.position.set(0, 0.015, -0.62);
+  silBody.rotation.x = Math.PI / 2;
+  const silRing = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.028, 0.028, 0.03, 12),
+    gunAccent
+  );
+  silRing.rotation.x = Math.PI / 2; silRing.position.z = 0.105;
+  silencerMesh.add(silBody, silRing);
+  silencerMesh.position.set(0, 0.015, -0.68);
   silencerMesh.visible = false;
-  gunGroup.add(bodyBox, barrel, scope, strip, silencerMesh, muzzleMesh, muzzleLight);
+  gunGroup.add(bodyBox, handguard, magMesh, barrel, topRail, scope, strip, silencerMesh, muzzleMesh, muzzleLight);
   gunGroup.position.set(0.24, -0.22, -0.38);
   camera.add(gunGroup);
 
@@ -1911,8 +2040,12 @@
   }
 
   // ==================== GAME STATE ====================
+  let mainCategory = 'npc'; // 'npc' | 'online' | 'custom'
+  let npcSubRule = '1v1';   // '1v1' | '5v5' | 'dm'
+  let onlSubRule = 'random'; // 'random' | 'rank' | 'dm'
   let selectedMode = 'npc';
   let npcDifficulty = 'easy';
+  let isCustomSpectator = false;
   let matchState = 'lobby'; // lobby | matchmaking | round_intro | playing | round_end | match_end | replay
   let stateTimer = 0;
   let roundNum = 1;
@@ -2001,6 +2134,19 @@
   }
   let isScoped = false;
   let wantScoped = false;
+  const gunAnim = {
+    adsT: 0,
+    bobPhase: 0,
+    bobBlend: 0,
+    swayX: 0,
+    swayY: 0,
+    kickZ: 0,
+    kickPitch: 0,
+    kickRoll: 0,
+    reloadT: 0,
+    lastYaw: 0,
+    lastPitch: 0
+  };
   let selfTeamScore = 0;
   let enemyTeamScore = 0;
   let teamAllies = [];
@@ -2193,6 +2339,11 @@
     } else if (msg.type === 'fire') {
       if (selectedMode === 'pve' && teamAllies.length > 0) {
         playSpatialSound('gunshot', teamAllies[0].pos, false);
+        spawnBulletTracer(
+          new THREE.Vector3(msg.ox, msg.oy, msg.oz),
+          new THREE.Vector3(msg.tx, msg.ty, msg.tz)
+        );
+        return;
       } else {
         pEnemy.muzzleT = 0.08;
         playSpatialSound('gunshot', pEnemy.pos, false);
@@ -2257,7 +2408,7 @@
 
     let channelKey = '';
     if (mode === 'friend' || mode === 'pve_friend') {
-      const passEl = mode === 'pve_friend' ? document.getElementById('input-pve-pass') : document.getElementById('input-passphrase');
+      const passEl = document.getElementById('input-passphrase');
       const pass = (passEl.value || '').trim();
       if (!pass) {
         statusEl.textContent = '合言葉を入力してください。';
@@ -2271,10 +2422,21 @@
       channelKey = 'rank_' + teamFormat;
       statusEl.textContent = 'ランクマッチサーバーに接続中...';
       subEl.textContent = '現在オンラインでランクマッチ待機中のプレイヤーを探しています（NPCとは当たりません）';
-    } else if (mode.startsWith('dm_')) {
-      channelKey = mode;
-      statusEl.textContent = 'デスマッチサーバーに接続中...';
-      subEl.textContent = dmSubType === 'online_fill' ? 'オンライン対戦相手を検索中（NPC補充あり）' : 'オンラインプレイヤーのみでマッチング待機中';
+    } else if (mode === 'dm_online') {
+      channelKey = 'dm_online_15';
+      statusEl.textContent = 'オンラインデスマッチ待機中... (10秒でNPC補充して開始)';
+      subEl.textContent = '15人集まらない場合は10秒後にNPCで穴埋めしてスタートします';
+      let dmWait = 10;
+      if (mmTimeout) clearInterval(mmTimeout);
+      mmTimeout = setInterval(() => {
+        if (matchState !== 'matchmaking') { clearInterval(mmTimeout); mmTimeout = null; return; }
+        dmWait--;
+        statusEl.textContent = `オンラインデスマッチ待機中... 残り ${Math.max(0, dmWait)}秒`;
+        if (dmWait <= 0) {
+          clearInterval(mmTimeout); mmTimeout = null;
+          if (!isOnlineMatch) startNewMatch(false);
+        }
+      }, 1000);
     } else if (mode === 'pve_random') {
       channelKey = 'pve_random_' + pveTeamSize;
       statusEl.textContent = `PvE (${pveTeamSize}人チーム) サーバーに接続中...`;
@@ -2445,9 +2607,14 @@
     const next = !!val;
     if (isScoped !== next) {
       isScoped = next;
-      document.getElementById('scope-overlay').classList.toggle('active', isScoped);
-      camera.fov = isScoped ? 36 : 72; // 2x optical zoom!
-      camera.updateProjectionMatrix();
+      const ov = document.getElementById('scope-overlay');
+      ov.classList.toggle('active', isScoped);
+      if (!isScoped && matchState !== 'playing' && matchState !== 'round_end') {
+        gunAnim.adsT = 0;
+        ov.style.opacity = '0';
+        camera.fov = 72;
+        camera.updateProjectionMatrix();
+      }
     }
     document.getElementById('btn-scope').classList.toggle('active', wantScoped);
   }
@@ -2526,6 +2693,8 @@
     showScreen(null);
     document.getElementById('hud').classList.add('active');
     document.getElementById('replay-ui').classList.remove('active');
+    clearIllusions();
+    clearFx();
     replayAlliesRigs.forEach(r => scene.remove(r.group)); replayAlliesRigs = [];
     replayEnemiesRigs.forEach(r => scene.remove(r.group)); replayEnemiesRigs = [];
     selfRig.group.visible = false;
@@ -2535,6 +2704,9 @@
     if ((!isOnlineMatch && selectedMode === 'npc') || selectedMode === 'pve') {
       pEnemy.name = `NPC-${npcDifficulty.toUpperCase()}`;
     }
+    toggleScoreboard(false);
+    const sbBody = document.getElementById('scoreboard-tbody');
+    if (sbBody) sbBody.innerHTML = '';
     teamAllies.forEach(a => scene.remove(a.rig.group)); teamAllies = [];
     teamEnemies.forEach(e => scene.remove(e.rig.group)); teamEnemies = [];
     dmBots.forEach(b => scene.remove(b.rig.group)); dmBots = [];
@@ -2616,6 +2788,7 @@
     document.getElementById('spectate-bar').style.display = 'none';
     document.getElementById('death-damage-log').style.display = 'none';
     document.getElementById('scoreboard-modal').style.display = 'none';
+    document.getElementById('ghost-fly-pad').style.display = 'none';
     gunGroup.visible = true;
     enemyRig.group.visible = true;
     enemyRig.group.rotation.x = 0;
@@ -2624,6 +2797,15 @@
     selfRig.group.position.y = 0;
     pEnemy._shieldBrokenAt = 0;
 
+    if (!isCustomSpectator) {
+      document.getElementById('ghost-fly-pad').style.display = 'none';
+      ['stick-zone', 'btn-fire', 'btn-ability', 'btn-reload', 'btn-scope', 'ammo-box', 'crosshair'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = '';
+      });
+      aimZone.style.left = '';
+      aimZone.style.width = '55%';
+    }
     setScoped(false);
     if (selectedMode === 'dm') {
       suddenDeath = false;
@@ -2654,6 +2836,83 @@
           shadowCastT: 0, shadowT: 0, scanGlowT: 0, shield: false, respawnT: 0, spawnLockT: 1.0,
           stats: { k: 0, d: 0, a: 0, dmg: 0 }, strafeDir: i % 2 ? 1 : -1, strafeT: 1
         });
+      }
+    } else if (selectedMode === 'custom') {
+      suddenDeath = false;
+      const inRed = customRoom.red.some(x => x && x.id === myNetId);
+      const myTeamArr = (inRed ? customRoom.red : customRoom.blue).filter(Boolean);
+      const oppTeamArr = (inRed ? customRoom.blue : customRoom.red).filter(Boolean);
+      const mySpawn = inRed ? spawnRedPos : spawnBluePos;
+      const oppSpawn = inRed ? spawnBluePos : spawnRedPos;
+      const myYaw = inRed ? Math.PI : 0;
+      const oppYaw = inRed ? 0 : Math.PI;
+
+      ['stick-zone', 'btn-fire', 'btn-ability', 'btn-reload', 'btn-scope', 'ammo-box', 'crosshair'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = isCustomSpectator ? 'none' : '';
+      });
+      aimZone.style.left = isCustomSpectator ? '0' : '';
+      aimZone.style.width = isCustomSpectator ? '100%' : '55%';
+      if (isCustomSpectator) {
+        pSelf.hp = 0;
+        pSelf.unit = 6;
+        gunGroup.visible = false;
+        selfRig.group.visible = false;
+        document.getElementById('ghost-fly-pad').style.display = 'flex';
+      } else {
+        pSelf.pos.set(mySpawn.x, 0, mySpawn.z);
+        pSelf.yaw = myYaw;
+      }
+
+      let aIdx = 0;
+      myTeamArr.forEach(slot => {
+        if (slot.id === myNetId) return;
+        const u = allyUnits[aIdx] || 0;
+        const alive = u < 6;
+        const ax = mySpawn.x + ((aIdx + 1) % 2 ? 1 : -1) * (1.4 * Math.ceil((aIdx + 1) / 2));
+        const aRig = createCharacterRig(false, false);
+        aRig.group.position.set(ax, 0, mySpawn.z);
+        aRig.group.rotation.y = myYaw;
+        aRig.group.visible = alive;
+        scene.add(aRig.group);
+        teamAllies.push({
+          name: slot.name, isOnlineAlly: !slot.isNpc, stats: allyStats[aIdx] || {k:0,d:0,a:0,dmg:0},
+          hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, mySpawn.z),
+          yaw: myYaw, rig: aRig, fireCd: Math.random() * 0.4, strafeDir: 1, strafeT: 1,
+          abCd: 0, rushT: 0, silencerT: 0, shadowCastT: 0, shadowT: 0, scanGlowT: 0, shield: false
+        });
+        aIdx++;
+      });
+
+      if (oppTeamArr.length === 0) {
+        pEnemy.hp = 0;
+        pEnemy.name = 'なし';
+        enemyRig.group.visible = false;
+      } else {
+        pEnemy.name = oppTeamArr[0].name;
+        pEnemy.pos.set(oppSpawn.x, 0, oppSpawn.z);
+        pEnemy.targetPos.copy(pEnemy.pos);
+        pEnemy.yaw = oppYaw;
+        if (pEnemy.unit >= 6) { pEnemy.hp = 0; enemyRig.group.visible = false; }
+        for (let oi = 1; oi < oppTeamArr.length; oi++) {
+          const slot = oppTeamArr[oi];
+          const idx = oi - 1;
+          const u = enemyUnits[idx] || 0;
+          const alive = u < 6;
+          const ex = oppSpawn.x + (oi % 2 ? 1 : -1) * (1.4 * Math.ceil(oi / 2));
+          const eRig = createCharacterRig(true, false);
+          eRig.group.position.set(ex, 0, oppSpawn.z);
+          eRig.group.rotation.y = oppYaw;
+          eRig.group.visible = alive;
+          eRig.hitboxes.forEach(hb => { hb.userData.teamIdx = idx; });
+          scene.add(eRig.group);
+          teamEnemies.push({
+            name: slot.name, stats: enemyStats[idx] || {k:0,d:0,a:0,dmg:0},
+            hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ex, 0, oppSpawn.z),
+            yaw: oppYaw, rig: eRig, fireCd: Math.random() * 0.4, strafeDir: -1, strafeT: 1,
+            abCd: 0, rushT: 0, silencerT: 0, shadowCastT: 0, shadowT: 0, scanGlowT: 0, shield: false
+          });
+        }
       }
     } else if (isTeamMode()) {
       const tSize = getTeamSize();
@@ -2731,8 +2990,12 @@
     bSub.textContent = selectedMode === 'dm'
       ? '15人個人戦 — 制限時間6分・40キル先取'
       : (isTeamMode()
-        ? `${getTeamSize()}v${getTeamSize()} TEAM BATTLE — BLUE ${selfTeamScore} : ${enemyTeamScore} RED`
-        : `${pSelf.unit + 1}機目 (${UNITS[pSelf.unit].name})  VS  ${pEnemy.unit + 1}機目 (${UNITS[pEnemy.unit].name})`);
+        ? (() => {
+            const bCnt = selectedMode === 'custom' ? (isCustomSpectator ? teamAllies.length : 1 + teamAllies.length) : getTeamSize();
+            const rCnt = selectedMode === 'custom' ? ((pEnemy.name === 'なし' ? 0 : 1) + teamEnemies.length) : getTeamSize();
+            return `${bCnt}v${rCnt} TEAM BATTLE — BLUE ${selfTeamScore} : ${enemyTeamScore} RED`;
+          })()
+        : `${pSelf.unit + 1}機目 (${UNITS[pSelf.unit]?.name || '観戦'})  VS  ${pEnemy.unit + 1}機目 (${UNITS[pEnemy.unit]?.name || '観戦'})`);
     bDet.textContent = `MAP: ${MAPS[currentMapIdx].name} — 開始まで: 3`;
     banner.classList.add('active');
   }
@@ -2748,8 +3011,15 @@
     playSpatialSound(selfWon ? 'roundWin' : 'roundLose', null, true);
 
     const topRes = document.getElementById('round-result-top');
-    topRes.className = selfWon ? 'text-win' : 'text-lose';
-    topRes.textContent = selfWon ? 'WON' : 'LOST';
+    if (isCustomSpectator) {
+      topRes.className = '';
+      topRes.style.color = selfWon ? '#38bdf8' : '#f87171';
+      topRes.textContent = selfWon ? 'BLUE WON' : 'RED WON';
+    } else {
+      topRes.style.color = '';
+      topRes.className = selfWon ? 'text-win' : 'text-lose';
+      topRes.textContent = selfWon ? 'WON' : 'LOST';
+    }
     topRes.style.display = 'block';
 
     if (isTeamMode()) {
@@ -2914,13 +3184,48 @@
     void banner.offsetWidth;
     banner.classList.add('fade-dark');
 
-    bTitle.className = (selfWon ? 'text-win' : 'text-lose') + ' anim-victory big-center';
-    bTitle.textContent = selfWon ? 'VICTORY!!' : 'DEFEAT...';
-    bSub.className = '';
-    bSub.textContent = customMsg || (selfWon ? '試合に勝利しました！' : '敗北しました…');
+    if (isCustomSpectator) {
+      bTitle.className = 'anim-victory big-center';
+      bTitle.style.color = selfWon ? '#38bdf8' : '#f87171';
+      bTitle.textContent = selfWon ? 'BLUE WON' : 'RED WON';
+      bSub.className = '';
+      bSub.textContent = customMsg || (selfWon ? '青チームが勝利しました！' : '赤チームが勝利しました！');
+    } else {
+      bTitle.style.color = '';
+      bTitle.className = (selfWon ? 'text-win' : 'text-lose') + ' anim-victory big-center';
+      bTitle.textContent = selfWon ? 'VICTORY!!' : 'DEFEAT...';
+      bSub.className = '';
+      bSub.textContent = customMsg || (selfWon ? '試合に勝利しました！' : '敗北しました…');
+    }
     bSub.style.display = 'none';
     bDet.style.display = 'none';
     acts.style.display = 'none';
+
+    if (!isCustomSpectator) {
+      const st = config.stats || (config.stats = { ...DEFAULT_STATS });
+      st.matches = (st.matches || 0) + 1;
+      if (selfWon) st.wins = (st.wins || 0) + 1;
+      else st.losses = (st.losses || 0) + 1;
+      if (selectedMode === 'dm' && selfWon) st.dmWins = (st.dmWins || 0) + 1;
+      st.kills = (st.kills || 0) + (pSelf.kills || 0);
+      st.deaths = (st.deaths || 0) + (pSelf.deaths || 0);
+      st.assists = (st.assists || 0) + (pSelf.assists || 0);
+      st.dmg = (st.dmg || 0) + Math.round(pSelf.dmgDealt || 0);
+      if (!Array.isArray(st.history)) st.history = [];
+      st.history.unshift({
+        t: Date.now(),
+        mode: selectedMode,
+        map: MAPS[currentMapIdx]?.name || '-',
+        won: !!selfWon,
+        k: pSelf.kills || 0,
+        d: pSelf.deaths || 0,
+        a: pSelf.assists || 0,
+        dmg: Math.round(pSelf.dmgDealt || 0)
+      });
+      if (st.history.length > 20) st.history.length = 20;
+      saveConfig();
+      updateLobbyRankBadge();
+    }
 
     let rankMsg = '';
     if (selectedMode === 'rank') {
@@ -2967,7 +3272,7 @@
     } else {
       thead.innerHTML = '<tr style="border-bottom:1px solid rgba(148,163,184,0.3);color:#94a3b8;"><th style="padding:4px;">プレイヤー</th><th style="padding:4px;">K / D / A</th><th style="padding:4px;">与ダメージ</th></tr>';
       const tRows = [
-        { team: 'BLUE', name: pSelf.name, k: pSelf.kills, d: pSelf.deaths, a: pSelf.assists, dmg: pSelf.dmgDealt },
+        ...(isCustomSpectator ? [] : [{ team: 'BLUE', name: pSelf.name, k: pSelf.kills, d: pSelf.deaths, a: pSelf.assists, dmg: pSelf.dmgDealt }]),
         ...teamAllies.map((a, i) => ({ team: 'BLUE', name: a.name, k: allyStats[i].k, d: allyStats[i].d, a: allyStats[i].a, dmg: allyStats[i].dmg })),
         { team: 'RED', name: pEnemy.name, k: pEnemy.kills, d: pEnemy.deaths, a: pEnemy.assists, dmg: pEnemy.dmgDealt },
         ...teamEnemies.map((e, i) => ({ team: 'RED', name: e.name, k: enemyStats[i].k, d: enemyStats[i].d, a: enemyStats[i].a, dmg: enemyStats[i].dmg }))
@@ -3004,11 +3309,15 @@
       sendNet({ type: 'leave' }, true);
     }
     setScoped(false);
+    isCustomSpectator = false;
+    clearIllusions();
+    clearFx();
     cleanupNetwork();
     matchState = 'lobby';
     document.getElementById('hud').classList.remove('active');
     document.getElementById('banner-overlay').classList.remove('active');
     document.getElementById('replay-ui').classList.remove('active');
+    document.getElementById('ghost-fly-pad').style.display = 'none';
     document.getElementById('round-result-top').style.display = 'none';
     document.getElementById('spectate-bar').style.display = 'none';
     document.getElementById('death-damage-log').style.display = 'none';
@@ -3034,6 +3343,9 @@
     const recMul = isSilenced ? 0.32 : 1.0;
     pSelf.recoilPitch += 0.018 * recMul;
     pSelf.recoilYaw += (Math.random() > 0.3 ? -1 : 1) * 0.007 * recMul;
+    gunAnim.kickZ = Math.min(0.085, gunAnim.kickZ + 0.042 * recMul);
+    gunAnim.kickPitch = Math.min(0.16, gunAnim.kickPitch + 0.055 * recMul);
+    gunAnim.kickRoll = (Math.random() - 0.5) * 0.06 * recMul;
     pSelf.pitch = Math.min(1.25, pSelf.pitch + 0.014 * recMul);
     pSelf.yaw -= 0.0045 * recMul;
 
@@ -3403,13 +3715,13 @@
           ...dmBots.map(b => ({ team: 'RED', name: b.name, k: b.stats.k, d: b.stats.d, a: 0, dmg: b.stats.dmg, unit: b.unit }))
         ].sort((a, b) => b.k - a.k)
       : [
-      { team: 'BLUE', name: pSelf.name, k: pSelf.kills, d: pSelf.deaths, a: pSelf.assists, dmg: pSelf.dmgDealt, unit: pSelf.unit },
+      ...(isCustomSpectator ? [{ team: 'SPEC', name: pSelf.name + ' (観戦)', k: 0, d: 0, a: 0, dmg: 0, unit: 6 }] : [{ team: 'BLUE', name: pSelf.name, k: pSelf.kills, d: pSelf.deaths, a: pSelf.assists, dmg: pSelf.dmgDealt, unit: pSelf.unit }]),
       ...teamAllies.map((a, i) => ({ team: 'BLUE', name: a.name, k: allyStats[i].k, d: allyStats[i].d, a: allyStats[i].a, dmg: allyStats[i].dmg, unit: allyUnits[i] })),
-      { team: 'RED', name: pEnemy.name, k: pEnemy.kills, d: pEnemy.deaths, a: pEnemy.assists, dmg: pEnemy.dmgDealt, unit: pEnemy.unit },
+      ...(selectedMode === 'custom' && pEnemy.name === 'なし' ? [] : [{ team: 'RED', name: pEnemy.name, k: pEnemy.kills, d: pEnemy.deaths, a: pEnemy.assists, dmg: pEnemy.dmgDealt, unit: pEnemy.unit }]),
       ...teamEnemies.map((e, i) => ({ team: 'RED', name: e.name, k: enemyStats[i].k, d: enemyStats[i].d, a: enemyStats[i].a, dmg: enemyStats[i].dmg, unit: enemyUnits[i] }))
     ];
     tbody.innerHTML = rows.map(r => {
-      const col = r.team === 'BLUE' ? '#38bdf8' : '#f87171';
+      const col = r.team === 'BLUE' ? '#38bdf8' : (r.team === 'SPEC' ? '#facc15' : '#f87171');
       const rem = selectedMode === 'dm' ? '個人戦' : (r.unit >= 6 ? '観戦 (残0)' : `残${6 - r.unit}機 [${UNITS[r.unit].abName}]`);
       return `<tr style="border-bottom:1px solid rgba(148,163,184,0.12);">
         <td style="padding:5px 4px;font-weight:800;color:${col};">${r.name}</td>
@@ -3565,7 +3877,18 @@
       if (pEnemy.reloading <= 0) pEnemy.ammo = MAG_SIZE;
     }
 
-    const toPlayer = new THREE.Vector3().subVectors(pSelf.pos, pEnemy.pos);
+    let aiTarget = pSelf;
+    if (isTeamMode()) {
+      const bluePool = [...(!isCustomSpectator && pSelf.hp > 0 ? [{ obj: pSelf, isSelf: true, pos: pSelf.pos, hp: pSelf.hp }] : []), ...teamAllies.filter(a => a.hp > 0)];
+      if (bluePool.length === 0) return;
+      let bestD = Infinity;
+      bluePool.forEach(b => {
+        const d = b.pos.distanceTo(pEnemy.pos);
+        if (d < bestD) { bestD = d; aiTarget = b; }
+      });
+    }
+    const targetPos = aiTarget.pos;
+    const toPlayer = new THREE.Vector3().subVectors(targetPos, pEnemy.pos);
     const dist = toPlayer.length();
     const desiredYaw = Math.atan2(-toPlayer.x, -toPlayer.z);
 
@@ -3582,8 +3905,8 @@
     pEnemy.yaw += Math.max(-maxTurn, Math.min(maxTurn, dYaw));
 
     const eEye = new THREE.Vector3(pEnemy.pos.x, EYE_HEIGHT, pEnemy.pos.z);
-    const sEye = new THREE.Vector3(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
-    const canSee = pSelf.hp > 0 && hasLineOfSight(eEye, sEye);
+    const sEye = new THREE.Vector3(targetPos.x, EYE_HEIGHT, targetPos.z);
+    const canSee = aiTarget.hp > 0 && hasLineOfSight(eEye, sEye);
     if (!canSee) pEnemy._reactT = diffCfg.react;
     else if ((pEnemy._reactT || 0) > 0) pEnemy._reactT -= dt;
 
@@ -3603,7 +3926,7 @@
     if (!isNpcStoppingToShoot && pEnemy.shadowCastT <= 0) {
       let mx = 0, mz = 0;
       if (!canSee) {
-        const wp = getNextGridWaypoint(pEnemy, pSelf.pos, dt);
+        const wp = getNextGridWaypoint(pEnemy, targetPos, dt);
         mx = wp.x - pEnemy.pos.x;
         mz = wp.z - pEnemy.pos.z;
       } else if (dist > 16) {
@@ -3677,7 +4000,22 @@
       const hitAngleThreshold = Math.atan2(0.36, Math.max(2, dist));
       if (angErr < hitAngleThreshold) {
         const isHS = angErr < hitAngleThreshold * 0.28 && Math.random() < diffCfg.hsProb * 2.5;
-        applyDamageToSelf(isHS ? 100 : 18, isHS ? 'head' : 'torso', pEnemy.pos);
+        const dmgVal = isHS ? 100 : 18;
+        if (aiTarget === pSelf || aiTarget.isSelf) {
+          applyDamageToSelf(dmgVal, isHS ? 'head' : 'torso', pEnemy.pos);
+        } else if (aiTarget.shield) {
+          aiTarget.shield = false; playSpatialSound('shieldBreak', aiTarget.pos, false);
+        } else {
+          const wasUp = aiTarget.hp > 0;
+          pEnemy.dmgDealt += dmgVal;
+          aiTarget.hp = Math.max(0, aiTarget.hp - dmgVal);
+          if (wasUp && aiTarget.hp <= 0) {
+            pEnemy.kills++;
+            if (aiTarget.stats) aiTarget.stats.d++;
+            if (aiTarget.rig) { aiTarget.rig.group.rotation.x = -Math.PI / 2; aiTarget.rig.group.position.y = 0.22; }
+            addKillFeed(pEnemy.name, aiTarget.name, false, isHS);
+          }
+        }
       }
       if (pEnemy.ammo <= 0 && !isCluster) {
         startReload(pEnemy, false);
@@ -3759,13 +4097,18 @@
     try { aimZone.setPointerCapture(e.pointerId); } catch (err) {}
   });
   aimZone.addEventListener('pointermove', e => {
-    if (e.pointerId === aimTouchId && pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) {
+    if (e.pointerId === aimTouchId && ((pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) || (isCustomSpectator && (matchState === 'round_intro' || matchState === 'playing' || matchState === 'round_end')))) {
       const dx = Math.max(-90, Math.min(90, e.clientX - lastAimPos.x));
       const dy = Math.max(-90, Math.min(90, e.clientY - lastAimPos.y));
       lastAimPos = { x: e.clientX, y: e.clientY };
       const s = 0.0042 * config.sens * (isScoped ? 0.55 : 1.0);
-      pSelf.yaw -= dx * s;
-      pSelf.pitch = Math.max(-1.25, Math.min(1.25, pSelf.pitch - dy * s));
+      if (isCustomSpectator) {
+        ghostYaw -= dx * s;
+        ghostPitch = Math.max(-1.4, Math.min(1.4, ghostPitch - dy * s));
+      } else {
+        pSelf.yaw -= dx * s;
+        pSelf.pitch = Math.max(-1.25, Math.min(1.25, pSelf.pitch - dy * s));
+      }
     }
   });
   const endAim = e => { if (e.pointerId === aimTouchId) aimTouchId = null; };
@@ -3839,7 +4182,7 @@
   const enterPcPointerLock = (e) => {
     if (isLiveUiEdit || listeningKeyAction) return;
     if (e.target && (e.target.tagName === 'BUTTON' || e.target.closest('.hud-top-actions') || e.target.closest('#spectate-bar'))) return;
-    if (matchState !== 'playing' && matchState !== 'round_end') return;
+    if (matchState !== 'playing' && matchState !== 'round_end' && !(isCustomSpectator && matchState === 'round_intro')) return;
     initAudio();
     if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
       try { canvas.requestPointerLock(); } catch (err) {}
@@ -3864,10 +4207,15 @@
   });
 
   document.addEventListener('mousemove', e => {
-    if (document.pointerLockElement === canvas && pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) {
+    if (document.pointerLockElement === canvas && ((pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) || (isCustomSpectator && (matchState === 'round_intro' || matchState === 'playing' || matchState === 'round_end')))) {
       const s = 0.0024 * config.sens * (isScoped ? 0.55 : 1.0);
-      pSelf.yaw -= e.movementX * s;
-      pSelf.pitch = Math.max(-1.25, Math.min(1.25, pSelf.pitch - e.movementY * s));
+      if (isCustomSpectator) {
+        ghostYaw -= e.movementX * s;
+        ghostPitch = Math.max(-1.4, Math.min(1.4, ghostPitch - e.movementY * s));
+      } else {
+        pSelf.yaw -= e.movementX * s;
+        pSelf.pitch = Math.max(-1.25, Math.min(1.25, pSelf.pitch - e.movementY * s));
+      }
     }
   });
 
@@ -3926,8 +4274,8 @@
       document.getElementById('hud-enemy-pips').innerHTML = '';
     } else {
       document.getElementById('hud-enemy-name').textContent = pEnemy.name;
-      document.getElementById('hud-self-unit').textContent = `${pSelf.unit + 1}機目: ${UNITS[pSelf.unit].name}`;
-      document.getElementById('hud-enemy-unit').textContent = `${pEnemy.unit + 1}機目: ${UNITS[pEnemy.unit].name}`;
+      document.getElementById('hud-self-unit').textContent = UNITS[pSelf.unit] ? `${pSelf.unit + 1}機目: ${UNITS[pSelf.unit].name}` : '観戦中';
+      document.getElementById('hud-enemy-unit').textContent = UNITS[pEnemy.unit] ? `${pEnemy.unit + 1}機目: ${UNITS[pEnemy.unit].name}` : '観戦/脱落';
       document.getElementById('hud-enemy-hp').style.width = `${pEnemy.hp}%`;
     }
     let rText = '';
@@ -3954,13 +4302,19 @@
       }
     };
     if (isTeamMode()) {
-      const tSize = getTeamSize();
-      const tSub = tSize - 1;
-      const aAlive = (pSelf.hp > 0 ? 1 : 0) + teamAllies.filter(a => a.hp > 0).length;
-      const eAlive = (pEnemy.hp > 0 ? 1 : 0) + teamEnemies.filter(e => e.hp > 0).length;
+      const blueTotal = selectedMode === 'custom' ? (isCustomSpectator ? teamAllies.length : 1 + teamAllies.length) : getTeamSize();
+      const redTotal = selectedMode === 'custom' ? ((pEnemy.name === 'なし' ? 0 : 1) + teamEnemies.length) : getTeamSize();
+      const tSize = blueTotal;
+      const tSub = Math.max(0, blueTotal - 1);
+      const aAlive = (!isCustomSpectator && pSelf.hp > 0 ? 1 : 0) + teamAllies.filter(a => a.hp > 0).length;
+      const eAlive = (pEnemy.name !== 'なし' && pEnemy.hp > 0 ? 1 : 0) + teamEnemies.filter(e => e.hp > 0).length;
       const aRemain = (pSelf.unit < 6 ? 1 : 0) + allyUnits.slice(0, tSub).filter(u => u < 6).length;
       const eRemain = (pEnemy.unit < 6 ? 1 : 0) + enemyUnits.slice(0, tSub).filter(u => u < 6).length;
-      document.getElementById('hud-self-unit').textContent = `残り ${aAlive}/${tSize}人 (残機あり${aRemain})`;
+      if (isCustomSpectator) {
+        document.getElementById('hud-self-unit').textContent = `観戦中 (BLUE ${teamAllies.filter(a=>a.hp>0).length}/${teamAllies.length})`;
+      } else {
+        document.getElementById('hud-self-unit').textContent = `残り ${aAlive}/${tSize}人 (残機あり${aRemain})`;
+      }
       document.getElementById('hud-enemy-unit').textContent = `残り ${eAlive}/${tSize}人 (残機あり${eRemain})`;
       document.getElementById('hud-self-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < aAlive ? 'alive self' : ''}"></div>`).join('');
       document.getElementById('hud-enemy-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < eAlive ? 'alive enemy' : ''}"></div>`).join('');
@@ -3972,13 +4326,16 @@
     document.getElementById('ammo-text').textContent =
       pSelf.reloading > 0 ? `RELOAD ${pSelf.reloading.toFixed(1)}s` : `${pSelf.ammo} / ∞`;
 
-    btnAbility.style.display = (selectedMode === 'dm' && !isLiveUiEdit) ? 'none' : 'flex';
+    btnAbility.style.display = ((selectedMode === 'dm' || isCustomSpectator) && !isLiveUiEdit) ? 'none' : 'flex';
     if (suddenDeath || selectedMode === 'dm') {
       btnAbility.classList.add('disabled');
       btnAbility.innerHTML = selectedMode === 'dm' ? 'なし' : 'LOCKED<br>6v6';
     } else if (pSelf.abCd > 0) {
       btnAbility.classList.add('disabled');
       btnAbility.innerHTML = `${Math.ceil(pSelf.abCd)}s`;
+    } else if (isCustomSpectator || pSelf.unit >= 6) {
+      btnAbility.classList.add('disabled');
+      btnAbility.innerHTML = '観戦';
     } else {
       btnAbility.classList.remove('disabled');
       btnAbility.innerHTML = UNITS[pSelf.unit].abName;
@@ -4007,14 +4364,20 @@
     document.getElementById('death-damage-log').style.display = 'none';
     document.getElementById('scoreboard-modal').style.display = 'none';
     document.getElementById('replay-ui').classList.add('active');
-    selfRig.group.visible = true;
-    enemyRig.group.visible = true;
+    document.getElementById('ghost-fly-pad').style.display = replayCamMode === 'ghost' ? 'flex' : 'none';
+    // Remove live-match bots/illusions/FX so they never linger as frozen afterimages during replay!
+    teamAllies.forEach(a => scene.remove(a.rig.group)); teamAllies = [];
+    teamEnemies.forEach(e => scene.remove(e.rig.group)); teamEnemies = [];
+    dmBots.forEach(b => scene.remove(b.rig.group)); dmBots = [];
+    clearIllusions();
+    clearFx();
+    selfRig.group.visible = !isCustomSpectator;
+    enemyRig.group.visible = !(selectedMode === 'custom' && pEnemy.name === 'なし');
     selfRig.group.rotation.x = 0; selfRig.group.position.y = 0;
     enemyRig.group.rotation.x = 0; enemyRig.group.position.y = 0;
     camera.up.set(0, 1, 0); camera.rotation.z = 0;
     replayIdx = 0;
     lastReplayRenderIdx = -1;
-    clearFx();
     replayPlaying = true;
     document.getElementById('btn-replay-play').textContent = '⏸';
     const scrub = document.getElementById('replay-scrubber');
@@ -4038,7 +4401,7 @@
       b.classList.toggle('btn-primary', b.dataset.cam === mode);
     });
     document.getElementById('ghost-fly-pad').style.display = mode === 'ghost' ? 'flex' : 'none';
-    gunGroup.visible = (mode === 'self');
+    gunGroup.visible = (mode === 'self' && !isCustomSpectator);
   }
 
   // Ghost free-fly touch look & directional buttons
@@ -4127,8 +4490,55 @@
   // ==================== SETTINGS & LOBBY EVENTS ====================
   function updateLobbyRankBadge() {
     document.getElementById('lobby-rank-badge').textContent = getRankText(config.rankIndex, config.rankPoints);
+    const st = config.stats || DEFAULT_STATS;
+    const kd = (st.deaths || 0) > 0 ? (st.kills / st.deaths).toFixed(2) : (st.kills || 0).toFixed(2);
+    const recEl = document.getElementById('lobby-record-badge');
+    if (recEl) recEl.textContent = `${st.wins || 0}勝${st.losses || 0}敗 (K/D ${kd})`;
+    const sumEl = document.getElementById('settings-career-summary');
+    if (sumEl) {
+      const wr = (st.matches || 0) > 0 ? Math.round((st.wins / st.matches) * 100) : 0;
+      sumEl.textContent = `戦績記録: ${st.matches || 0}戦 ${st.wins || 0}勝 ${st.losses || 0}敗 (勝率 ${wr}%) | ${st.kills || 0}K / ${st.deaths || 0}D / ${st.assists || 0}A (K/D ${kd}) | 総与ダメ ${(st.dmg || 0).toLocaleString()}`;
+    }
   }
   updateLobbyRankBadge();
+
+  function applyLoadedConfigToUI() {
+    document.getElementById('input-player-name').value = config.name;
+    document.getElementById('set-sens').value = config.sens;
+    document.getElementById('val-sens').textContent = config.sens.toFixed(1);
+    document.getElementById('btn-toggle-mute').textContent = config.muted ? 'OFF (消音)' : 'ON';
+    document.getElementById('btn-ingame-mute').textContent = config.muted ? '🔇' : '🔊';
+    updateLobbyRankBadge();
+    syncSettingsHandles();
+    applyUILayout();
+  }
+
+  (function hydrateFromIndexedDB() {
+    try {
+      if (typeof indexedDB === 'undefined') return;
+      const req = indexedDB.open('tactical6_persistent_db', 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains('player_save')) req.result.createObjectStore('player_save');
+      };
+      req.onsuccess = () => {
+        try {
+          const tx = req.result.transaction('player_save', 'readonly');
+          const getReq = tx.objectStore('player_save').get('tactical6_cfg_v1');
+          getReq.onsuccess = () => {
+            if (!getReq.result) return;
+            try {
+              const p = JSON.parse(getReq.result);
+              if ((p.updatedAt || 0) > (config.updatedAt || 0)) {
+                mergeSavedConfig(p);
+                try { localStorage.setItem('tactical6_cfg_v1', JSON.stringify(config)); } catch (e) {}
+                applyLoadedConfigToUI();
+              }
+            } catch (e) {}
+          };
+        } catch (e) {}
+      };
+    } catch (e) {}
+  })();
   document.getElementById('input-player-name').value = config.name;
   document.getElementById('input-player-name').addEventListener('input', e => {
     config.name = e.target.value.trim() || 'PLAYER1';
@@ -4144,20 +4554,38 @@
     unitListEl.appendChild(div);
   });
 
-  // Mode tabs
-  document.querySelectorAll('.mode-tab').forEach(tab => {
+  // 3-Category Menu (NPC / オンライン / カスタム) + Custom Room Lobby
+  document.querySelectorAll('#mode-tabs .mode-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#mode-tabs .mode-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
-      selectedMode = tab.dataset.mode;
+      mainCategory = tab.dataset.cat;
       document.querySelectorAll('.mode-panel').forEach(p => p.style.display = 'none');
-      document.getElementById(`mode-panel-${selectedMode}`).style.display = 'block';
-      document.getElementById('fmt-row').style.display = (selectedMode === 'pve' || selectedMode === 'dm') ? 'none' : 'flex';
+      document.getElementById(`cat-panel-${mainCategory}`).style.display = 'block';
     });
   });
 
-  document.getElementById('btn-spec-next').addEventListener('click', () => {
-    specIdx++;
+  document.querySelectorAll('.npc-sub-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.npc-sub-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
+      b.classList.add('active', 'btn-primary');
+      npcSubRule = b.dataset.sub;
+    });
+  });
+
+  document.querySelectorAll('.onl-sub-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.onl-sub-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
+      b.classList.add('active', 'btn-primary');
+      onlSubRule = b.dataset.sub;
+      document.getElementById('onl-fmt-row').style.display = onlSubRule === 'dm' ? 'none' : 'flex';
+      const descs = {
+        random: 'ランダムマッチで待機中のプレイヤーと対戦します。',
+        rank: 'ランクマッチ（6ゲーム先取・アイアン〜チャンピオン各200pt）。',
+        dm: '15人デスマッチ（10秒で集まらない場合はNPCで穴埋めして強制開始）。'
+      };
+      document.getElementById('onl-desc').textContent = descs[onlSubRule];
+    });
   });
 
   document.querySelectorAll('.fmt-btn').forEach(b => {
@@ -4168,18 +4596,225 @@
     });
   });
 
+  document.querySelectorAll('.diff-btn').forEach(b => {
+    b.addEventListener('click', () => {
+      document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
+      b.classList.add('active', 'btn-primary');
+      npcDifficulty = b.dataset.diff;
+    });
+  });
+
+  // ===== CUSTOM ROOM STATE & SYNC =====
+  let customAddNpcMode = false;
+  let customRoom = { blue: [null,null,null,null,null], red: [null,null,null,null,null], specs: [], mapIdx: -1, started: false };
+  let custMqtt = null;
+  let custBc = null;
+  let custTopic = '';
+
+  function closeCustomRoomNet() {
+    try { if (custMqtt) custMqtt.end(true); } catch (e) {}
+    try { if (custBc) custBc.close(); } catch (e) {}
+    custMqtt = null; custBc = null; custTopic = '';
+  }
+
+  function broadcastCustomRoom() {
+    const msg = JSON.stringify({ type: 'cust_sync', from: myNetId, room: customRoom });
+    if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, msg);
+    if (custBc) custBc.postMessage(JSON.parse(msg));
+  }
+
+  function removeSelfFromCustomSlots() {
+    for (let i = 0; i < 5; i++) {
+      if (customRoom.blue[i] && customRoom.blue[i].id === myNetId) customRoom.blue[i] = null;
+      if (customRoom.red[i] && customRoom.red[i].id === myNetId) customRoom.red[i] = null;
+    }
+    customRoom.specs = customRoom.specs.filter(s => s.id !== myNetId);
+  }
+
+  function renderCustomRoom() {
+    const renderTeam = (elId, arr, teamKey) => {
+      const el = document.getElementById(elId);
+      el.innerHTML = '';
+      for (let i = 0; i < 5; i++) {
+        const slot = arr[i];
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,0.8);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;min-height:28px;';
+        if (slot) {
+          row.innerHTML = `<span style="font-weight:800;color:${teamKey==='blue'?'#38bdf8':'#f87171'};">${slot.name}${slot.isNpc ? ' [NPC]' : ''}</span>`;
+          if (slot.isNpc || slot.id === myNetId) {
+            const rm = document.createElement('button');
+            rm.className = 'btn btn-sm'; rm.textContent = '×'; rm.style.padding = '1px 6px';
+            rm.onclick = () => { arr[i] = null; if (slot.id === myNetId) customRoom.specs.push({ id: myNetId, name: config.name }); broadcastCustomRoom(); renderCustomRoom(); };
+            row.appendChild(rm);
+          }
+        } else {
+          const plus = document.createElement('button');
+          plus.className = 'btn btn-sm';
+          plus.style.cssText = 'width:100%;padding:2px;font-weight:900;color:#94a3b8;';
+          plus.textContent = customAddNpcMode ? '+ NPC追加' : '+ 参加';
+          plus.onclick = () => {
+            if (customRoom.started) return;
+            if (customAddNpcMode) {
+              arr[i] = { id: 'npc_' + Math.random().toString(36).slice(2,7), name: `${teamKey.toUpperCase()}-NPC${i+1}`, isNpc: true };
+            } else {
+              removeSelfFromCustomSlots();
+              arr[i] = { id: myNetId, name: config.name, isNpc: false };
+            }
+            broadcastCustomRoom();
+            renderCustomRoom();
+          };
+          row.appendChild(plus);
+        }
+        el.appendChild(row);
+      }
+    };
+    renderTeam('cust-blue-slots', customRoom.blue, 'blue');
+    renderTeam('cust-red-slots', customRoom.red, 'red');
+    document.getElementById('cust-spec-list').innerHTML = customRoom.specs.map(sp => `<div>👁 ${sp.name}</div>`).join('') || '<div style="color:#64748b;">なし</div>';
+    document.getElementById('cust-map-select').value = String(customRoom.mapIdx);
+  }
+
+  function enterCustomLobby(pass) {
+    closeCustomRoomNet();
+    matchState = 'custom_lobby';
+    customAddNpcMode = false;
+    document.getElementById('btn-cust-npc-mode').textContent = 'NPC追加: OFF';
+    document.getElementById('btn-cust-npc-mode').classList.remove('btn-primary');
+    document.getElementById('cust-pass-lbl').textContent = `[合言葉: ${pass}]`;
+    customRoom = { blue: [null,null,null,null,null], red: [null,null,null,null,null], specs: [{ id: myNetId, name: config.name }], mapIdx: -1, started: false };
+    custTopic = `tactical6/v1/custom/${encodeURIComponent(pass.toLowerCase())}`;
+    showScreen('screen-custom');
+    renderCustomRoom();
+
+    const handleCustMsg = (d) => {
+      if (!d || d.from === myNetId) return;
+      if (d.type === 'cust_join' && !customRoom.started) {
+        if (!customRoom.specs.some(s => s.id === d.id)) customRoom.specs.push({ id: d.id, name: d.name });
+        broadcastCustomRoom();
+        renderCustomRoom();
+      } else if (d.type === 'cust_sync' && d.room) {
+        if (d.room.started && !customRoom.started) {
+          // Room already started -> block late joiners!
+          document.getElementById('cust-pass-lbl').textContent = `[合言葉: ${pass}] — 試合開始済みのため参加不可`;
+          return;
+        }
+        customRoom = d.room;
+        if (!customRoom.blue.some(x=>x&&x.id===myNetId) && !customRoom.red.some(x=>x&&x.id===myNetId) && !customRoom.specs.some(x=>x.id===myNetId)) {
+          customRoom.specs.push({ id: myNetId, name: config.name });
+        }
+        renderCustomRoom();
+      } else if (d.type === 'cust_start') {
+        launchCustomMatch(d.mapIdx);
+      }
+    };
+
+    try {
+      if (typeof BroadcastChannel !== 'undefined') {
+        custBc = new BroadcastChannel(custTopic);
+        custBc.onmessage = ev => handleCustMsg(ev.data);
+        custBc.postMessage({ type: 'cust_join', from: myNetId, id: myNetId, name: config.name });
+      }
+    } catch (e) {}
+
+    try {
+      if (typeof mqtt !== 'undefined') {
+        custMqtt = mqtt.connect(BROKERS[0], { clientId: 't6c_' + myNetId, clean: true, connectTimeout: 5000 });
+        custMqtt.on('connect', () => {
+          custMqtt.subscribe(custTopic);
+          custMqtt.publish(custTopic, JSON.stringify({ type: 'cust_join', from: myNetId, id: myNetId, name: config.name }));
+        });
+        custMqtt.on('message', (_, raw) => {
+          try { handleCustMsg(JSON.parse(raw.toString())); } catch (e) {}
+        });
+      }
+    } catch (e) {}
+  }
+
+  function launchCustomMatch(chosenMapIdx) {
+    customRoom.started = true;
+    isCustomSpectator = customRoom.specs.some(sp => sp.id === myNetId);
+    selectedMode = 'custom';
+    teamFormat = '5v5';
+    closeCustomRoomNet();
+    buildMap(chosenMapIdx);
+    isOnlineMatch = false;
+    beginMatchAfterMap();
+    if (isCustomSpectator) {
+      ghostPos.set(0, 6, 22); ghostYaw = 0; ghostPitch = -0.25;
+      pSelf.hp = 0;
+    }
+  }
+
+  document.getElementById('btn-cust-npc-mode').addEventListener('click', e => {
+    customAddNpcMode = !customAddNpcMode;
+    e.target.textContent = customAddNpcMode ? 'NPC追加: ON' : 'NPC追加: OFF';
+    e.target.classList.toggle('btn-primary', customAddNpcMode);
+    renderCustomRoom();
+  });
+  document.getElementById('btn-cust-spec').addEventListener('click', () => {
+    if (customRoom.started) return;
+    removeSelfFromCustomSlots();
+    customRoom.specs.push({ id: myNetId, name: config.name });
+    broadcastCustomRoom();
+    renderCustomRoom();
+  });
+  document.getElementById('cust-map-select').addEventListener('change', e => {
+    customRoom.mapIdx = parseInt(e.target.value, 10);
+    broadcastCustomRoom();
+  });
+  document.getElementById('btn-cust-start').addEventListener('click', () => {
+    if (customRoom.started) return;
+    const mIdx = customRoom.mapIdx >= 0 ? customRoom.mapIdx : Math.floor(Math.random() * MAPS.length);
+    const startMsg = JSON.stringify({ type: 'cust_start', from: myNetId, mapIdx: mIdx });
+    if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, startMsg);
+    if (custBc) custBc.postMessage(JSON.parse(startMsg));
+    launchCustomMatch(mIdx);
+  });
+  document.getElementById('btn-cust-leave').addEventListener('click', () => {
+    closeCustomRoomNet();
+    showScreen('screen-lobby');
+  });
+
+  document.getElementById('btn-start-match').addEventListener('click', () => {
+    initAudio();
+    isCustomSpectator = false;
+    if (mainCategory === 'npc') {
+      if (npcSubRule === 'dm') { selectedMode = 'dm'; teamFormat = '1v1'; startNewMatch(false); }
+      else { selectedMode = 'npc'; teamFormat = npcSubRule; startNewMatch(false); }
+    } else if (mainCategory === 'online') {
+      if (onlSubRule === 'dm') { selectedMode = 'dm'; teamFormat = '1v1'; startMatchmaking('dm_online'); }
+      else { selectedMode = onlSubRule; startMatchmaking(onlSubRule); }
+    } else {
+      const pass = (document.getElementById('input-passphrase').value || '').trim();
+      if (!pass) { document.getElementById('input-passphrase').focus(); return; }
+      enterCustomLobby(pass);
+    }
+  });
+
+  document.getElementById('btn-mm-cancel').addEventListener('click', () => {
+    cleanupNetwork();
+    showScreen('screen-lobby');
+  });
+  document.getElementById('btn-mm-instant').addEventListener('click', () => {
+    launchSimulatedOnline(selectedMode);
+  });
+
   function update5v5Bots(dt) {
     if (matchState !== 'playing') return;
     pSelf.isPlayer = true;
     pEnemy.isMainEnemy = true;
-    const allBlues = [pSelf, ...teamAllies];
+    const allBlues = isCustomSpectator ? [...teamAllies] : [pSelf, ...teamAllies];
     const allReds = [pEnemy, ...teamEnemies];
 
     const stepBot = (bot, targets, isRedBot) => {
       if (bot.hp <= 0) return;
       if (bot.isOnlineAlly) {
+        const oldX = bot.pos.x, oldZ = bot.pos.z;
         if (bot.targetPos) bot.pos.lerp(bot.targetPos, Math.min(1, dt * 18));
         if (bot.targetYaw !== undefined) bot.yaw = bot.targetYaw;
+        const moved = Math.hypot(bot.pos.x - oldX, bot.pos.z - oldZ) > 0.005;
+        const sw = moved ? Math.sin(performance.now() * 0.012) * 0.35 : 0;
+        bot.rig.legL.rotation.x = sw; bot.rig.legR.rotation.x = -sw;
         bot.rig.group.position.copy(bot.pos);
         bot.rig.group.rotation.y = bot.yaw;
         return;
@@ -4211,23 +4846,17 @@
       const aliveT = targets.filter(t => t.hp > 0 && (t.isPlayer ? pSelf.shadowT <= 0 : (t.isMainEnemy ? pEnemy.shadowT <= 0 : (t.shadowT || 0) <= 0)));
       if (aliveT.length === 0) return;
 
-      // Prefer a visible enemy first; otherwise navigate toward nearest enemy
       const bEye = new THREE.Vector3(bot.pos.x, EYE_HEIGHT, bot.pos.z);
       let chosen = null, minD = Infinity, canSee = false;
       for (const t of aliveT) {
         const d = bot.pos.distanceTo(t.pos);
-        const tEye = new THREE.Vector3(t.pos.x, EYE_HEIGHT, t.pos.z);
-        const vis = hasLineOfSight(bEye, tEye);
-        if (vis && (!canSee || d < minD)) {
-          chosen = t; minD = d; canSee = true;
-        } else if (!canSee && d < minD) {
-          chosen = t; minD = d;
-        }
+        const vis = hasLineOfSight(bEye, new THREE.Vector3(t.pos.x, EYE_HEIGHT, t.pos.z));
+        if (vis && (!canSee || d < minD)) { chosen = t; minD = d; canSee = true; }
+        else if (!canSee && d < minD) { chosen = t; minD = d; }
       }
       if (!chosen) return;
       const tEye = new THREE.Vector3(chosen.pos.x, EYE_HEIGHT, chosen.pos.z);
 
-      // Tactical movement: push when healthy & unseen; retreat/strafe to cover when reloading; plant feet when bursting!
       const isShadowLocked = (bot.shadowCastT || 0) > 0;
       const isShadowStealth = (bot.shadowT || 0) > 0;
       const isShootingBurst = !isShadowLocked && !isShadowStealth && canSee && bot.reloading <= 0 && bot.burstPause <= 0;
@@ -4240,31 +4869,24 @@
         const rightV = new THREE.Vector3(-toT.z, 0, toT.x);
         let wantX = 0, wantZ = 0;
         if (bot.reloading > 0 && canSee) {
-          // Strafe sideways/back to break line of sight while reloading
           wantX = -toT.x * 0.6 + rightV.x * bot.strafeDir;
           wantZ = -toT.z * 0.6 + rightV.z * bot.strafeDir;
         } else if (!canSee) {
           const wp = getNextGridWaypoint(bot, chosen.pos, dt);
-          wantX = wp.x - bot.pos.x;
-          wantZ = wp.z - bot.pos.z;
+          wantX = wp.x - bot.pos.x; wantZ = wp.z - bot.pos.z;
         } else if (minD > 15) {
           wantX = toT.x + rightV.x * 0.25 * bot.strafeDir;
           wantZ = toT.z + rightV.z * 0.25 * bot.strafeDir;
         } else {
-          wantX = rightV.x * bot.strafeDir;
-          wantZ = rightV.z * bot.strafeDir;
+          wantX = rightV.x * bot.strafeDir; wantZ = rightV.z * bot.strafeDir;
         }
         moveDir = moveBotAvoidingWalls(bot, wantX, wantZ, spd, dt);
         const swing = Math.sin(performance.now() * 0.012) * 0.35;
-        bot.rig.legL.rotation.x = swing;
-        bot.rig.legR.rotation.x = -swing;
+        bot.rig.legL.rotation.x = swing; bot.rig.legR.rotation.x = -swing;
       } else {
-        bot.rig.legL.rotation.x = 0;
-        bot.rig.legR.rotation.x = 0;
+        bot.rig.legL.rotation.x = 0; bot.rig.legR.rotation.x = 0;
       }
 
-      // Realistic Aim: when enemy is behind a wall, look in movement direction (NO wallhack aiming!).
-      // Only lock onto enemy when visible (or scanned)!
       let desiredYaw = bot.yaw;
       if (canSee || chosen.scanGlowT > 0) {
         const toT = new THREE.Vector3().subVectors(chosen.pos, bot.pos);
@@ -4281,21 +4903,15 @@
       bot.rig.group.position.copy(bot.pos);
       bot.rig.group.rotation.y = bot.yaw;
 
-      // Tactical Ability usage
       const fx = -Math.sin(bot.yaw), fz = -Math.cos(bot.yaw);
       if (bot.abCd <= 0 && (canSee || (bot.unit === 3 && minD < 24))) {
         bot.abCd = ABILITY_CD;
         const u = bot.unit;
         playSpatialSound('ability', bot.pos, false);
-        if (u === 0) {
-          bot.rushT = 2.0;
-        } else if (u === 1) {
-          bot.pos.x += fx * 8.5; bot.pos.z += fz * 8.5;
-          resolveCircleObstacles(bot.pos, PLAYER_RADIUS);
-          spawnSmokePlume(bot.pos);
-        } else if (u === 2) {
-          bot.shadowCastT = 1.0;
-        } else if (u === 3) {
+        if (u === 0) bot.rushT = 2.0;
+        else if (u === 1) { bot.pos.x += fx * 8.5; bot.pos.z += fz * 8.5; resolveCircleObstacles(bot.pos, PLAYER_RADIUS); spawnSmokePlume(bot.pos); }
+        else if (u === 2) bot.shadowCastT = 1.0;
+        else if (u === 3) {
           spawnScannerBeam(bot.pos, bot.yaw);
           aliveT.forEach(t => {
             const toE = new THREE.Vector3().subVectors(t.pos, bot.pos);
@@ -4307,15 +4923,10 @@
               else t.scanGlowT = 6.0;
             }
           });
-        } else if (u === 4) {
-          bot.silencerT = 10.0;
-        } else if (u === 5) {
-          bot.shield = true;
-          playSpatialSound('shieldDeploy', bot.pos, false);
-        }
+        } else if (u === 4) bot.silencerT = 10.0;
+        else if (u === 5) { bot.shield = true; playSpatialSound('shieldDeploy', bot.pos, false); }
       }
 
-      // Decisive burst shooting when enemy is actually in sight & aimed
       if (isShootingBurst && bot.fireCd <= 0 && Math.abs(dYaw) < 0.22) {
         if (bot.ammo <= 0) {
           bot.reloading = bot.rushT > 0 ? BASE_RELOAD_TIME * 0.5 : BASE_RELOAD_TIME;
@@ -4323,26 +4934,16 @@
           return;
         }
         const isSil = (bot.silencerT || 0) > 0;
-        bot.fireCd = 0.085;
-        bot.ammo--;
-        bot.burstCnt++;
-        if (bot.burstCnt >= 5) {
-          bot.burstCnt = 0;
-          bot.burstPause = 0.35 + Math.random() * 0.25;
-        }
+        bot.fireCd = 0.085; bot.ammo--; bot.burstCnt++;
+        if (bot.burstCnt >= 5) { bot.burstCnt = 0; bot.burstPause = 0.35 + Math.random() * 0.25; }
         playSpatialSound(isSil ? 'gunshotSilenced' : 'gunshot', bot.pos, false);
-        const baseDiffSpd = isRedBot
-          ? ({ easy: 0.13, normal: 0.075, hard: 0.036, expert: 0.018 }[npcDifficulty] || 0.075)
-          : 0.032;
-        const recCtrlB = isRedBot
-          ? ({ easy: 0.018, normal: 0.010, hard: 0.004, expert: 0.0015 }[npcDifficulty] || 0.010)
-          : 0.005;
+        const baseDiffSpd = isRedBot ? ({ easy: 0.13, normal: 0.075, hard: 0.036, expert: 0.018 }[npcDifficulty] || 0.075) : 0.032;
+        const recCtrlB = isRedBot ? ({ easy: 0.018, normal: 0.010, hard: 0.004, expert: 0.0015 }[npcDifficulty] || 0.010) : 0.005;
         const spread = baseDiffSpd + bot.burstCnt * recCtrlB;
         const sy = bot.yaw + (Math.random() - 0.5) * 2 * spread;
         const sp = (Math.random() - 0.5) * 2 * spread * 0.6;
         const sDir = new THREE.Vector3(-Math.sin(sy)*Math.cos(sp), Math.sin(sp), -Math.cos(sy)*Math.cos(sp)).normalize();
-        const endP = bEye.clone().addScaledVector(sDir, Math.min(60, minD + 3));
-        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), endP);
+        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), bEye.clone().addScaledVector(sDir, Math.min(60, minD + 3)));
 
         const toEye = new THREE.Vector3().subVectors(tEye, bEye).normalize();
         const hitTol = Math.atan2(0.46, Math.max(2, minD));
@@ -4352,14 +4953,10 @@
           const bDmg = isHS ? 100 : 18;
           if (chosen.isPlayer) {
             if (bot.stats) bot.stats.dmg += bDmg;
-            if (pSelf.hp > 0 && !pSelf.shield && pSelf.shadowT <= 0) {
-              const willDie = pSelf.hp - bDmg <= 0;
-              if (willDie && bot.stats) bot.stats.k++;
-            }
+            if (pSelf.hp > 0 && !pSelf.shield && pSelf.shadowT <= 0 && pSelf.hp - bDmg <= 0 && bot.stats) bot.stats.k++;
             applyDamageToSelf(bDmg, isHS ? 'head' : 'torso', bot.pos, bot.name);
           } else if (chosen.shield) {
-            chosen.shield = false;
-            playSpatialSound('shieldBreak', chosen.pos, false);
+            chosen.shield = false; playSpatialSound('shieldBreak', chosen.pos, false);
           } else {
             const wasUp = chosen.hp > 0;
             if (bot.stats) bot.stats.dmg += bDmg;
@@ -4369,7 +4966,6 @@
               if (chosen.isMainEnemy) pEnemy.deaths++;
               else if (chosen.stats) chosen.stats.d++;
               if (chosen.rig) { chosen.rig.group.rotation.x = -Math.PI / 2; chosen.rig.group.position.y = 0.22; }
-              playSpatialSound('bodyFall', chosen.pos, false); spawnHealOrb(chosen.pos);
               if (chosen.isMainEnemy) { enemyRig.group.rotation.x = -Math.PI / 2; enemyRig.group.position.y = 0.22; }
               addKillFeed(bot.name, chosen.name || pEnemy.name, !isRedBot, isHS);
             }
@@ -4383,90 +4979,14 @@
     };
 
     teamAllies.forEach(a => stepBot(a, allReds, false));
-    if (isOnlineMatch && selectedMode === 'pve' && !isHost) {
-      teamEnemies.forEach(e => {
-        if (e.hp <= 0) return;
-        if (e.targetPos) e.pos.lerp(e.targetPos, Math.min(1, dt * 16));
-        if (e.targetYaw !== undefined) e.yaw = e.targetYaw;
-        e.rig.group.position.copy(e.pos);
-        e.rig.group.rotation.y = e.yaw;
-      });
-    } else {
-      teamEnemies.forEach(e => stepBot(e, allBlues, true));
-    }
+    teamEnemies.forEach(e => stepBot(e, allBlues, true));
 
     const bAlive = allBlues.filter(b => b.hp > 0).length;
     const rAlive = allReds.filter(r => r.hp > 0).length;
+    if (selectedMode === 'custom' && pEnemy.name === 'なし' && teamEnemies.length === 0) return;
     if (rAlive === 0) endRound(true, 'TEAM ELIMINATED');
     else if (bAlive === 0) endRound(false, 'TEAM WIPED OUT');
   }
-
-  document.querySelectorAll('.dm-type-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.dm-type-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
-      b.classList.add('active', 'btn-primary');
-      dmSubType = b.dataset.dm;
-    });
-  });
-  document.querySelectorAll('.dm-diff-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.dm-diff-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
-      b.classList.add('active', 'btn-primary');
-      npcDifficulty = b.dataset.diff;
-    });
-  });
-
-  document.querySelectorAll('.pve-mm-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.pve-mm-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
-      b.classList.add('active', 'btn-primary');
-      pveMatchType = b.dataset.mm;
-      document.getElementById('input-pve-pass').style.display = pveMatchType === 'friend' ? 'inline-block' : 'none';
-    });
-  });
-
-  document.querySelectorAll('.pve-size-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.pve-size-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
-      b.classList.add('active', 'btn-primary');
-      pveTeamSize = parseInt(b.dataset.size, 10);
-    });
-  });
-  document.querySelectorAll('.pve-diff-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.pve-diff-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
-      b.classList.add('active', 'btn-primary');
-      npcDifficulty = b.dataset.diff;
-    });
-  });
-
-  document.querySelectorAll('.diff-btn').forEach(b => {
-    b.addEventListener('click', () => {
-      document.querySelectorAll('.diff-btn').forEach(x => x.classList.remove('active', 'btn-primary'));
-      b.classList.add('active', 'btn-primary');
-      npcDifficulty = b.dataset.diff;
-    });
-  });
-  document.querySelector('.diff-btn[data-diff="easy"]').classList.add('btn-primary');
-
-  document.getElementById('btn-start-match').addEventListener('click', () => {
-    initAudio();
-    if (selectedMode === 'npc') startNewMatch(false);
-    else if (selectedMode === 'dm') {
-      if (dmSubType === 'npc') startNewMatch(false);
-      else startMatchmaking('dm_' + dmSubType);
-    }
-    else if (selectedMode === 'pve') startMatchmaking(pveMatchType === 'friend' ? 'pve_friend' : 'pve_random');
-    else startMatchmaking(selectedMode);
-  });
-
-  document.getElementById('btn-mm-cancel').addEventListener('click', () => {
-    cleanupNetwork();
-    showScreen('screen-lobby');
-  });
-  document.getElementById('btn-mm-instant').addEventListener('click', () => {
-    launchSimulatedOnline(selectedMode);
-  });
 
   // Settings UI & Drag layout
   let settingsReturnToGame = false;
@@ -4547,6 +5067,7 @@
   document.getElementById('set-sens').addEventListener('input', e => {
     config.sens = parseFloat(e.target.value);
     document.getElementById('val-sens').textContent = config.sens.toFixed(1);
+    saveConfig();
   });
   document.getElementById('btn-scope-mode').addEventListener('click', () => {
     config.scopeMode = config.scopeMode === 'toggle' ? 'hold' : 'toggle';
@@ -4557,6 +5078,7 @@
     config.muted = !config.muted;
     e.target.textContent = config.muted ? 'OFF (消音)' : 'ON';
     document.getElementById('btn-ingame-mute').textContent = config.muted ? '🔇' : '🔊';
+    saveConfig();
   });
   document.getElementById('btn-ingame-mute').addEventListener('click', e => {
     config.muted = !config.muted;
@@ -4584,15 +5106,9 @@
       try {
         const p = JSON.parse(reader.result);
         if (p && typeof p === 'object') {
-          config = { ...config, ...p, keys: { ...DEFAULT_KEYS, ...(p.keys || {}) }, ui: { ...config.ui, ...(p.ui || {}) } };
+          mergeSavedConfig(p);
           saveConfig();
-          document.getElementById('input-player-name').value = config.name;
-          document.getElementById('set-sens').value = config.sens;
-          document.getElementById('val-sens').textContent = config.sens.toFixed(1);
-          document.getElementById('btn-toggle-mute').textContent = config.muted ? 'OFF (消音)' : 'ON';
-          updateLobbyRankBadge();
-          syncSettingsHandles();
-          applyUILayout();
+          applyLoadedConfigToUI();
           document.getElementById('save-status-msg').textContent = '読み込み完了！';
         }
       } catch (err) {
@@ -4600,6 +5116,42 @@
       }
     };
     reader.readAsText(file);
+  });
+
+  document.getElementById('btn-copy-transfer').addEventListener('click', async () => {
+    saveConfig();
+    const json = JSON.stringify(config);
+    const code = 'T6:' + btoa(unescape(encodeURIComponent(json)));
+    const inp = document.getElementById('transfer-code-input');
+    if (inp) { inp.value = code; inp.select(); }
+    try {
+      await navigator.clipboard.writeText(code);
+      document.getElementById('save-status-msg').textContent = '引き継ぎコードをコピーしました！';
+    } catch (e) {
+      document.getElementById('save-status-msg').textContent = '左の欄のコードをコピーしてください';
+    }
+  });
+
+  document.getElementById('btn-paste-transfer').addEventListener('click', () => {
+    const inp = document.getElementById('transfer-code-input');
+    const code = (inp ? inp.value : '').trim();
+    if (!code) {
+      document.getElementById('save-status-msg').textContent = '引き継ぎコードを貼り付けてください';
+      return;
+    }
+    try {
+      const clean = code.startsWith('T6:') ? code.slice(3) : code;
+      const json = decodeURIComponent(escape(atob(clean)));
+      const p = JSON.parse(json);
+      if (p && typeof p === 'object') {
+        mergeSavedConfig(p);
+        saveConfig();
+        applyLoadedConfigToUI();
+        document.getElementById('save-status-msg').textContent = 'コードから復元しました！';
+      }
+    } catch (err) {
+      document.getElementById('save-status-msg').textContent = 'コードが正しくありません';
+    }
   });
 
   // Live On-Screen UI Layout Editor directly on the game screen!
@@ -4753,7 +5305,33 @@
         playSpatialSound('countdownBeep', null, true);
       }
       document.getElementById('banner-detail').textContent = `MAP: ${MAPS[currentMapIdx].name} — 開始まで: ${cnt}`;
-      if (isTeamMode() && pSelf.hp <= 0) {
+      if (isCustomSpectator) {
+        gunGroup.visible = false;
+        document.getElementById('ghost-fly-pad').style.display = 'flex';
+        const gSpd = 12.0;
+        const fx = -Math.sin(ghostYaw) * Math.cos(ghostPitch);
+        const fy = Math.sin(ghostPitch);
+        const fz = -Math.cos(ghostYaw) * Math.cos(ghostPitch);
+        const rx = Math.cos(ghostYaw), rz = -Math.sin(ghostYaw);
+        let gx = ghostStickVec.x, gy = ghostStickVec.y;
+        if (keys[config.keys.up] || keys['ArrowUp']) gy = -1;
+        if (keys[config.keys.down] || keys['ArrowDown']) gy = 1;
+        if (keys[config.keys.left] || keys['ArrowLeft']) gx = -1;
+        if (keys[config.keys.right] || keys['ArrowRight']) gx = 1;
+        if (Math.hypot(gx, gy) > 0.08) {
+          ghostPos.x += (rx * gx + fx * (-gy)) * gSpd * dt;
+          ghostPos.y += (fy * (-gy)) * gSpd * dt;
+          ghostPos.z += (rz * gx + fz * (-gy)) * gSpd * dt;
+        }
+        if (ghostMoveHold.up || keys['Space'] || keys['KeyE']) ghostPos.y += gSpd * 0.7 * dt;
+        if (ghostMoveHold.down || keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyQ'] || keys['KeyC']) ghostPos.y -= gSpd * 0.7 * dt;
+        ghostPos.y = Math.max(0.6, Math.min(28, ghostPos.y));
+        camera.position.copy(ghostPos);
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = ghostYaw;
+        camera.rotation.x = ghostPitch;
+        camera.rotation.z = 0;
+      } else if (isTeamMode() && pSelf.hp <= 0) {
         gunGroup.visible = false;
         const aliveAllies = teamAllies.filter(a => a.hp > 0);
         if (aliveAllies.length > 0) {
@@ -4784,9 +5362,10 @@
         stateTimer -= dt;
         if (stateTimer <= 0) {
           document.getElementById('round-result-top').style.display = 'none';
-        const tSub = getTeamSize() - 1;
-        const blueAllOut = pSelf.unit >= 6 && allyUnits.slice(0, tSub).every(u => u >= 6);
-        const redAllOut = pEnemy.unit >= 6 && enemyUnits.slice(0, tSub).every(u => u >= 6);
+        const aCount = selectedMode === 'custom' ? teamAllies.length : (getTeamSize() - 1);
+        const eCount = selectedMode === 'custom' ? teamEnemies.length : (getTeamSize() - 1);
+        const blueAllOut = (isCustomSpectator || pSelf.unit >= 6) && allyUnits.slice(0, aCount).every(u => u >= 6);
+        const redAllOut = (pEnemy.name === 'なし' || pEnemy.unit >= 6) && enemyUnits.slice(0, eCount).every(u => u >= 6);
         const isMatchDone = isTeamMode()
           ? (blueAllOut || redAllOut)
           : (pSelf.unit >= 6 || pEnemy.unit >= 6);
@@ -4819,7 +5398,7 @@
           return;
         }
       }
-      if (killStreakDecayT > 0) {
+      if (selectedMode === 'dm' && killStreakDecayT > 0) {
         killStreakDecayT -= dt;
         if (killStreakDecayT <= 0) roundKillStreak = 0;
       }
@@ -4970,11 +5549,8 @@
           }
         });
       }
-      if ((!isOnlineMatch || (selectedMode === 'pve' && isHost)) && selectedMode !== 'dm') {
+      if ((!isOnlineMatch || selectedMode === 'pve') && selectedMode !== 'dm') {
         updateNPCAI(dt);
-      } else if (isOnlineMatch && selectedMode === 'pve' && !isHost) {
-        pEnemy.pos.lerp(pEnemy.targetPos, Math.min(1, dt * 16));
-        pEnemy.yaw = pEnemy.targetYaw;
       } else {
         // Dead-reckoning prediction + smooth exponential blend
         pEnemy.targetPos.addScaledVector(pEnemy.vel, dt);
@@ -5002,18 +5578,39 @@
             vx: +vx.toFixed(2), vz: +vz.toFixed(2),
             yw: +pSelf.yaw.toFixed(3), pt: +pSelf.pitch.toFixed(3), sh: pSelf.shield, hp: pSelf.hp
           });
-          if (selectedMode === 'pve' && isHost) {
-            sendNet({
-              type: 'pveNpcs',
-              main: { x: +pEnemy.pos.x.toFixed(2), z: +pEnemy.pos.z.toFixed(2), yw: +pEnemy.yaw.toFixed(3), hp: pEnemy.hp },
-              subs: teamEnemies.map(e => ({ x: +e.pos.x.toFixed(2), z: +e.pos.z.toFixed(2), yw: +e.yaw.toFixed(3), hp: e.hp }))
-            });
-          }
+
         }
       }
 
-      // Sync Camera (or Ally Spectate POV if dead in 5v5)
-      if (isTeamMode() && pSelf.hp <= 0) {
+      // Sync Camera (Ghost View for Custom Spectator, or Ally Spectate POV if dead in 5v5)
+      if (isCustomSpectator) {
+        gunGroup.visible = false;
+        document.getElementById('spectate-bar').style.display = 'none';
+        document.getElementById('ghost-fly-pad').style.display = 'flex';
+        const gSpd = 12.0;
+        const fx = -Math.sin(ghostYaw) * Math.cos(ghostPitch);
+        const fy = Math.sin(ghostPitch);
+        const fz = -Math.cos(ghostYaw) * Math.cos(ghostPitch);
+        const rx = Math.cos(ghostYaw), rz = -Math.sin(ghostYaw);
+        let gx = ghostStickVec.x, gy = ghostStickVec.y;
+        if (keys[config.keys.up] || keys['ArrowUp']) gy = -1;
+        if (keys[config.keys.down] || keys['ArrowDown']) gy = 1;
+        if (keys[config.keys.left] || keys['ArrowLeft']) gx = -1;
+        if (keys[config.keys.right] || keys['ArrowRight']) gx = 1;
+        if (Math.hypot(gx, gy) > 0.08) {
+          ghostPos.x += (rx * gx + fx * (-gy)) * gSpd * dt;
+          ghostPos.y += (fy * (-gy)) * gSpd * dt;
+          ghostPos.z += (rz * gx + fz * (-gy)) * gSpd * dt;
+        }
+        if (ghostMoveHold.up || keys['Space'] || keys['KeyE']) ghostPos.y += gSpd * 0.7 * dt;
+        if (ghostMoveHold.down || keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyQ'] || keys['KeyC']) ghostPos.y -= gSpd * 0.7 * dt;
+        ghostPos.y = Math.max(0.6, Math.min(28, ghostPos.y));
+        camera.position.copy(ghostPos);
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = ghostYaw;
+        camera.rotation.x = ghostPitch;
+        camera.rotation.z = 0;
+      } else if (isTeamMode() && pSelf.hp <= 0) {
         gunGroup.visible = false;
         const aliveAllies = teamAllies.filter(a => a.hp > 0);
         if (aliveAllies.length > 0) {
@@ -5041,19 +5638,81 @@
         gunGroup.visible = true;
       }
 
-      muzzleMesh.material.opacity = pSelf.muzzleT > 0 ? 0.95 : 0;
-      muzzleLight.intensity = pSelf.muzzleT > 0 ? 3.5 : 0;
+      const mzAlpha = pSelf.muzzleT > 0 ? (0.88 * (1 - gunAnim.adsT * 0.65)) : 0;
+      muzzleMat.opacity = mzAlpha;
+      const mzScale = 1.0 - gunAnim.adsT * 0.55;
+      muzzleMesh.scale.setScalar(mzScale);
+      if (pSelf.muzzleT > 0) muzzleMesh.rotation.z += 0.7;
+      muzzleLight.intensity = pSelf.muzzleT > 0 ? (3.5 * (1 - gunAnim.adsT * 0.55)) : 0;
       gunGroup.visible = gunGroup.visible && pSelf.shadowCastT <= 0;
       const selfSemi = pSelf.shadowT > 0 || (pSelf.spawnLockT || 0) > 0;
       gunMat.transparent = selfSemi;
       gunMat.opacity = pSelf.shadowT > 0 ? 0.28 : ((pSelf.spawnLockT || 0) > 0 ? 0.42 : 1.0);
-      scope.visible = !isScoped;
-      gunGroup.position.x = isScoped ? 0.0 : 0.24;
-      gunGroup.position.y = isScoped ? -0.105 : -0.22;
-      gunGroup.position.z = (isScoped ? -0.21 : -0.38) + pSelf.recoilPitch * 0.9;
-      gunGroup.rotation.x = pSelf.reloading > 0 ? -0.55 : pSelf.recoilPitch * 1.4;
+      // Smooth ADS, bobbing, breathing, aim-sway, recoil kick & reload animation
+      const adsTarget = (isScoped && pSelf.reloading <= 0 && pSelf.hp > 0) ? 1 : 0;
+      gunAnim.adsT += (adsTarget - gunAnim.adsT) * Math.min(1, dt * 14);
+      const easeAds = gunAnim.adsT * gunAnim.adsT * (3 - 2 * gunAnim.adsT);
+
+      // Smooth 2x optical FOV zoom & reticle fade
+      const targetFov = 72 - 36 * easeAds;
+      if (Math.abs(camera.fov - targetFov) > 0.05) {
+        camera.fov = targetFov;
+        camera.updateProjectionMatrix();
+      }
+      const chEl = document.getElementById('crosshair');
+      if (chEl && !isCustomSpectator) {
+        chEl.style.opacity = Math.max(0, 1 - gunAnim.adsT * 1.4).toFixed(3);
+      }
+      scope.visible = true;
+
+      // Aim inertia sway from camera turn velocity
+      let dYawS = pSelf.yaw - gunAnim.lastYaw;
+      while (dYawS > Math.PI) dYawS -= Math.PI * 2;
+      while (dYawS < -Math.PI) dYawS += Math.PI * 2;
+      const dPitchS = pSelf.pitch - gunAnim.lastPitch;
+      gunAnim.lastYaw = pSelf.yaw;
+      gunAnim.lastPitch = pSelf.pitch;
+      const swayClamp = (v, m) => Math.max(-m, Math.min(m, v));
+      const swayScale = 1 - easeAds * 0.72;
+      gunAnim.swayX += (swayClamp(dYawS * 0.45, 0.04) * swayScale - gunAnim.swayX) * Math.min(1, dt * 12);
+      gunAnim.swayY += (swayClamp(-dPitchS * 0.45, 0.04) * swayScale - gunAnim.swayY) * Math.min(1, dt * 12);
+
+      // Walk / run bobbing & idle breathing
+      const moveAmt = pSelf.hp > 0 ? Math.min(1, pSelf.moveMag || 0) : 0;
+      gunAnim.bobBlend += (moveAmt - gunAnim.bobBlend) * Math.min(1, dt * 10);
+      gunAnim.bobPhase += dt * (moveAmt > 0.54 ? 11.5 : (moveAmt > 0.08 ? 7.2 : 2.1));
+      const bobAmp = (0.003 + gunAnim.bobBlend * 0.015) * (1 - easeAds * 0.82);
+      const bobX = Math.cos(gunAnim.bobPhase * 0.5) * bobAmp;
+      const bobY = Math.abs(Math.sin(gunAnim.bobPhase)) * -bobAmp * 1.15 + Math.sin(now * 0.0022) * 0.0018 * (1 - easeAds * 0.7);
+      const bobRoll = Math.sin(gunAnim.bobPhase * 0.5) * gunAnim.bobBlend * 0.028 * (1 - easeAds * 0.8);
+
+      // Recoil kick spring recovery
+      gunAnim.kickZ *= Math.pow(0.0005, dt);
+      gunAnim.kickPitch *= Math.pow(0.001, dt);
+      gunAnim.kickRoll *= Math.pow(0.001, dt);
+
+      // Smooth reload tilt + magazine swap dip
+      const relTarget = pSelf.reloading > 0 ? 1 : 0;
+      gunAnim.reloadT += (relTarget - gunAnim.reloadT) * Math.min(1, dt * 10);
+      const relWave = pSelf.reloading > 0 ? Math.sin(pSelf.reloading * Math.PI * 1.4) * 0.04 : 0;
+
+      // Center gun & mounted 3D scope smoothly into eye line when ADSing
+      const baseX = 0.24 * (1 - easeAds) + 0.0 * easeAds;
+      const baseY = -0.22 * (1 - easeAds) + (-0.096) * easeAds;
+      const baseZ = -0.38 * (1 - easeAds) + (-0.155) * easeAds;
+
+      gunGroup.position.x = baseX + bobX + gunAnim.swayX - gunAnim.reloadT * 0.06;
+      gunGroup.position.y = baseY + bobY + gunAnim.swayY - gunAnim.reloadT * 0.08 + relWave;
+      gunGroup.position.z = baseZ + gunAnim.kickZ + pSelf.recoilPitch * 0.35;
+
+      gunGroup.rotation.x = gunAnim.kickPitch + pSelf.recoilPitch * 0.8 - gunAnim.reloadT * 0.62 + relWave * 1.5;
+      gunGroup.rotation.y = -gunAnim.swayX * 1.4 + gunAnim.reloadT * 0.28;
+      gunGroup.rotation.z = bobRoll + gunAnim.kickRoll - gunAnim.swayX * 0.9 + gunAnim.reloadT * 0.35;
 
       // Sync Enemy Rig (lay flat on floor when dead)
+      if (selectedMode === 'custom' && pEnemy.name === 'なし') {
+        enemyRig.group.visible = false;
+      } else {
       enemyRig.group.position.x = pEnemy.pos.x;
       enemyRig.group.position.z = pEnemy.pos.z;
       enemyRig.group.rotation.y = pEnemy.yaw;
@@ -5076,6 +5735,7 @@
       enemyRig.matHead.transparent = eOp < 1; enemyRig.matHead.opacity = eOp;
       enemyRig.scanMat.opacity = pEnemy.scanGlowT > 0 ? 0.85 : 0;
       enemyRig.shieldMat.opacity = pEnemy.shield ? 0.55 : 0;
+      }
 
       updateAudioListener(camera.position, pSelf.yaw, pSelf.pitch);
       updateHUD();
@@ -5143,8 +5803,8 @@
       enemyRig.enemyMuzzle.material.opacity = f.e.mf ? 0.95 : 0;
 
       if (replayCamMode === 'ghost') {
-        selfRig.group.visible = true;
-        enemyRig.group.visible = !(f.isDm && !f.hasOnlineEnemy);
+        selfRig.group.visible = !isCustomSpectator;
+        enemyRig.group.visible = !(f.isDm && !f.hasOnlineEnemy) && !(selectedMode === 'custom' && pEnemy.name === 'なし');
         replayAlliesRigs.forEach(r => { r.group.visible = true; });
         replayEnemiesRigs.forEach(r => { r.group.visible = true; });
         const gSpd = 12.0;
@@ -5153,17 +5813,17 @@
         const fz = -Math.cos(ghostYaw) * Math.cos(ghostPitch);
         const rx = Math.cos(ghostYaw), rz = -Math.sin(ghostYaw);
         let gx = ghostStickVec.x, gy = ghostStickVec.y;
-        if (keys[config.keys.up]) gy = -1;
-        if (keys[config.keys.down]) gy = 1;
-        if (keys[config.keys.left]) gx = -1;
-        if (keys[config.keys.right]) gx = 1;
+        if (keys[config.keys.up] || keys['ArrowUp']) gy = -1;
+        if (keys[config.keys.down] || keys['ArrowDown']) gy = 1;
+        if (keys[config.keys.left] || keys['ArrowLeft']) gx = -1;
+        if (keys[config.keys.right] || keys['ArrowRight']) gx = 1;
         if (Math.hypot(gx, gy) > 0.08) {
           ghostPos.x += (rx * gx + fx * (-gy)) * gSpd * dt;
           ghostPos.y += (fy * (-gy)) * gSpd * dt;
           ghostPos.z += (rz * gx + fz * (-gy)) * gSpd * dt;
         }
-        if (ghostMoveHold.up || keys['Space']) ghostPos.y += gSpd * 0.7 * dt;
-        if (ghostMoveHold.down || keys['ShiftLeft']) ghostPos.y -= gSpd * 0.7 * dt;
+        if (ghostMoveHold.up || keys['Space'] || keys['KeyE']) ghostPos.y += gSpd * 0.7 * dt;
+        if (ghostMoveHold.down || keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyQ'] || keys['KeyC']) ghostPos.y -= gSpd * 0.7 * dt;
         ghostPos.y = Math.max(0.6, Math.min(28, ghostPos.y));
         camera.position.copy(ghostPos);
         camera.rotation.order = 'YXZ';
@@ -5184,9 +5844,9 @@
         updateAudioListener(camera.position, f.s.yw, f.s.pt);
       } else if (replayCamMode === 'teamPov') {
         const list = [
-          { x: f.s.x, z: f.s.z, yw: f.s.yw, hp: f.s.hp, rig: selfRig, name: pSelf.name },
+          ...(!isCustomSpectator ? [{ x: f.s.x, z: f.s.z, yw: f.s.yw, hp: f.s.hp, rig: selfRig, name: pSelf.name }] : []),
           ...(f.allies || []).map((a, i) => ({ ...a, rig: replayAlliesRigs[i] })),
-          ...(!(f.isDm && !f.hasOnlineEnemy) ? [{ x: f.e.x, z: f.e.z, yw: f.e.yw, hp: f.e.hp, rig: enemyRig, name: pEnemy.name }] : []),
+          ...(!(f.isDm && !f.hasOnlineEnemy) && !(selectedMode === 'custom' && pEnemy.name === 'なし') ? [{ x: f.e.x, z: f.e.z, yw: f.e.yw, hp: f.e.hp, rig: enemyRig, name: pEnemy.name }] : []),
           ...(f.enemies || []).map((e, i) => ({ ...e, rig: replayEnemiesRigs[i] }))
         ];
         if (f.isDm && !f.hasOnlineEnemy) enemyRig.group.visible = false;
