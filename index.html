@@ -1284,124 +1284,165 @@
     return tex;
   }
 
-  const texFloor = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#334155'; ctx.fillRect(0, 0, s, s);
-    for (let i = 0; i < 1600; i++) {
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.06)';
-      ctx.fillRect(Math.random() * s, Math.random() * s, 3, 3);
+  const texFloor = makeCanvasTex(512, (ctx, s) => {
+    // Realistic weathered limestone courtyard paving with mortar joints & natural grain
+    ctx.fillStyle = '#9c9588'; ctx.fillRect(0, 0, s, s);
+    const tile = s / 4;
+    for (let gy = 0; gy < 4; gy++) {
+      for (let gx = 0; gx < 4; gx++) {
+        const off = (gy % 2) * (tile / 2);
+        const tx = (gx * tile + off) % s;
+        const shade = 148 + ((gx * 7 + gy * 13) % 18) - 9;
+        ctx.fillStyle = `rgb(${shade}, ${shade - 5}, ${shade - 13})`;
+        ctx.fillRect(tx + 2, gy * tile + 2, tile - 4, tile - 4);
+        ctx.strokeStyle = 'rgba(45,40,34,0.32)'; ctx.lineWidth = 2;
+        ctx.strokeRect(tx + 1, gy * tile + 1, tile - 2, tile - 2);
+      }
     }
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.45)'; ctx.lineWidth = 3;
-    ctx.strokeRect(0, 0, s, s);
-    ctx.strokeStyle = 'rgba(148, 163, 184, 0.14)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(s/2, 0); ctx.lineTo(s/2, s); ctx.moveTo(0, s/2); ctx.lineTo(s, s/2); ctx.stroke();
-  }, 20);
-
+    for (let i = 0; i < 6500; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,250,240,0.06)' : 'rgba(30,25,20,0.07)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 2, 2);
+    }
+    for (let i = 0; i < 18; i++) {
+      ctx.strokeStyle = 'rgba(40,35,30,0.16)'; ctx.lineWidth = 1;
+      ctx.beginPath();
+      const cx = Math.random() * s, cy = Math.random() * s;
+      ctx.moveTo(cx, cy); ctx.lineTo(cx + (Math.random()-0.5)*36, cy + (Math.random()-0.5)*36); ctx.stroke();
+    }
+  }, 14);
   const texWall = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#475569'; ctx.fillRect(0, 0, s, s);
-    for (let y = 0; y < s; y += 32) {
-      const off = (y / 32) % 2 === 0 ? 0 : 32;
-      for (let x = -32; x < s; x += 64) {
-        ctx.fillStyle = `hsl(215, 16%, ${28 + (Math.random()*8)|0}%)`;
-        ctx.fillRect(x + off + 2, y + 2, 60, 28);
-      }
-    }
-    for (let i = 0; i < 900; i++) {
-      ctx.fillStyle = 'rgba(0,0,0,0.07)';
-      ctx.fillRect(Math.random()*s, Math.random()*s, 2, 2);
-    }
+    // Clean stylized Mediterranean plaster + stone wainscot + subtle cornice
+    ctx.fillStyle = '#d9cbb8'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#8b7d6b'; ctx.fillRect(0, s - 58, s, 58);
+    ctx.fillStyle = '#c49b76'; ctx.fillRect(0, 0, s, 22);
+    ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(0, 22, s, 6);
+    ctx.strokeStyle = 'rgba(60, 50, 40, 0.22)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, s - 58); ctx.lineTo(s, s - 58); ctx.stroke();
   }, 1);
-
-  const texCrate = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#785a3c'; ctx.fillRect(0, 0, s, s);
-    ctx.strokeStyle = '#4a3520'; ctx.lineWidth = 16; ctx.strokeRect(8, 8, s-16, s-16);
-    ctx.beginPath(); ctx.moveTo(16, 16); ctx.lineTo(s-16, s-16); ctx.stroke();
-    ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(0,0,0,0.22)';
-    for (let y = 24; y < s - 24; y += 26) {
-      ctx.beginPath(); ctx.moveTo(16, y); ctx.lineTo(s-16, y); ctx.stroke();
-    }
+  const texCrate = makeCanvasTex(128, (ctx, s) => {
+    // Kingdom-style matte tactical wood/composite crate
+    ctx.fillStyle = '#b08354'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#996d42'; ctx.fillRect(10, 10, s - 20, s - 20);
+    ctx.strokeStyle = '#3b2c1e'; ctx.lineWidth = 6; ctx.strokeRect(4, 4, s - 8, s - 8);
+    ctx.strokeStyle = '#4a3726'; ctx.lineWidth = 5;
+    ctx.beginPath(); ctx.moveTo(10, 10); ctx.lineTo(s - 10, s - 10); ctx.moveTo(s - 10, 10); ctx.lineTo(10, s - 10); ctx.stroke();
   }, 1);
-
-  const texMetal = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, s, s);
-    ctx.strokeStyle = '#334155'; ctx.lineWidth = 8; ctx.strokeRect(4, 4, s-8, s-8);
-    ctx.fillStyle = '#475569';
-    [[18,18],[s-18,18],[18,s-18],[s-18,s-18]].forEach(([x,y]) => {
-      ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
-    });
-    ctx.fillStyle = 'rgba(250, 204, 21, 0.28)';
-    ctx.fillRect(0, s-24, s, 12);
+  const texMetal = makeCanvasTex(128, (ctx, s) => {
+    // Clean VALORANT Kingdom industrial steel panel with subtle hazard stripe
+    ctx.fillStyle = '#3c4856'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#475569'; ctx.fillRect(8, 8, s - 16, s - 24);
+    ctx.fillStyle = '#26303c'; ctx.fillRect(0, s - 14, s, 14);
+    ctx.fillStyle = '#f59e0b';
+    for (let x = -16; x < s; x += 24) { ctx.fillRect(x, s - 12, 12, 8); }
+    ctx.strokeStyle = '#1e293b'; ctx.lineWidth = 4; ctx.strokeRect(2, 2, s - 4, s - 4);
   }, 1);
-
-  function makeCamoTex(primary, secondary) {
+  function makeCamoTex(c1, c2) {
     return makeCanvasTex(128, (ctx, s) => {
-      ctx.fillStyle = primary; ctx.fillRect(0, 0, s, s);
-      for (let i = 0; i < 40; i++) {
-        ctx.fillStyle = secondary;
-        ctx.fillRect(Math.random()*s, Math.random()*s, 14 + Math.random()*18, 10 + Math.random()*14);
+      ctx.fillStyle = c1; ctx.fillRect(0, 0, s, s);
+      ctx.fillStyle = c2;
+      ctx.fillRect(0, s * 0.48, s, s * 0.06);
+      ctx.fillRect(s * 0.48, 0, s * 0.04, s);
+      for (let y = 0; y < s; y += 8) {
+        ctx.fillStyle = 'rgba(255,255,255,0.025)';
+        ctx.fillRect(0, y, s, 2);
       }
-      ctx.strokeStyle = 'rgba(0,0,0,0.2)'; ctx.lineWidth = 2;
-      ctx.strokeRect(2, 2, s-4, s-4);
+      ctx.strokeStyle = 'rgba(0,0,0,0.18)'; ctx.lineWidth = 2;
+      ctx.strokeRect(1, 1, s - 2, s - 2);
     }, 1);
   }
-  const texCamoBlue = makeCamoTex('#1d4ed8', '#0f172a');
-  const texCamoRed = makeCamoTex('#b91c1c', '#1f2937');
-  const texFloorSand = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#9a7b52'; ctx.fillRect(0, 0, s, s);
-    for (let i = 0; i < 1500; i++) {
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,240,200,0.07)' : 'rgba(60,40,15,0.08)';
-      ctx.fillRect(Math.random() * s, Math.random() * s, 3, 3);
-    }
-    ctx.strokeStyle = 'rgba(80,55,25,0.4)'; ctx.lineWidth = 3; ctx.strokeRect(0, 0, s, s);
-  }, 20);
-  const texWallSand = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#b48a5a'; ctx.fillRect(0, 0, s, s);
-    for (let y = 0; y < s; y += 32) {
-      for (let x = 0; x < s; x += 64) {
-        ctx.fillStyle = `hsl(32, 36%, ${46 + (Math.random()*10)|0}%)`;
-        ctx.fillRect(x + ((y/32)%2)*16 + 2, y + 2, 60, 28);
+  const texCamoBlue = makeCamoTex('#33475e', '#263648');
+  const texCamoRed = makeCamoTex('#5e3034', '#472226');
+  const texFloorSand = makeCanvasTex(512, (ctx, s) => {
+    // Realistic desert sandstone slabs & wind-swept fine sand grain
+    ctx.fillStyle = '#b99972'; ctx.fillRect(0, 0, s, s);
+    const tile = s / 4;
+    for (let gy = 0; gy < 4; gy++) {
+      for (let gx = 0; gx < 4; gx++) {
+        const v = ((gx * 11 + gy * 5) % 16) - 8;
+        ctx.fillStyle = `rgb(${190 + v}, ${156 + v}, ${114 + v})`;
+        ctx.fillRect(gx * tile + 2, gy * tile + 2, tile - 4, tile - 4);
+        ctx.strokeStyle = 'rgba(90, 62, 34, 0.28)'; ctx.lineWidth = 2;
+        ctx.strokeRect(gx * tile + 1, gy * tile + 1, tile - 2, tile - 2);
       }
     }
-  }, 1);
-
-  const texFloorSnow = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(0, 0, s, s);
-    for (let i = 0; i < 1200; i++) {
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.22)' : 'rgba(100,130,170,0.12)';
-      ctx.fillRect(Math.random() * s, Math.random() * s, 4, 4);
+    for (let i = 0; i < 7000; i++) {
+      ctx.fillStyle = Math.random() > 0.45 ? 'rgba(255,235,205,0.07)' : 'rgba(85,55,25,0.08)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 2, 1.5);
     }
-    ctx.strokeStyle = 'rgba(51,65,85,0.25)'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, s, s);
-  }, 20);
-  const texWallIce = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#64748b'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(0, 0, s, 44);
-    ctx.strokeStyle = '#38bdf8'; ctx.lineWidth = 4; ctx.strokeRect(6, 6, s-12, s-12);
+  }, 14);
+  const texWallSand = makeCanvasTex(256, (ctx, s) => {
+    ctx.fillStyle = '#e2c7a4'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#9e6b43'; ctx.fillRect(0, s - 56, s, 56);
+    ctx.fillStyle = '#c97b4b'; ctx.fillRect(0, 0, s, 24);
+    ctx.strokeStyle = 'rgba(90, 55, 30, 0.22)'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, s - 56); ctx.lineTo(s, s - 56); ctx.moveTo(0, 24); ctx.lineTo(s, 24); ctx.stroke();
   }, 1);
 
-  const texFloorCyber = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, s, s);
-    ctx.strokeStyle = 'rgba(56,189,248,0.28)'; ctx.lineWidth = 2; ctx.strokeRect(0, 0, s, s);
-    ctx.strokeStyle = 'rgba(168,85,247,0.22)'; ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(s/2, 0); ctx.lineTo(s/2, s); ctx.moveTo(0, s/2); ctx.lineTo(s, s/2); ctx.stroke();
-  }, 20);
+  const texFloorSnow = makeCanvasTex(512, (ctx, s) => {
+    // Realistic arctic dock concrete slabs with frost & expansion seams
+    ctx.fillStyle = '#b6c2ce'; ctx.fillRect(0, 0, s, s);
+    const tile = s / 2;
+    for (let gy = 0; gy < 2; gy++) {
+      for (let gx = 0; gx < 2; gx++) {
+        const v = ((gx * 9 + gy * 7) % 12) - 6;
+        ctx.fillStyle = `rgb(${186 + v}, ${198 + v}, ${210 + v})`;
+        ctx.fillRect(gx * tile + 2, gy * tile + 2, tile - 4, tile - 4);
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.3)'; ctx.lineWidth = 3;
+        ctx.strokeRect(gx * tile + 1, gy * tile + 1, tile - 2, tile - 2);
+      }
+    }
+    for (let i = 0; i < 6500; i++) {
+      ctx.fillStyle = Math.random() > 0.45 ? 'rgba(255,255,255,0.12)' : 'rgba(60,80,105,0.08)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 3, 2);
+    }
+  }, 14);
+  const texWallIce = makeCanvasTex(256, (ctx, s) => {
+    ctx.fillStyle = '#536273'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#2b3542'; ctx.fillRect(0, s - 54, s, 54);
+    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(0, 0, s, 28);
+    ctx.fillStyle = '#f97316'; ctx.fillRect(0, 28, s, 6);
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.32)'; ctx.lineWidth = 3; ctx.strokeRect(4, 34, s - 8, s - 90);
+  }, 1);
+
+  const texFloorCyber = makeCanvasTex(512, (ctx, s) => {
+    // Realistic dark brushed industrial concrete & slate lab floor
+    ctx.fillStyle = '#283142'; ctx.fillRect(0, 0, s, s);
+    const tile = s / 4;
+    for (let gy = 0; gy < 4; gy++) {
+      for (let gx = 0; gx < 4; gx++) {
+        const v = ((gx * 5 + gy * 11) % 10) - 5;
+        ctx.fillStyle = `rgb(${44 + v}, ${53 + v}, ${70 + v})`;
+        ctx.fillRect(gx * tile + 2, gy * tile + 2, tile - 4, tile - 4);
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.45)'; ctx.lineWidth = 2;
+        ctx.strokeRect(gx * tile + 1, gy * tile + 1, tile - 2, tile - 2);
+      }
+    }
+    for (let i = 0; i < 6000; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(200,215,235,0.04)' : 'rgba(10,15,25,0.08)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2, 2);
+    }
+  }, 14);
   const texWallCyber = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#1e1b4b'; ctx.fillRect(0, 0, s, s);
-    ctx.strokeStyle = '#a855f7'; ctx.lineWidth = 6; ctx.strokeRect(4, 4, s-8, s-8);
-    ctx.fillStyle = 'rgba(56,189,248,0.35)'; ctx.fillRect(16, s/2 - 6, s-32, 12);
+    ctx.fillStyle = '#3b475c'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#1b2230'; ctx.fillRect(0, s - 56, s, 56);
+    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(0, 0, s, 22);
+    ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 22, s, 5);
+    ctx.strokeStyle = 'rgba(15, 23, 42, 0.35)'; ctx.lineWidth = 3; ctx.strokeRect(6, 30, s - 12, s - 88);
   }, 1);
 
   const texRadianite = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#064e3b'; ctx.fillRect(0, 0, s, s);
-    ctx.strokeStyle = '#10b981'; ctx.lineWidth = 10; ctx.strokeRect(8, 8, s-16, s-16);
-    ctx.fillStyle = '#34d399';
-    ctx.fillRect(s*0.25, s*0.25, s*0.5, s*0.14);
-    ctx.fillRect(s*0.25, s*0.61, s*0.5, s*0.14);
-    ctx.strokeStyle = '#022c22'; ctx.lineWidth = 4;
-    ctx.beginPath(); ctx.moveTo(0, s/2); ctx.lineTo(s, s/2); ctx.stroke();
+    // Iconic VALORANT Radianite green crate with dark Kingdom corner frame
+    ctx.fillStyle = '#0b6e4f'; ctx.fillRect(0, 0, s, s);
+    ctx.strokeStyle = '#18181b'; ctx.lineWidth = 14; ctx.strokeRect(7, 7, s - 14, s - 14);
+    ctx.fillStyle = '#10b981'; ctx.fillRect(28, 28, s - 56, s - 56);
+    ctx.fillStyle = '#18181b'; ctx.fillRect(0, s/2 - 8, s, 16); ctx.fillRect(s/2 - 8, 0, 16, s);
+    ctx.fillStyle = '#6ee7b7'; ctx.fillRect(s/2 - 18, s/2 - 18, 36, 36);
   }, 1);
 
-  const texSkin = makeCanvasTex(64, (ctx, s) => {
-    ctx.fillStyle = '#d9a585'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, s, 18); // hair/helmet cap
+  const texSkin = makeCanvasTex(128, (ctx, s) => {
+    ctx.fillStyle = '#d7a88a'; ctx.fillRect(0, 0, s, s);
+    ctx.fillStyle = '#262626'; ctx.fillRect(0, 0, s, s * 0.24);
+    ctx.fillStyle = '#334155'; ctx.fillRect(0, s * 0.72, s, s * 0.28);
   }, 1);
 
   // ==================== THREE.JS SCENE & MAP ====================
@@ -1443,15 +1484,34 @@
   floorMesh.receiveShadow = true;
   scene.add(floorMesh);
 
-  const obstacles = []; // { minX, maxX, minZ, maxZ, height, mesh }
+  const obstacles = []; // { minX, maxX, minZ, maxZ, height, bottom, mesh }
   const obstacleMeshes = [];
+  const walkSurfaces = []; // { type: 'plat'|'ramp', minX, maxX, minZ, maxZ, y, y0, y1, axis }
+
+  function getGroundHeight(x, z) {
+    let maxY = 0;
+    for (const s of walkSurfaces) {
+      if (x >= s.minX - 0.18 && x <= s.maxX + 0.18 && z >= s.minZ - 0.18 && z <= s.maxZ + 0.18) {
+        if (s.type === 'plat') {
+          if (s.y > maxY) maxY = s.y;
+        } else if (s.type === 'ramp') {
+          let t = 0;
+          if (s.axis === 'z') t = Math.max(0, Math.min(1, (z - s.minZ) / Math.max(0.01, s.maxZ - s.minZ)));
+          else t = Math.max(0, Math.min(1, (x - s.minX) / Math.max(0.01, s.maxX - s.minX)));
+          const ry = s.y0 + (s.y1 - s.y0) * t;
+          if (ry > maxY) maxY = ry;
+        }
+      }
+    }
+    return maxY;
+  }
 
   let activeWallTex = texWall;
-  function addObstacle(x, z, w, h, d, type = 'wall') {
+  function addObstacle(x, z, w, h, d, type = 'wall', areaColor = null) {
     const mat = new THREE.MeshStandardMaterial({
       map: type === 'radianite' ? texRadianite : (type === 'crate' ? texCrate : (type === 'metal' ? texMetal : activeWallTex)),
-      roughness: type === 'metal' ? 0.42 : (type === 'radianite' ? 0.35 : 0.78),
-      metalness: type === 'metal' ? 0.48 : (type === 'radianite' ? 0.25 : 0.08)
+      roughness: type === 'metal' ? 0.42 : (type === 'radianite' ? 0.32 : 0.72),
+      metalness: type === 'metal' ? 0.48 : (type === 'radianite' ? 0.28 : 0.08)
     });
     const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
     mesh.position.set(x, h / 2, z);
@@ -1460,6 +1520,25 @@
     scene.add(mesh);
     obstacles.push({ minX: x - w/2, maxX: x + w/2, minZ: z - d/2, maxZ: z + d/2, height: h, mesh });
     obstacleMeshes.push(mesh);
+
+    // VALORANT architectural plinth + top coping trim on walls
+    if (type === 'wall' && h >= 2.0) {
+      const trimCol = areaColor || 0x334155;
+      const cap = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.08, 0.16, d + 0.08),
+        new THREE.MeshStandardMaterial({ color: trimCol, roughness: 0.45, metalness: 0.35 })
+      );
+      cap.position.set(x, h + 0.04, z);
+      scene.add(cap);
+      roofMeshes.push(cap);
+      const plinth = new THREE.Mesh(
+        new THREE.BoxGeometry(w + 0.06, 0.52, d + 0.06),
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8, metalness: 0.15 })
+      );
+      plinth.position.set(x, 0.26, z);
+      scene.add(plinth);
+      roofMeshes.push(plinth);
+    }
   }
 
   // Top-Down 2D Architectural Grid Maps (19x19 cells x 4.2m = 79.8m x 79.8m)
@@ -1467,103 +1546,111 @@
   // 'S' = Blue Spawn Room, 'E' = Red Spawn Room
   const MAPS = [
     {
-      id: 0, name: 'アルカディア', desc: '城塞都市：広い中央広場・マーケットとL字/T字の側道が繋がる構造',
-      sky: 0x4b7bb5, floorTex: texFloor, wallTex: texWall,
+      id: 0, name: 'アルカディア', desc: '城塞都市：オープンなサイトとピーク壁が繋がるフラットな3レーンマップ',
+      sky: 0x6b9ed4, floorTex: texFloor, wallTex: texWall, accent: 0x38bdf8,
       grid: [
-        '###################',
-        '#..R.R..EEE..R.R..#',
-        '#..###.##.##.###..#',
-        '#..#C...#.#...C#..#',
-        '#.##.##.#.#.##.##.#',
-        '#R..R.........R..R#',
-        '###.#..##.##..#.###',
-        '#C..#.........#..C#',
-        '#.#...C.....C...#.#',
-        '#.#...R..#..R...#.#',
-        '#.#...C.....C...#.#',
-        '#C..#.........#..C#',
-        '###.#..##.##..#.###',
-        '#R..R.........R..R#',
-        '#.##.##.#.#.##.##.#',
-        '#..#C...#.#...C#..#',
-        '#..###.##.##.###..#',
-        '#..R.R..SSS..R.R..#',
-        '###################'
+        '#####################',
+        '#......##EEE##......#',
+        '#..##........T..##..#',
+        '#..##..#..T..#..##..#',
+        '#............##.....#',
+        '####.###.....###....#',
+        '#A...#..#...#..#....#',
+        '#.D.......P......B..#',
+        '#..A.###.....###..D.#',
+        '#..C.##...#...##.B..#',
+        '#.....I.#####.I.....#',
+        '#..L.##...#...##.C..#',
+        '#....###.....###....#',
+        '#.M.......P......M..#',
+        '#....#..#...#..#....#',
+        '####.###.....###.####',
+        '#......I..T..I......#',
+        '#..##........T..##..#',
+        '#......##SSS##......#',
+        '#........SSS........#',
+        '#####################'
       ]
     },
     {
-      id: 1, name: 'サンセット・バザール', desc: '砂漠市場：中央バザール大通りを小部屋と分岐路が囲む構造',
-      sky: 0x8f5d3e, floorTex: texFloorSand, wallTex: texWallSand,
+      id: 1, name: 'サンセット・バザール', desc: '砂漠市場：見通しの良い大通りと小路の遮蔽が繋がるフラット3レーン',
+      sky: 0xc98558, floorTex: texFloorSand, wallTex: texWallSand, accent: 0xf59e0b,
       grid: [
-        '###################',
-        '#....#..EEE..#....#',
-        '#.##.#.##.##.#.##.#',
-        '#..R...#...#...R..#',
-        '####.###.#.###.####',
-        '#C...#..R.R..#...C#',
-        '#.##...........##.#',
-        '#.#..R..C.C..R..#.#',
-        '#.#.............#.#',
-        '#...#...###...#...#',
-        '#.#.............#.#',
-        '#.#..R..C.C..R..#.#',
-        '#.##...........##.#',
-        '#C...#..R.R..#...C#',
-        '####.###.#.###.####',
-        '#..R...#...#...R..#',
-        '#.##.#.##.##.#.##.#',
-        '#....#..SSS..#....#',
-        '###################'
+        '#####################',
+        '#.....###EEE###.....#',
+        '#..#.............#..#',
+        '#..#..#..T.T..#..#..#',
+        '#.....#.......#.....#',
+        '###..##.......##..###',
+        '#A...#..#...#..#....#',
+        '#.D.......P.......B.#',
+        '#..A.###.....###..D.#',
+        '#..M.##...L...##..B.#',
+        '#.....I.#####.I.....#',
+        '#..C.##...L...##.M..#',
+        '#....###.....###....#',
+        '#.L.......P......C..#',
+        '#....#..#...#..#....#',
+        '###..##.......##..###',
+        '#.....I..T.T..I.....#',
+        '#..#.............#..#',
+        '#.....###SSS###.....#',
+        '#........SSS........#',
+        '#####################'
       ]
     },
     {
-      id: 2, name: 'フロスト・ドック', desc: '氷結貨物港：広い中央ドックと左右の屋内コンテナ倉庫が繋がる',
-      sky: 0x5c80a1, floorTex: texFloorSnow, wallTex: texWallIce,
+      id: 2, name: 'フロスト・ドック', desc: '氷結貨物港：青空の下でコンテナ遮蔽を使って戦うフラット港湾マップ',
+      sky: 0x7da4c4, floorTex: texFloorSnow, wallTex: texWallIce, accent: 0x22d3ee,
       grid: [
-        '###################',
-        '#..R....EEE....R..#',
-        '#..####.#.#.####..#',
-        '#.....#.#.#.#.....#',
-        '#.###.#..C..#.###.#',
-        '#.#C..###.###..C#.#',
-        '#.#.R.........R.#.#',
-        '#.....C.....C.....#',
-        '###.............###',
-        '#C..R...###...R..C#',
-        '###.............###',
-        '#.....C.....C.....#',
-        '#.#.R.........R.#.#',
-        '#.#C..###.###..C#.#',
-        '#.###.#..C..#.###.#',
-        '#.....#.#.#.#.....#',
-        '#..####.#.#.####..#',
-        '#..R....SSS....R..#',
-        '###################'
+        '#####################',
+        '#.....###EEE###.....#',
+        '#..##...........##..#',
+        '#..##.#...T...#.##..#',
+        '#.............#.....#',
+        '####..#...D...#..####',
+        '#A..A.#.#...#.#.B..B#',
+        '#.D.......P.......D.#',
+        '#..C..##.....##..M..#',
+        '#....###.....###....#',
+        '#.....I.#####.I.....#',
+        '#....###.....###....#',
+        '#..M..##.....##..C..#',
+        '#.D.......P.......L.#',
+        '#.....#.#...#.#.....#',
+        '####..#...D...#..####',
+        '#.....I...T...I.....#',
+        '#..##...........##..#',
+        '#.....###SSS###.....#',
+        '#........SSS........#',
+        '#####################'
       ]
     },
     {
-      id: 3, name: 'ネオン・ラボ', desc: '実験施設：広い中央リアクターホールと四隅の研究室通路',
-      sky: 0x1e294b, floorTex: texFloorCyber, wallTex: texWallCyber,
+      id: 3, name: 'ネオン・ラボ', desc: '実験施設：フラットな研究区画と壁ピークが連続する近未来マップ',
+      sky: 0x334475, floorTex: texFloorCyber, wallTex: texWallCyber, accent: 0x38bdf8,
       grid: [
-        '###################',
-        '#..#....EEE....#..#',
-        '#..#.###.#.###.#..#',
-        '#....#C..#..C#....#',
-        '#.##.#.##.##.#.##.#',
-        '#.#..R...R...R..#.#',
-        '#.#..##.....##..#.#',
-        '#.......C.C.......#',
-        '###.............###',
-        '#..R....###....R..#',
-        '###.............###',
-        '#.......C.C.......#',
-        '#.#..##.....##..#.#',
-        '#.#..R...R...R..#.#',
-        '#.##.#.##.##.#.##.#',
-        '#....#C..#..C#....#',
-        '#..#.###.#.###.#..#',
-        '#..#....SSS....#..#',
-        '###################'
+        '#####################',
+        '#......##EEE##......#',
+        '#..##........T..##..#',
+        '#..##..#..T..#..##..#',
+        '#......#.....#......#',
+        '####.###.....###.####',
+        '#A..A.#.#...#.#.B..B#',
+        '#.D.......P.......D.#',
+        '#..L..##..C..##..M..#',
+        '#....###.....###....#',
+        '#.....I.#####.I.....#',
+        '#....###.....###....#',
+        '#..M..##..C..##..L..#',
+        '#.C.......P.......D.#',
+        '#.....#.#...#.#.....#',
+        '####.###.....###.####',
+        '#......I..T..I......#',
+        '#..##........T..##..#',
+        '#......##SSS##......#',
+        '#........SSS........#',
+        '#####################'
       ]
     }
   ];
@@ -1582,6 +1669,66 @@
     roofMeshes.push(mesh);
   }
 
+  const MAP_AREA_DEFS = [
+    [ // 0: アルカディア
+      { name: 'RED BASE (DEF)', r0: 1, r1: 3, c0: 6, c1: 14, color: 0xf87171, css: '#f87171', floor: true },
+      { name: 'A SITE (聖堂)', r0: 6, r1: 11, c0: 1, c1: 5, color: 0x38bdf8, css: '#38bdf8', floor: true, sign: 'A SITE' },
+      { name: 'B SITE (酒蔵)', r0: 6, r1: 11, c0: 15, c1: 19, color: 0xfbbf24, css: '#fbbf24', floor: true, sign: 'B SITE' },
+      { name: 'A MAIN / 庭園', r0: 12, r1: 17, c0: 1, c1: 6, color: 0x7dd3fc, css: '#7dd3fc', floor: false },
+      { name: 'B MAIN / 回廊', r0: 12, r1: 17, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'A LINK / 北庭', r0: 1, r1: 5, c0: 1, c1: 6, color: 0x7dd3fc, css: '#7dd3fc', floor: false },
+      { name: 'B LINK / 北蔵', r0: 1, r1: 5, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'MID マーケット', r0: 7, r1: 13, c0: 8, c1: 12, color: 0xa78bfa, css: '#c4b5fd', floor: true, sign: 'MID' },
+      { name: 'BLUE BASE (ATK)', r0: 17, r1: 19, c0: 6, c1: 14, color: 0x38bdf8, css: '#38bdf8', floor: true }
+    ],
+    [ // 1: サンセット・バザール
+      { name: 'RED BASE (DEF)', r0: 1, r1: 3, c0: 6, c1: 14, color: 0xf87171, css: '#f87171', floor: true },
+      { name: 'A SITE (西市場)', r0: 6, r1: 11, c0: 1, c1: 5, color: 0x38bdf8, css: '#38bdf8', floor: true, sign: 'A SITE' },
+      { name: 'B SITE (東広場)', r0: 6, r1: 11, c0: 15, c1: 19, color: 0xfbbf24, css: '#fbbf24', floor: true, sign: 'B SITE' },
+      { name: 'A ALLEY / 南路地', r0: 12, r1: 17, c0: 1, c1: 6, color: 0x7dd3fc, css: '#7dd3fc', floor: false },
+      { name: 'B BAZAAR / 南通り', r0: 12, r1: 17, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'A TOP / 北門', r0: 1, r1: 5, c0: 1, c1: 6, color: 0x7dd3fc, css: '#7dd3fc', floor: false },
+      { name: 'B TOP / 北門', r0: 1, r1: 5, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'MID バザール大通り', r0: 7, r1: 13, c0: 8, c1: 12, color: 0xf59e0b, css: '#fcd34d', floor: true, sign: 'MID' },
+      { name: 'BLUE BASE (ATK)', r0: 17, r1: 19, c0: 6, c1: 14, color: 0x38bdf8, css: '#38bdf8', floor: true }
+    ],
+    [ // 2: フロスト・ドック
+      { name: 'RED BASE (DEF)', r0: 1, r1: 3, c0: 6, c1: 14, color: 0xf87171, css: '#f87171', floor: true },
+      { name: 'A SITE (ベルト倉庫)', r0: 6, r1: 11, c0: 1, c1: 5, color: 0x38bdf8, css: '#38bdf8', floor: true, sign: 'A SITE' },
+      { name: 'B SITE (クレーン港)', r0: 6, r1: 11, c0: 15, c1: 19, color: 0xfbbf24, css: '#fbbf24', floor: true, sign: 'B SITE' },
+      { name: 'A MAIN / 搬入口', r0: 12, r1: 17, c0: 1, c1: 6, color: 0x7dd3fc, css: '#7dd3fc', floor: false },
+      { name: 'B MAIN / 氷壁通路', r0: 12, r1: 17, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'A HALL / 北倉庫', r0: 1, r1: 5, c0: 1, c1: 6, color: 0x7dd3fc, css: '#7dd3fc', floor: false },
+      { name: 'B HALL / 北埠頭', r0: 1, r1: 5, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'MID キャットウォーク', r0: 7, r1: 13, c0: 8, c1: 12, color: 0x67e8f9, css: '#67e8f9', floor: true, sign: 'MID' },
+      { name: 'BLUE BASE (ATK)', r0: 17, r1: 19, c0: 6, c1: 14, color: 0x38bdf8, css: '#38bdf8', floor: true }
+    ],
+    [ // 3: ネオン・ラボ
+      { name: 'RED BASE (DEF)', r0: 1, r1: 3, c0: 6, c1: 14, color: 0xf87171, css: '#f87171', floor: true },
+      { name: 'A SITE (サーバ室)', r0: 6, r1: 11, c0: 1, c1: 5, color: 0x22d3ee, css: '#22d3ee', floor: true, sign: 'A SITE' },
+      { name: 'B SITE (クライオ室)', r0: 6, r1: 11, c0: 15, c1: 19, color: 0xfbbf24, css: '#fbbf24', floor: true, sign: 'B SITE' },
+      { name: 'A MAIN / 南ダクト', r0: 12, r1: 17, c0: 1, c1: 6, color: 0x67e8f9, css: '#67e8f9', floor: false },
+      { name: 'B MAIN / 南通路', r0: 12, r1: 17, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'A LINK / 北ダクト', r0: 1, r1: 5, c0: 1, c1: 6, color: 0x67e8f9, css: '#67e8f9', floor: false },
+      { name: 'B LINK / 北ラボ', r0: 1, r1: 5, c0: 14, c1: 19, color: 0xfcd34d, css: '#fcd34d', floor: false },
+      { name: 'MID リアクター', r0: 7, r1: 13, c0: 8, c1: 12, color: 0xc084fc, css: '#d8b4fe', floor: true, sign: 'MID' },
+      { name: 'BLUE BASE (ATK)', r0: 17, r1: 19, c0: 6, c1: 14, color: 0x38bdf8, css: '#38bdf8', floor: true }
+    ]
+  ];
+
+  function getAreaAtPos(pos) {
+    const g = MAPS[currentMapIdx].grid;
+    const rows = g.length, cols = g[0].length;
+    const cell = (ARENA_HALF * 2) / cols;
+    const r = Math.max(0, Math.min(rows - 1, Math.round(pos.z / cell + (rows - 1) / 2)));
+    const c = Math.max(0, Math.min(cols - 1, Math.round(pos.x / cell + (cols - 1) / 2)));
+    const defs = MAP_AREA_DEFS[currentMapIdx] || MAP_AREA_DEFS[0];
+    for (const a of defs) {
+      if (r >= a.r0 && r <= a.r1 && c >= a.c0 && c <= a.c1) return a;
+    }
+    return { name: 'CONNECTOR', css: '#94a3b8' };
+  }
+
   function buildMap(mapIdx) {
     currentMapIdx = ((mapIdx % MAPS.length) + MAPS.length) % MAPS.length;
     const m = MAPS[currentMapIdx];
@@ -1596,26 +1743,60 @@
     obstacles.length = 0;
     obstacleMeshes.length = 0;
     roofMeshes.length = 0;
+    walkSurfaces.length = 0;
 
     const rows = m.grid.length;
     const cols = m.grid[0].length;
     const cell = (ARENA_HALF * 2) / cols;
     const sCells = [], eCells = [];
 
+    const siteAccent = 0x475569;
+    const addSitePad = () => {};
+
+    const addPillar = (wx, wz, h) => {
+      const mat = new THREE.MeshStandardMaterial({ map: activeWallTex, roughness: 0.65, metalness: 0.18 });
+      const cyl = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.25, h, 8), mat);
+      cyl.position.set(wx, h / 2, wz);
+      cyl.castShadow = true; cyl.receiveShadow = true;
+      scene.add(cyl);
+      obstacleMeshes.push(cyl);
+      obstacles.push({ minX: wx - 1.2, maxX: wx + 1.2, minZ: wz - 1.2, maxZ: wz + 1.2, height: h, mesh: cyl });
+      const ring = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.32, 1.32, 0.22, 8),
+        new THREE.MeshStandardMaterial({ color: siteAccent, emissive: siteAccent, emissiveIntensity: 0.35, roughness: 0.4 })
+      );
+      ring.position.set(wx, h - 0.35, wz);
+      scene.add(ring);
+      roofMeshes.push(ring);
+    };
+
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
         const ch = m.grid[r][c];
         const wx = (c - (cols - 1) / 2) * cell;
         const wz = (r - (rows - 1) / 2) * cell;
+        const isBorder = (r === 0 || r === rows - 1 || c === 0 || c === cols - 1);
+        const areaCol = 0x334155;
         if (ch === '#') {
-          addObstacle(wx, wz, cell + 0.04, 9.2, cell + 0.04, 'wall');
+          addObstacle(wx, wz, cell + 0.04, isBorder ? 5.2 : 4.3, cell + 0.04, 'wall', areaCol);
+        } else if (ch === 'T') {
+          addObstacle(wx, wz, cell * 1.02, 4.3, 1.15, 'wall', areaCol);
+        } else if (ch === 'I') {
+          addObstacle(wx, wz, 1.15, 4.3, cell * 1.02, 'wall', areaCol);
+        } else if (ch === 'W') {
+          addObstacle(wx, wz, cell * 0.96, 2.2, cell * 0.52, 'wall', areaCol);
         } else if (ch === 'C') {
-          addObstacle(wx, wz, 2.5, 2.2, 2.5, (r + c) % 2 === 0 ? 'radianite' : 'crate');
-        } else if (ch === 'R') {
-          const isW = (nr, nc) => nr >= 0 && nr < rows && nc >= 0 && nc < cols && m.grid[nr][nc] === '#';
-          if ((isW(r-1, c) && isW(r+1, c)) || (isW(r, c-1) && isW(r, c+1))) {
-            addRoof(wx, 5.4, wz, cell + 0.05, 0.6, cell + 0.05, texMetal);
-          }
+          addObstacle(wx, wz, 2.4, 1.95, 2.4, (r + c) % 2 === 0 ? 'radianite' : 'crate');
+        } else if (ch === 'D') {
+          addObstacle(wx, wz, 2.65, 3.5, 2.65, (r + c) % 2 === 0 ? 'radianite' : 'metal');
+        } else if (ch === 'L') {
+          addObstacle(wx, wz, 2.5, 1.05, 1.25, (r + c) % 2 === 0 ? 'metal' : 'crate');
+        } else if (ch === 'M') {
+          addObstacle(wx, wz, 2.2, 1.55, 1.4, (r + c) % 2 === 0 ? 'metal' : 'radianite');
+        } else if (ch === 'P') {
+          addPillar(wx, wz, 4.3);
+        } else if (ch === 'A' || ch === 'B') {
+          addSitePad(wx, wz, ch === 'A');
         } else if (ch === 'S') {
           sCells.push({ x: wx, z: wz });
         } else if (ch === 'E') {
@@ -1625,6 +1806,7 @@
     }
     if (sCells.length > 0) spawnBluePos.set(sCells[Math.floor(sCells.length / 2)].x, 0, sCells[0].z);
     if (eCells.length > 0) spawnRedPos.set(eCells[Math.floor(eCells.length / 2)].x, 0, eCells[0].z);
+
   }
 
   buildMap(0);
@@ -1733,54 +1915,119 @@
   function createCharacterRig(isEnemy, isIllusion = false) {
     const group = new THREE.Group();
     const tex = isEnemy ? texCamoRed : texCamoBlue;
+    const teamAccent = isEnemy ? 0xef4444 : 0x38bdf8;
     const matBody = new THREE.MeshStandardMaterial({
-      map: tex, roughness: 0.7, metalness: 0.15,
+      map: tex, roughness: 0.72, metalness: 0.12,
+      transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
+    });
+    const matGear = new THREE.MeshStandardMaterial({
+      color: 0x1e293b, roughness: 0.65, metalness: 0.28,
+      transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
+    });
+    const matBoot = new THREE.MeshStandardMaterial({
+      color: 0x0f172a, roughness: 0.82, metalness: 0.12,
       transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
     });
     const matHead = new THREE.MeshStandardMaterial({
-      map: texSkin, roughness: 0.65,
+      map: texSkin, roughness: 0.6,
       transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
     });
-    const matGun = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.7, roughness: 0.35 });
+    const matVisor = new THREE.MeshStandardMaterial({
+      color: 0x111827, roughness: 0.22, metalness: 0.75
+    });
+    const matGun = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.78, roughness: 0.3 });
 
     const hitboxes = [];
 
-    // Legs (realistic ~0.86m)
-    const legL = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.86, 0.19), matBody);
-    legL.position.set(-0.11, 0.43, 0); legL.castShadow = true;
-    legL.userData = { part: 'legs' };
-    const legR = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.86, 0.19), matBody);
-    legR.position.set(0.11, 0.43, 0); legR.castShadow = true;
-    legR.userData = { part: 'legs' };
-    group.add(legL, legR);
-    hitboxes.push(legL, legR);
+    // Articulated Legs with hip pivot + knee pivot (realistic stride + knee bend)
+    const buildLeg = (xOff) => {
+      const hipPivot = new THREE.Group();
+      hipPivot.position.set(xOff, 0.86, 0);
+      const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.072, 0.42, 10), matBody);
+      thigh.position.y = -0.21; thigh.castShadow = true; thigh.userData = { part: 'legs' };
+      const kneePivot = new THREE.Group();
+      kneePivot.position.set(0, -0.42, 0);
+      const knee = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.09, 0.11), matGear);
+      knee.position.set(0, -0.01, -0.025); knee.userData = { part: 'legs' };
+      const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.056, 0.34, 10), matBody);
+      shin.position.y = -0.18; shin.castShadow = true; shin.userData = { part: 'legs' };
+      const boot = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.11, 0.23), matBoot);
+      boot.position.set(0, -0.385, -0.035); boot.castShadow = true; boot.userData = { part: 'legs' };
+      kneePivot.add(knee, shin, boot);
+      hipPivot.add(thigh, kneePivot);
+      hipPivot.knee = kneePivot;
+      hitboxes.push(thigh, shin, boot);
+      group.add(hipPivot);
+      return hipPivot;
+    };
+    const legL = buildLeg(-0.105);
+    const legR = buildLeg(0.105);
+    const upperBody = new THREE.Group();
+    group.add(upperBody);
 
-    // Torso (0.62m)
-    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.62, 0.24), matBody);
-    torso.position.set(0, 1.17, 0); torso.castShadow = true;
+    // Tapered Pelvis + Tactical Belt + Sculpted Upper Torso + Plate Carrier Vest
+    const pelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.155, 0.16, 10), matBody);
+    pelvis.scale.set(1.12, 1, 0.72); pelvis.position.set(0, 0.90, 0);
+    pelvis.userData = { part: 'torso' };
+    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.06, 0.25), matGear);
+    belt.position.set(0, 0.94, 0);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.17, 0.50, 12), matBody);
+    torso.scale.set(1.12, 1, 0.66); torso.position.set(0, 1.22, 0); torso.castShadow = true;
     torso.userData = { part: 'torso' };
-    group.add(torso);
-    hitboxes.push(torso);
+    const vest = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.36, 0.27), matGear);
+    vest.position.set(0, 1.24, 0); vest.castShadow = true; vest.userData = { part: 'torso' };
+    const vestTrim = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.025, 0.275), new THREE.MeshStandardMaterial({ color: isEnemy ? 0x7f1d1d : 0x1e3a5f, roughness: 0.6 }));
+    vestTrim.position.set(0, 1.35, 0);
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.11, 10), matHead);
+    neck.position.set(0, 1.50, 0);
+    upperBody.add(pelvis, belt, torso, vest, vestTrim, neck);
+    hitboxes.push(pelvis, torso, vest);
 
-    // Arms + Rifle
-    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.52, 0.13), matBody);
-    armL.position.set(-0.29, 1.18, -0.1); armL.rotation.x = -0.6;
-    const armR = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.52, 0.13), matBody);
-    armR.position.set(0.29, 1.18, -0.15); armR.rotation.x = -0.9;
-    const rifle = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.62), matGun);
-    rifle.position.set(0.18, 1.24, -0.35);
+    // Shoulder pads, upper/lower arms & gloved hands holding rifle
+    const buildArm = (xSide, rotX, rotZ) => {
+      const sh = new THREE.Mesh(new THREE.SphereGeometry(0.078, 10, 8), matBody);
+      sh.position.set(xSide * 0.25, 1.40, 0);
+      const uArm = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.052, 0.28, 8), matBody);
+      uArm.position.set(xSide * 0.26, 1.27, -0.06); uArm.rotation.set(rotX, 0, rotZ); uArm.castShadow = true;
+      const fArm = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.044, 0.26, 8), matBody);
+      fArm.position.set(xSide * 0.16, 1.21, -0.22); fArm.rotation.set(-1.35, -xSide * 0.42, 0); fArm.castShadow = true;
+      const glove = new THREE.Mesh(new THREE.SphereGeometry(0.046, 8, 8), matBoot);
+      glove.position.set(xSide === 1 ? 0.15 : 0.11, 1.22, xSide === 1 ? -0.22 : -0.36);
+      upperBody.add(sh, uArm, fArm, glove);
+    };
+    buildArm(-1, -0.55, 0.14);
+    buildArm(1, -0.75, -0.10);
+
+    // Detailed Tactical Rifle
+    const rifle = new THREE.Group();
+    rifle.position.set(0.15, 1.24, -0.30);
+    const rBody = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.085, 0.44), matGun);
+    const rBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.34, 8), matGun);
+    rBarrel.rotation.x = Math.PI / 2; rBarrel.position.set(0, 0.01, -0.36);
+    const rMag = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.12, 0.055), matGear);
+    rMag.position.set(0, -0.08, -0.04); rMag.rotation.x = 0.18;
+    const rOptic = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.034, 0.09), matGear);
+    rOptic.position.set(0, 0.058, -0.02);
+    rifle.add(rBody, rBarrel, rMag, rOptic);
     const enemyMuzzle = new THREE.Mesh(
-      new THREE.SphereGeometry(0.08, 6, 6),
+      new THREE.SphereGeometry(0.075, 6, 6),
       new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0 })
     );
-    enemyMuzzle.position.set(0.18, 1.25, -0.68);
-    group.add(armL, armR, rifle, enemyMuzzle);
+    enemyMuzzle.position.set(0.15, 1.25, -0.82);
+    upperBody.add(rifle, enemyMuzzle);
 
-    // Realistic smaller head (radius 0.115m -> diameter 0.23m vs 1.76m total height)
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.142, 14, 12), matHead);
-    head.position.set(0, 1.64, 0); head.castShadow = true;
+    // Realistic Head + Tactical Helmet + Visor Goggles + Headset
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.118, 16, 14), matHead);
+    head.scale.set(0.92, 1.08, 0.98);
+    head.position.set(0, 1.63, 0); head.castShadow = true;
     head.userData = { part: 'head' };
-    group.add(head);
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.055, 0.10), matVisor);
+    visor.position.set(0, 1.645, -0.078);
+    const earL = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 10), matGear);
+    earL.rotation.z = Math.PI / 2; earL.position.set(-0.12, 1.62, 0.01);
+    const earR = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 10), matGear);
+    earR.rotation.z = Math.PI / 2; earR.position.set(0.12, 1.62, 0.01);
+    upperBody.add(head, visor, earL, earR);
     hitboxes.push(head);
 
     // Wallhack / Scan glow mesh (visible through walls when scanned!)
@@ -1801,7 +2048,46 @@
     shieldMesh.position.set(0, 1.0, 0);
     group.add(shieldMesh);
 
-    return { group, legL, legR, torso, head, enemyMuzzle, scanMat, shieldMat, hitboxes, matBody, matHead, matGun };
+    return { group, upperBody, legL, legR, torso, head, enemyMuzzle, scanMat, shieldMat, hitboxes, matBody, matHead, matGun, _walkPhase: 0, _walkBlend: 0, _deathT: 0, _recoilT: 0 };
+  }
+
+  function updateCharacterPose(rig, isAlive, isMoving, isFiring, dt, now, baseY = 0) {
+    if (!rig) return;
+    if (!isAlive) {
+      rig._deathT = Math.min(1, (rig._deathT || 0) + dt * 3.4);
+      const e = rig._deathT * rig._deathT * (3 - 2 * rig._deathT);
+      rig.group.rotation.x = -e * (Math.PI / 2);
+      rig.group.position.y = baseY + e * 0.22;
+      rig.legL.rotation.x *= (1 - e);
+      rig.legR.rotation.x *= (1 - e);
+      if (rig.legL.knee) rig.legL.knee.rotation.x *= (1 - e);
+      if (rig.legR.knee) rig.legR.knee.rotation.x *= (1 - e);
+      if (rig.upperBody) { rig.upperBody.position.y = 0; rig.upperBody.rotation.set(0, 0, 0); }
+      return;
+    }
+    rig._deathT = 0;
+    rig.group.rotation.x = 0;
+    const targetBlend = isMoving ? 1 : 0;
+    rig._walkBlend = (rig._walkBlend || 0) + (targetBlend - (rig._walkBlend || 0)) * Math.min(1, dt * 10);
+    rig._walkPhase = (rig._walkPhase || 0) + dt * (isMoving ? 10.5 : 2.2);
+    const wb = rig._walkBlend;
+    const ph = rig._walkPhase;
+    const sw = Math.sin(ph) * 0.44 * wb;
+    rig.legL.rotation.x = sw;
+    rig.legR.rotation.x = -sw;
+    if (rig.legL.knee) rig.legL.knee.rotation.x = Math.max(0, -Math.sin(ph)) * 0.68 * wb;
+    if (rig.legR.knee) rig.legR.knee.rotation.x = Math.max(0, Math.sin(ph)) * 0.68 * wb;
+    if (isFiring) rig._recoilT = 1.0;
+    else rig._recoilT = Math.max(0, (rig._recoilT || 0) - dt * 8.5);
+    if (rig.upperBody) {
+      const strideBob = Math.abs(Math.sin(ph)) * 0.042 * wb;
+      const idleBreath = Math.sin(now * 0.0028) * 0.011 * (1 - wb * 0.6);
+      rig.upperBody.position.y = strideBob + idleBreath;
+      rig.upperBody.rotation.y = Math.sin(ph) * 0.075 * wb;
+      rig.upperBody.rotation.x = (rig._recoilT || 0) * 0.09;
+      rig.upperBody.rotation.z = Math.cos(ph) * 0.025 * wb;
+    }
+    rig.group.position.y = baseY;
   }
 
   // ==================== VISUAL EFFECTS (BULLETS, SMOKE, BEAMS, ILLUSIONS) ====================
@@ -1912,21 +2198,64 @@
 
   // ==================== COLLISION & RAYCAST HELPERS ====================
   function resolveCircleObstacles(pos, radius) {
-    pos.x = Math.max(-ARENA_HALF + radius, Math.min(ARENA_HALF - radius, pos.x));
-    pos.z = Math.max(-ARENA_HALF + radius, Math.min(ARENA_HALF - radius, pos.z));
-    for (const o of obstacles) {
-      const cx = Math.max(o.minX, Math.min(o.maxX, pos.x));
-      const cz = Math.max(o.minZ, Math.min(o.maxZ, pos.z));
-      const dx = pos.x - cx;
-      const dz = pos.z - cz;
-      const d2 = dx * dx + dz * dz;
-      if (d2 < radius * radius) {
-        const dist = Math.sqrt(d2) || 0.0001;
-        const push = radius - dist;
-        pos.x += (dx / dist) * push;
-        pos.z += (dz / dist) * push;
+    for (let iter = 0; iter < 3; iter++) {
+      pos.x = Math.max(-ARENA_HALF + radius, Math.min(ARENA_HALF - radius, pos.x));
+      pos.z = Math.max(-ARENA_HALF + radius, Math.min(ARENA_HALF - radius, pos.z));
+      const curY = getGroundHeight(pos.x, pos.z);
+      for (const o of obstacles) {
+        const obBot = o.bottom || 0;
+        if (o.height <= curY + 0.55 || obBot >= curY + 1.85) continue;
+        const cx = Math.max(o.minX, Math.min(o.maxX, pos.x));
+        const cz = Math.max(o.minZ, Math.min(o.maxZ, pos.z));
+        const dx = pos.x - cx;
+        const dz = pos.z - cz;
+        const d2 = dx * dx + dz * dz;
+        if (d2 < radius * radius) {
+          if (d2 < 0.000001) {
+            const dl = Math.abs(pos.x - o.minX), dr = Math.abs(o.maxX - pos.x);
+            const dt = Math.abs(pos.z - o.minZ), db = Math.abs(o.maxZ - pos.z);
+            const m = Math.min(dl, dr, dt, db);
+            if (m === dl) pos.x = o.minX - radius;
+            else if (m === dr) pos.x = o.maxX + radius;
+            else if (m === dt) pos.z = o.minZ - radius;
+            else pos.z = o.maxZ + radius;
+          } else {
+            const dist = Math.sqrt(d2);
+            const push = radius - dist;
+            pos.x += (dx / dist) * push;
+            pos.z += (dz / dist) * push;
+          }
+        }
       }
     }
+    pos.y = getGroundHeight(pos.x, pos.z);
+  }
+
+  function teleportSafe(pos, fx, fz, maxDist) {
+    const step = 0.25;
+    const nSteps = Math.ceil(maxDist / step);
+    const curY = getGroundHeight(pos.x, pos.z);
+    for (let i = 0; i < nSteps; i++) {
+      const d = Math.min(step, maxDist - i * step);
+      const nx = pos.x + fx * d;
+      const nz = pos.z + fz * d;
+      if (nx < -ARENA_HALF + PLAYER_RADIUS || nx > ARENA_HALF - PLAYER_RADIUS ||
+          nz < -ARENA_HALF + PLAYER_RADIUS || nz > ARENA_HALF - PLAYER_RADIUS) break;
+      let hit = false;
+      for (const o of obstacles) {
+        const obBot = o.bottom || 0;
+        if (o.height <= curY + 0.55 || obBot >= curY + 1.85) continue;
+        const cx = Math.max(o.minX, Math.min(o.maxX, nx));
+        const cz = Math.max(o.minZ, Math.min(o.maxZ, nz));
+        if ((nx - cx) * (nx - cx) + (nz - cz) * (nz - cz) < PLAYER_RADIUS * PLAYER_RADIUS) {
+          hit = true;
+          break;
+        }
+      }
+      if (hit) break;
+      pos.x = nx; pos.z = nz;
+    }
+    resolveCircleObstacles(pos, PLAYER_RADIUS);
   }
 
   const raycaster = new THREE.Raycaster();
@@ -1972,7 +2301,7 @@
         const ni = nr * cols + nc;
         if (visited[ni]) continue;
         const ch = g[nr][nc];
-        if (ch === '#' || ch === 'C') continue;
+        if (ch === '#' || ch === 'T' || ch === 'I' || ch === 'C' || ch === 'D' || ch === 'W' || ch === 'L' || ch === 'M' || ch === 'P') continue;
         visited[ni] = 1;
         parent[ni] = cur;
         q.push(ni);
@@ -2122,7 +2451,7 @@
     for (let r = 1; r < rows - 1; r++) {
       for (let c = 1; c < cols - 1; c++) {
         // Exclude central plaza (rows 6..12 and cols 6..12)
-        if (Math.abs(r - 9) <= 3 && Math.abs(c - 9) <= 3) continue;
+        if (Math.abs(r - (rows - 1) / 2) <= 3 && Math.abs(c - (cols - 1) / 2) <= 3) continue;
         const ch = g[r][c];
         if (ch === '.' || ch === 'R' || ch === 'S' || ch === 'E') {
           cands.push({ x: (c - (cols - 1) / 2) * cell, z: (r - (rows - 1) / 2) * cell });
@@ -2395,6 +2724,7 @@
 
   function startMatchmaking(mode) {
     cleanupNetwork();
+    closeCustomMatchNet();
     matchState = 'matchmaking';
     showScreen('screen-matchmaking');
     const titleEl = document.getElementById('mm-title');
@@ -2864,36 +3194,54 @@
         pSelf.yaw = myYaw;
       }
 
+      custActorsById = {};
+      if (!isCustomSpectator) {
+        pSelf.id = myNetId;
+        custActorsById[myNetId] = pSelf;
+      }
       let aIdx = 0;
-      myTeamArr.forEach(slot => {
-        if (slot.id === myNetId) return;
+      myTeamArr.forEach((slot, sOrder) => {
+        if (slot.id === myNetId) {
+          const sx = mySpawn.x + (sOrder % 2 ? 1 : -1) * (1.4 * Math.ceil(sOrder / 2));
+          pSelf.pos.set(sx, 0, mySpawn.z);
+          return;
+        }
         const u = allyUnits[aIdx] || 0;
         const alive = u < 6;
-        const ax = mySpawn.x + ((aIdx + 1) % 2 ? 1 : -1) * (1.4 * Math.ceil((aIdx + 1) / 2));
+        const ax = mySpawn.x + (sOrder % 2 ? 1 : -1) * (1.4 * Math.ceil(sOrder / 2));
         const aRig = createCharacterRig(false, false);
         aRig.group.position.set(ax, 0, mySpawn.z);
         aRig.group.rotation.y = myYaw;
         aRig.group.visible = alive;
         scene.add(aRig.group);
-        teamAllies.push({
-          name: slot.name, isOnlineAlly: !slot.isNpc, stats: allyStats[aIdx] || {k:0,d:0,a:0,dmg:0},
+        const allyObj = {
+          id: slot.id, isNpc: !!slot.isNpc, name: slot.name, isOnlineAlly: !slot.isNpc,
+          stats: allyStats[aIdx] || {k:0,d:0,a:0,dmg:0},
           hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, mySpawn.z),
+          targetPos: new THREE.Vector3(ax, 0, mySpawn.z), targetYaw: myYaw,
           yaw: myYaw, rig: aRig, fireCd: Math.random() * 0.4, strafeDir: 1, strafeT: 1,
           abCd: 0, rushT: 0, silencerT: 0, shadowCastT: 0, shadowT: 0, scanGlowT: 0, shield: false
-        });
+        };
+        teamAllies.push(allyObj);
+        if (slot.id) custActorsById[slot.id] = allyObj;
         aIdx++;
       });
 
       if (oppTeamArr.length === 0) {
         pEnemy.hp = 0;
         pEnemy.name = 'なし';
+        pEnemy.isNpc = true;
         enemyRig.group.visible = false;
       } else {
+        pEnemy.id = oppTeamArr[0].id;
+        pEnemy.isNpc = !!oppTeamArr[0].isNpc;
         pEnemy.name = oppTeamArr[0].name;
         pEnemy.pos.set(oppSpawn.x, 0, oppSpawn.z);
         pEnemy.targetPos.copy(pEnemy.pos);
         pEnemy.yaw = oppYaw;
+        pEnemy.targetYaw = oppYaw;
         if (pEnemy.unit >= 6) { pEnemy.hp = 0; enemyRig.group.visible = false; }
+        if (oppTeamArr[0].id) custActorsById[oppTeamArr[0].id] = pEnemy;
         for (let oi = 1; oi < oppTeamArr.length; oi++) {
           const slot = oppTeamArr[oi];
           const idx = oi - 1;
@@ -2906,12 +3254,16 @@
           eRig.group.visible = alive;
           eRig.hitboxes.forEach(hb => { hb.userData.teamIdx = idx; });
           scene.add(eRig.group);
-          teamEnemies.push({
+          const eObj = {
+            id: slot.id, isNpc: !!slot.isNpc, isOnlineAlly: !slot.isNpc,
             name: slot.name, stats: enemyStats[idx] || {k:0,d:0,a:0,dmg:0},
             hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ex, 0, oppSpawn.z),
+            targetPos: new THREE.Vector3(ex, 0, oppSpawn.z), targetYaw: oppYaw,
             yaw: oppYaw, rig: eRig, fireCd: Math.random() * 0.4, strafeDir: -1, strafeT: 1,
             abCd: 0, rushT: 0, silencerT: 0, shadowCastT: 0, shadowT: 0, scanGlowT: 0, shield: false
-          });
+          };
+          teamEnemies.push(eObj);
+          if (slot.id) custActorsById[slot.id] = eObj;
         }
       }
     } else if (isTeamMode()) {
@@ -3097,7 +3449,7 @@
 
       const aliveOthers = participants.filter(p => p !== bot && p.hp > 0 && (p.shadowT || 0) <= 0 && (p.spawnLockT || 0) <= 0);
       if (aliveOthers.length === 0) return;
-      const bEye = new THREE.Vector3(bot.pos.x, EYE_HEIGHT, bot.pos.z);
+      const bEye = new THREE.Vector3(bot.pos.x, (bot.pos.y || 0) + EYE_HEIGHT, bot.pos.z);
       let chosen = null, minD = Infinity, canSee = false;
       for (const t of aliveOthers) {
         const d = bot.pos.distanceTo(t.pos);
@@ -3106,7 +3458,7 @@
         else if (!canSee && d < minD) { chosen = t; minD = d; }
       }
       if (!chosen) return;
-      const tEye = new THREE.Vector3(chosen.pos.x, EYE_HEIGHT, chosen.pos.z);
+      const tEye = new THREE.Vector3(chosen.pos.x, (chosen.pos.y || 0) + EYE_HEIGHT, chosen.pos.z);
       const isBurst = canSee && bot.reloading <= 0 && bot.burstPause <= 0;
       let mDir = { mx: 0, mz: 0 };
       if (!isBurst) {
@@ -3172,6 +3524,7 @@
     if (replayFrames.length === 0) recordReplayFrame(['MATCH_END']);
     matchState = 'match_end';
     cleanupNetwork();
+    closeCustomMatchNet();
 
     const banner = document.getElementById('banner-overlay');
     const bTitle = document.getElementById('banner-title');
@@ -3313,6 +3666,7 @@
     clearIllusions();
     clearFx();
     cleanupNetwork();
+    closeCustomMatchNet();
     matchState = 'lobby';
     document.getElementById('hud').classList.remove('active');
     document.getElementById('banner-overlay').classList.remove('active');
@@ -3442,6 +3796,8 @@
               te.hp = Math.max(0, te.hp - dmg);
               if (isOnlineMatch && selectedMode === 'pve') {
                 sendNet({ type: 'pveHitNpc', idx: tIdx, dmg, part }, true);
+              } else if (selectedMode === 'custom' && custOnline && (!custIsHost || !te.isNpc) && te.id) {
+                sendCustNet({ type: 'c_dmg', targetId: te.id, dmg, part, shooterId: myNetId, shooterName: pSelf.name, fx: pSelf.pos.x, fz: pSelf.pos.z });
               }
               pSelf.dmgDealt += dmg;
               const killed = te.hp <= 0;
@@ -3463,6 +3819,8 @@
             if (isOnlineMatch) {
               if (selectedMode === 'pve') sendNet({ type: 'pveHitNpc', idx: -1, dmg, part }, true);
               else sendNet({ type: 'hitSelf', dmg, part, fromPos: { x: pSelf.pos.x, z: pSelf.pos.z } }, true);
+            } else if (selectedMode === 'custom' && custOnline && (!custIsHost || !pEnemy.isNpc) && pEnemy.id) {
+              sendCustNet({ type: 'c_dmg', targetId: pEnemy.id, dmg, part, shooterId: myNetId, shooterName: pSelf.name, fx: pSelf.pos.x, fz: pSelf.pos.z });
             }
             if (killedEn) {
               pSelf.kills++; pEnemy.deaths++;
@@ -3485,6 +3843,9 @@
     }
 
     spawnBulletTracer(startPos, endPos);
+    if (selectedMode === 'custom' && custOnline) {
+      sendCustNet({ type: 'c_shot', sx: +startPos.x.toFixed(2), sy: +startPos.y.toFixed(2), sz: +startPos.z.toFixed(2), ex: +endPos.x.toFixed(2), ey: +endPos.y.toFixed(2), ez: +endPos.z.toFixed(2), sil: isSilenced });
+    }
     if (isOnlineMatch) {
       sendNet({
         type: 'fire',
@@ -3762,9 +4123,7 @@
       const dist = 10.5;
       const fx = -Math.sin(pSelf.yaw);
       const fz = -Math.cos(pSelf.yaw);
-      pSelf.pos.x += fx * dist;
-      pSelf.pos.z += fz * dist;
-      resolveCircleObstacles(pSelf.pos, PLAYER_RADIUS);
+      teleportSafe(pSelf.pos, fx, fz, dist);
       spawnSmokePlume(pSelf.pos);
     } else if (u === 2) {
       // 3機目: シャドウ (1秒かけて透明化 -> 5秒間無敵移動のみ -> 時空を破る音で復帰)
@@ -3904,8 +4263,8 @@
     const maxTurn = diffCfg.turnSpd * dt;
     pEnemy.yaw += Math.max(-maxTurn, Math.min(maxTurn, dYaw));
 
-    const eEye = new THREE.Vector3(pEnemy.pos.x, EYE_HEIGHT, pEnemy.pos.z);
-    const sEye = new THREE.Vector3(targetPos.x, EYE_HEIGHT, targetPos.z);
+    const eEye = new THREE.Vector3(pEnemy.pos.x, (pEnemy.pos.y || 0) + EYE_HEIGHT, pEnemy.pos.z);
+    const sEye = new THREE.Vector3(targetPos.x, (targetPos.y || 0) + EYE_HEIGHT, targetPos.z);
     const canSee = aiTarget.hp > 0 && hasLineOfSight(eEye, sEye);
     if (!canSee) pEnemy._reactT = diffCfg.react;
     else if ((pEnemy._reactT || 0) > 0) pEnemy._reactT -= dt;
@@ -3951,8 +4310,7 @@
       const u = pEnemy.unit;
       if (u === 0) { pEnemy.rushT = 2.0; triggerEnemyAbilityVisual(0, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
       else if (u === 1) {
-        pEnemy.pos.x += fx * 9; pEnemy.pos.z += fz * 9;
-        resolveCircleObstacles(pEnemy.pos, PLAYER_RADIUS);
+        teleportSafe(pEnemy.pos, fx, fz, 9);
         triggerEnemyAbilityVisual(1, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw);
       } else if (u === 2) { triggerEnemyAbilityVisual(2, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
       else if (u === 3) { triggerEnemyAbilityVisual(3, pEnemy.pos.x, pEnemy.pos.z, pEnemy.yaw); }
@@ -4308,16 +4666,17 @@
       const tSub = Math.max(0, blueTotal - 1);
       const aAlive = (!isCustomSpectator && pSelf.hp > 0 ? 1 : 0) + teamAllies.filter(a => a.hp > 0).length;
       const eAlive = (pEnemy.name !== 'なし' && pEnemy.hp > 0 ? 1 : 0) + teamEnemies.filter(e => e.hp > 0).length;
+      const rSub = Math.max(0, redTotal - 1);
       const aRemain = (pSelf.unit < 6 ? 1 : 0) + allyUnits.slice(0, tSub).filter(u => u < 6).length;
-      const eRemain = (pEnemy.unit < 6 ? 1 : 0) + enemyUnits.slice(0, tSub).filter(u => u < 6).length;
+      const eRemain = (pEnemy.name !== 'なし' && pEnemy.unit < 6 ? 1 : 0) + enemyUnits.slice(0, rSub).filter(u => u < 6).length;
       if (isCustomSpectator) {
         document.getElementById('hud-self-unit').textContent = `観戦中 (BLUE ${teamAllies.filter(a=>a.hp>0).length}/${teamAllies.length})`;
       } else {
         document.getElementById('hud-self-unit').textContent = `残り ${aAlive}/${tSize}人 (残機あり${aRemain})`;
       }
-      document.getElementById('hud-enemy-unit').textContent = `残り ${eAlive}/${tSize}人 (残機あり${eRemain})`;
+      document.getElementById('hud-enemy-unit').textContent = `残り ${eAlive}/${redTotal}人 (残機あり${eRemain})`;
       document.getElementById('hud-self-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < aAlive ? 'alive self' : ''}"></div>`).join('');
-      document.getElementById('hud-enemy-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < eAlive ? 'alive enemy' : ''}"></div>`).join('');
+      document.getElementById('hud-enemy-pips').innerHTML = Array.from({length: redTotal}, (_, i) => `<div class="pip ${i < eAlive ? 'alive enemy' : ''}"></div>`).join('');
     } else if (selectedMode !== 'dm') {
       renderPips('hud-self-pips', pSelf.unit, 'self');
       renderPips('hud-enemy-pips', pEnemy.unit, 'enemy');
@@ -4606,10 +4965,44 @@
 
   // ===== CUSTOM ROOM STATE & SYNC =====
   let customAddNpcMode = false;
-  let customRoom = { blue: [null,null,null,null,null], red: [null,null,null,null,null], specs: [], mapIdx: -1, started: false };
+  let customRoom = { blue: [null,null,null,null,null], red: [null,null,null,null,null], specs: [], readyIds: [], mapIdx: -1, started: false };
   let custMqtt = null;
   let custBc = null;
   let custTopic = '';
+  let custMatchMqtt = null;
+  let custMatchBc = null;
+  let custMatchTopic = '';
+  let custOnline = false;
+  let custHostId = '';
+  let custIsHost = true;
+  let custActorsById = {};
+  let custStateAccum = 0;
+  let custBotAccum = 0;
+
+  function getCustomHumanIds(room = customRoom) {
+    const ids = [...(room.blue || []), ...(room.red || []), ...(room.specs || [])]
+      .filter(x => x && !x.isNpc && x.id)
+      .map(x => x.id);
+    return Array.from(new Set(ids));
+  }
+
+  function closeCustomMatchNet() {
+    try { if (custMatchMqtt) custMatchMqtt.end(true); } catch (e) {}
+    try { if (custMatchBc) custMatchBc.close(); } catch (e) {}
+    custMatchMqtt = null; custMatchBc = null; custMatchTopic = '';
+    custOnline = false;
+  }
+
+  function sendCustNet(obj) {
+    if (!custOnline) return;
+    const msg = { ...obj, from: myNetId };
+    try { if (custMatchBc) custMatchBc.postMessage(msg); } catch (e) {}
+    try {
+      if (custMatchMqtt && custMatchMqtt.connected && custMatchTopic) {
+        custMatchMqtt.publish(custMatchTopic, JSON.stringify(msg));
+      }
+    } catch (e) {}
+  }
 
   function closeCustomRoomNet() {
     try { if (custMqtt) custMqtt.end(true); } catch (e) {}
@@ -4640,7 +5033,8 @@
         const row = document.createElement('div');
         row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;background:rgba(15,23,42,0.8);border:1px solid var(--border);border-radius:6px;padding:4px 8px;font-size:11px;min-height:28px;';
         if (slot) {
-          row.innerHTML = `<span style="font-weight:800;color:${teamKey==='blue'?'#38bdf8':'#f87171'};">${slot.name}${slot.isNpc ? ' [NPC]' : ''}</span>`;
+          const isRdy = !slot.isNpc && (customRoom.readyIds || []).includes(slot.id);
+          row.innerHTML = `<span style="font-weight:800;color:${teamKey==='blue'?'#38bdf8':'#f87171'};">${slot.name}${slot.isNpc ? ' [NPC]' : (isRdy ? ' <span style="color:#4ade80;">✓</span>' : '')}</span>`;
           if (slot.isNpc || slot.id === myNetId) {
             const rm = document.createElement('button');
             rm.className = 'btn btn-sm'; rm.textContent = '×'; rm.style.padding = '1px 6px';
@@ -4668,20 +5062,76 @@
         el.appendChild(row);
       }
     };
+    const humanIds = getCustomHumanIds();
+    customRoom.readyIds = (customRoom.readyIds || []).filter(id => humanIds.includes(id));
     renderTeam('cust-blue-slots', customRoom.blue, 'blue');
     renderTeam('cust-red-slots', customRoom.red, 'red');
-    document.getElementById('cust-spec-list').innerHTML = customRoom.specs.map(sp => `<div>👁 ${sp.name}</div>`).join('') || '<div style="color:#64748b;">なし</div>';
+    const specEl = document.getElementById('cust-spec-list');
+    specEl.innerHTML = '';
+    if (customRoom.specs.length === 0) {
+      specEl.innerHTML = '<div style="color:#64748b;">なし</div>';
+    } else {
+      customRoom.specs.forEach(sp => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;gap:4px;';
+        const rdy = (customRoom.readyIds || []).includes(sp.id) ? ' <span style="color:#4ade80;font-weight:800;">✓準備OK</span>' : '';
+        row.innerHTML = `<span>👁 ${sp.name}${rdy}</span>`;
+        if (sp.id !== myNetId) {
+          const kick = document.createElement('button');
+          kick.className = 'btn btn-sm'; kick.textContent = '×'; kick.style.padding = '0 5px';
+          kick.title = '退出させる';
+          kick.onclick = () => {
+            customRoom.specs = customRoom.specs.filter(x => x.id !== sp.id);
+            customRoom.readyIds = (customRoom.readyIds || []).filter(id => id !== sp.id);
+            broadcastCustomRoom(); renderCustomRoom(); tryTriggerCustomStartFromReady();
+          };
+          row.appendChild(kick);
+        }
+        specEl.appendChild(row);
+      });
+    }
     document.getElementById('cust-map-select').value = String(customRoom.mapIdx);
+    const n = customRoom.readyIds.length;
+    const m = humanIds.length;
+    const startBtn = document.getElementById('btn-cust-start');
+    if (startBtn) {
+      const iAmReady = customRoom.readyIds.includes(myNetId);
+      if (n > 0 && n < m) {
+        startBtn.textContent = `待機中（${n}/${m}）`;
+        startBtn.classList.toggle('btn-primary', !iAmReady);
+      } else {
+        startBtn.textContent = m > 1 ? `試合開始 (${n}/${m})` : '試合開始';
+        startBtn.classList.add('btn-primary');
+      }
+    }
+  }
+
+  function tryTriggerCustomStartFromReady() {
+    if (customRoom.started) return;
+    const humanIds = getCustomHumanIds();
+    const ready = (customRoom.readyIds || []).filter(id => humanIds.includes(id));
+    if (humanIds.length > 0 && ready.length >= humanIds.length) {
+      const hostId = humanIds.slice().sort()[0];
+      if (hostId === myNetId) {
+        const mIdx = (Number.isInteger(customRoom.mapIdx) && customRoom.mapIdx >= 0 && customRoom.mapIdx < MAPS.length) ? customRoom.mapIdx : Math.floor(Math.random() * MAPS.length);
+        const matchId = encodeURIComponent((custTopic || 'c') + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+        const startPayload = { type: 'cust_start', from: myNetId, mapIdx: mIdx, room: customRoom, hostId, matchId };
+        if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, JSON.stringify(startPayload));
+        if (custBc) custBc.postMessage(startPayload);
+        launchCustomMatch(mIdx, hostId, matchId);
+      }
+    }
   }
 
   function enterCustomLobby(pass) {
     closeCustomRoomNet();
+    closeCustomMatchNet();
     matchState = 'custom_lobby';
     customAddNpcMode = false;
     document.getElementById('btn-cust-npc-mode').textContent = 'NPC追加: OFF';
     document.getElementById('btn-cust-npc-mode').classList.remove('btn-primary');
     document.getElementById('cust-pass-lbl').textContent = `[合言葉: ${pass}]`;
-    customRoom = { blue: [null,null,null,null,null], red: [null,null,null,null,null], specs: [{ id: myNetId, name: config.name }], mapIdx: -1, started: false };
+    customRoom = { blue: [null,null,null,null,null], red: [null,null,null,null,null], specs: [{ id: myNetId, name: config.name }], readyIds: [], mapIdx: -1, started: false };
     custTopic = `tactical6/v1/custom/${encodeURIComponent(pass.toLowerCase())}`;
     showScreen('screen-custom');
     renderCustomRoom();
@@ -4689,22 +5139,35 @@
     const handleCustMsg = (d) => {
       if (!d || d.from === myNetId) return;
       if (d.type === 'cust_join' && !customRoom.started) {
-        if (!customRoom.specs.some(s => s.id === d.id)) customRoom.specs.push({ id: d.id, name: d.name });
+        if (!customRoom.blue.some(x=>x&&x.id===d.id) && !customRoom.red.some(x=>x&&x.id===d.id) && !customRoom.specs.some(s => s.id === d.id)) {
+          customRoom.specs.push({ id: d.id, name: d.name });
+        }
         broadcastCustomRoom();
         renderCustomRoom();
       } else if (d.type === 'cust_sync' && d.room) {
         if (d.room.started && !customRoom.started) {
-          // Room already started -> block late joiners!
           document.getElementById('cust-pass-lbl').textContent = `[合言葉: ${pass}] — 試合開始済みのため参加不可`;
           return;
         }
         customRoom = d.room;
+        if (!customRoom.readyIds) customRoom.readyIds = [];
         if (!customRoom.blue.some(x=>x&&x.id===myNetId) && !customRoom.red.some(x=>x&&x.id===myNetId) && !customRoom.specs.some(x=>x.id===myNetId)) {
           customRoom.specs.push({ id: myNetId, name: config.name });
         }
         renderCustomRoom();
+        tryTriggerCustomStartFromReady();
+      } else if (d.type === 'cust_leave' && d.id) {
+        for (let i = 0; i < 5; i++) {
+          if (customRoom.blue[i] && customRoom.blue[i].id === d.id) customRoom.blue[i] = null;
+          if (customRoom.red[i] && customRoom.red[i].id === d.id) customRoom.red[i] = null;
+        }
+        customRoom.specs = customRoom.specs.filter(s => s.id !== d.id);
+        customRoom.readyIds = (customRoom.readyIds || []).filter(id => id !== d.id);
+        renderCustomRoom();
+        tryTriggerCustomStartFromReady();
       } else if (d.type === 'cust_start') {
-        launchCustomMatch(d.mapIdx);
+        if (d.room) customRoom = d.room;
+        launchCustomMatch(d.mapIdx, d.hostId, d.matchId);
       }
     };
 
@@ -4730,12 +5193,121 @@
     } catch (e) {}
   }
 
-  function launchCustomMatch(chosenMapIdx) {
+  function handleCustMatchMsg(d) {
+    if (!d || d.from === myNetId || selectedMode !== 'custom') return;
+    if (d.type === 'c_pstate') {
+      const actor = custActorsById[d.id];
+      if (!actor || actor === pSelf) return;
+      if (!actor.targetPos) actor.targetPos = new THREE.Vector3();
+      actor.targetPos.set(d.x, 0, d.z);
+      actor.targetYaw = d.yw;
+      actor.hp = d.hp;
+      actor.shield = !!d.sh;
+      if (d.un !== undefined) actor.unit = d.un;
+      if (actor === pEnemy) {
+        pEnemy.kills = d.k || 0; pEnemy.deaths = d.d || 0; pEnemy.assists = d.a || 0; pEnemy.dmgDealt = d.dmg || 0;
+      } else if (actor.stats) {
+        actor.stats.k = d.k || 0; actor.stats.d = d.d || 0; actor.stats.a = d.a || 0; actor.stats.dmg = d.dmg || 0;
+      }
+    } else if (d.type === 'c_bots' && !custIsHost) {
+      (d.states || []).forEach(bs => {
+        const actor = custActorsById[bs.id];
+        if (!actor || actor === pSelf) return;
+        if (!actor.targetPos) actor.targetPos = new THREE.Vector3();
+        actor.targetPos.set(bs.x, 0, bs.z);
+        actor.targetYaw = bs.yw;
+        actor.hp = bs.hp;
+        actor.shield = !!bs.sh;
+        actor.unit = bs.un;
+        if (actor === pEnemy) {
+          pEnemy.kills = bs.k || 0; pEnemy.deaths = bs.d || 0; pEnemy.assists = bs.a || 0; pEnemy.dmgDealt = bs.dmg || 0;
+        } else if (actor.stats) {
+          actor.stats.k = bs.k || 0; actor.stats.d = bs.d || 0; actor.stats.a = bs.a || 0; actor.stats.dmg = bs.dmg || 0;
+        }
+      });
+    } else if (d.type === 'c_shot') {
+      const sPos = new THREE.Vector3(d.sx, d.sy, d.sz);
+      const ePos = new THREE.Vector3(d.ex, d.ey, d.ez);
+      spawnBulletTracer(sPos, ePos, true);
+      playSpatialSound(d.sil ? 'gunshotSilenced' : 'gunshot', sPos, false);
+    } else if (d.type === 'c_dmg') {
+      if (d.targetId === myNetId && !isCustomSpectator) {
+        applyDamageToSelf(d.dmg, d.part || 'torso', new THREE.Vector3(d.fx || 0, 0, d.fz || 0), d.shooterName);
+      } else if (custIsHost) {
+        const t = custActorsById[d.targetId];
+        if (t && t.hp > 0) {
+          if (t.shield) {
+            t.shield = false;
+            playSpatialSound('shieldBreak', t.pos, false);
+          } else {
+            const wasUp = t.hp > 0;
+            t.hp = Math.max(0, t.hp - d.dmg);
+            const shooter = custActorsById[d.shooterId];
+            if (shooter) {
+              if (shooter === pEnemy) pEnemy.dmgDealt += d.dmg;
+              else if (shooter.stats) shooter.stats.dmg += d.dmg;
+            }
+            if (wasUp && t.hp <= 0) {
+              if (shooter) {
+                if (shooter === pEnemy) pEnemy.kills++;
+                else if (shooter.stats) shooter.stats.k++;
+              }
+              if (t === pEnemy) pEnemy.deaths++;
+              else if (t.stats) t.stats.d++;
+              if (t.rig) { t.rig.group.rotation.x = -Math.PI / 2; t.rig.group.position.y = 0.22; }
+              if (t === pEnemy) { enemyRig.group.rotation.x = -Math.PI / 2; enemyRig.group.position.y = 0.22; }
+              playSpatialSound('bodyFall', t.pos, false);
+              sendCustNet({ type: 'c_kill', killerName: d.shooterName, victimName: t.name, hs: d.part === 'head' });
+            }
+          }
+        }
+      }
+    } else if (d.type === 'c_kill') {
+      addKillFeed(d.killerName, d.victimName, true, !!d.hs);
+    } else if (d.type === 'c_round_end' && !custIsHost) {
+      const myBlue = !customRoom.red.some(x => x && x.id === myNetId);
+      const myWon = myBlue ? d.blueWon : !d.blueWon;
+      endRound(myWon, d.reason || 'ROUND END', true);
+    } else if (d.type === 'c_next_round' && !custIsHost) {
+      document.getElementById('round-result-top').style.display = 'none';
+      setupRound();
+    } else if (d.type === 'c_match_end' && !custIsHost) {
+      const myBlue = !customRoom.red.some(x => x && x.id === myNetId);
+      const myWon = myBlue ? d.blueWon : !d.blueWon;
+      finishMatch(myWon, d.reason || '');
+    }
+  }
+
+  function launchCustomMatch(chosenMapIdx, hostId, matchId) {
+    if (matchState !== 'custom_lobby' && selectedMode === 'custom' && customRoom.started) return;
     customRoom.started = true;
     isCustomSpectator = customRoom.specs.some(sp => sp.id === myNetId);
     selectedMode = 'custom';
     teamFormat = '5v5';
+    const humanIds = getCustomHumanIds();
+    custHostId = hostId || (humanIds.length > 0 ? humanIds.slice().sort()[0] : myNetId);
+    custIsHost = (custHostId === myNetId);
     closeCustomRoomNet();
+    closeCustomMatchNet();
+    if (humanIds.length > 1) {
+      custOnline = true;
+      custMatchTopic = `tactical6/v1/cmatch/${matchId || 'default'}`;
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          custMatchBc = new BroadcastChannel(custMatchTopic);
+          custMatchBc.onmessage = ev => handleCustMatchMsg(ev.data);
+        }
+      } catch (e) {}
+      try {
+        if (typeof mqtt !== 'undefined') {
+          custMatchMqtt = mqtt.connect(BROKERS[0], { clientId: 't6cm_' + myNetId, clean: true, connectTimeout: 5000 });
+          custMatchMqtt.on('connect', () => { custMatchMqtt.subscribe(custMatchTopic); });
+          custMatchMqtt.on('message', (_, raw) => {
+            try { handleCustMatchMsg(JSON.parse(raw.toString())); } catch (e) {}
+          });
+        }
+      } catch (e) {}
+    }
     buildMap(chosenMapIdx);
     isOnlineMatch = false;
     beginMatchAfterMap();
@@ -4764,13 +5336,35 @@
   });
   document.getElementById('btn-cust-start').addEventListener('click', () => {
     if (customRoom.started) return;
-    const mIdx = customRoom.mapIdx >= 0 ? customRoom.mapIdx : Math.floor(Math.random() * MAPS.length);
-    const startMsg = JSON.stringify({ type: 'cust_start', from: myNetId, mapIdx: mIdx });
-    if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, startMsg);
-    if (custBc) custBc.postMessage(JSON.parse(startMsg));
-    launchCustomMatch(mIdx);
+    if (!customRoom.readyIds) customRoom.readyIds = [];
+    const idx = customRoom.readyIds.indexOf(myNetId);
+    if (idx >= 0) customRoom.readyIds.splice(idx, 1);
+    else customRoom.readyIds.push(myNetId);
+    const humanIds = getCustomHumanIds();
+    const ready = customRoom.readyIds.filter(id => humanIds.includes(id));
+    if (humanIds.length > 0 && ready.length >= humanIds.length) {
+      const hostId = humanIds.slice().sort()[0];
+      const mIdx = (Number.isInteger(customRoom.mapIdx) && customRoom.mapIdx >= 0 && customRoom.mapIdx < MAPS.length) ? customRoom.mapIdx : Math.floor(Math.random() * MAPS.length);
+      const matchId = encodeURIComponent((custTopic || 'c') + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
+      const startPayload = { type: 'cust_start', from: myNetId, mapIdx: mIdx, room: customRoom, hostId, matchId };
+      if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, JSON.stringify(startPayload));
+      if (custBc) custBc.postMessage(startPayload);
+      launchCustomMatch(mIdx, hostId, matchId);
+    } else {
+      broadcastCustomRoom();
+      renderCustomRoom();
+    }
+  });
+  function sendCustomLeave() {
+    const msg = { type: 'cust_leave', from: myNetId, id: myNetId };
+    try { if (custBc) custBc.postMessage(msg); } catch (e) {}
+    try { if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, JSON.stringify(msg)); } catch (e) {}
+  }
+  window.addEventListener('beforeunload', () => {
+    if (matchState === 'custom_lobby') sendCustomLeave();
   });
   document.getElementById('btn-cust-leave').addEventListener('click', () => {
+    sendCustomLeave();
     closeCustomRoomNet();
     showScreen('screen-lobby');
   });
@@ -4793,6 +5387,7 @@
 
   document.getElementById('btn-mm-cancel').addEventListener('click', () => {
     cleanupNetwork();
+    closeCustomMatchNet();
     showScreen('screen-lobby');
   });
   document.getElementById('btn-mm-instant').addEventListener('click', () => {
@@ -4808,15 +5403,15 @@
 
     const stepBot = (bot, targets, isRedBot) => {
       if (bot.hp <= 0) return;
-      if (bot.isOnlineAlly) {
+      if (bot.isOnlineAlly || (selectedMode === 'custom' && custOnline && !custIsHost)) {
         const oldX = bot.pos.x, oldZ = bot.pos.z;
         if (bot.targetPos) bot.pos.lerp(bot.targetPos, Math.min(1, dt * 18));
         if (bot.targetYaw !== undefined) bot.yaw = bot.targetYaw;
         const moved = Math.hypot(bot.pos.x - oldX, bot.pos.z - oldZ) > 0.005;
-        const sw = moved ? Math.sin(performance.now() * 0.012) * 0.35 : 0;
-        bot.rig.legL.rotation.x = sw; bot.rig.legR.rotation.x = -sw;
         bot.rig.group.position.copy(bot.pos);
         bot.rig.group.rotation.y = bot.yaw;
+        updateCharacterPose(bot.rig, true, moved, false, dt, performance.now(), bot.pos.y || 0);
+        bot.rig.shieldMat.opacity = bot.shield ? 0.55 : 0;
         return;
       }
       if (bot.ammo === undefined) { bot.ammo = MAG_SIZE; bot.reloading = 0; bot.burstCnt = 0; bot.burstPause = 0; }
@@ -4881,10 +5476,9 @@
           wantX = rightV.x * bot.strafeDir; wantZ = rightV.z * bot.strafeDir;
         }
         moveDir = moveBotAvoidingWalls(bot, wantX, wantZ, spd, dt);
-        const swing = Math.sin(performance.now() * 0.012) * 0.35;
-        bot.rig.legL.rotation.x = swing; bot.rig.legR.rotation.x = -swing;
+        updateCharacterPose(bot.rig, true, true, isShootingBurst && bot.fireCd > 0.04, dt, performance.now(), bot.pos.y || 0);
       } else {
-        bot.rig.legL.rotation.x = 0; bot.rig.legR.rotation.x = 0;
+        updateCharacterPose(bot.rig, true, false, isShootingBurst && bot.fireCd > 0.04, dt, performance.now(), bot.pos.y || 0);
       }
 
       let desiredYaw = bot.yaw;
@@ -4909,7 +5503,7 @@
         const u = bot.unit;
         playSpatialSound('ability', bot.pos, false);
         if (u === 0) bot.rushT = 2.0;
-        else if (u === 1) { bot.pos.x += fx * 8.5; bot.pos.z += fz * 8.5; resolveCircleObstacles(bot.pos, PLAYER_RADIUS); spawnSmokePlume(bot.pos); }
+        else if (u === 1) { teleportSafe(bot.pos, fx, fz, 8.5); spawnSmokePlume(bot.pos); }
         else if (u === 2) bot.shadowCastT = 1.0;
         else if (u === 3) {
           spawnScannerBeam(bot.pos, bot.yaw);
@@ -4984,8 +5578,20 @@
     const bAlive = allBlues.filter(b => b.hp > 0).length;
     const rAlive = allReds.filter(r => r.hp > 0).length;
     if (selectedMode === 'custom' && pEnemy.name === 'なし' && teamEnemies.length === 0) return;
-    if (rAlive === 0) endRound(true, 'TEAM ELIMINATED');
-    else if (bAlive === 0) endRound(false, 'TEAM WIPED OUT');
+    if (selectedMode === 'custom' && custOnline && !custIsHost) return;
+    if (rAlive === 0) {
+      if (selectedMode === 'custom' && custOnline && custIsHost) {
+        const myBlue = !customRoom.red.some(x => x && x.id === myNetId);
+        sendCustNet({ type: 'c_round_end', blueWon: myBlue, reason: 'TEAM ELIMINATED' });
+      }
+      endRound(true, 'TEAM ELIMINATED');
+    } else if (bAlive === 0) {
+      if (selectedMode === 'custom' && custOnline && custIsHost) {
+        const myBlue = !customRoom.red.some(x => x && x.id === myNetId);
+        sendCustNet({ type: 'c_round_end', blueWon: !myBlue, reason: 'TEAM WIPED OUT' });
+      }
+      endRound(false, 'TEAM WIPED OUT');
+    }
   }
 
   // Settings UI & Drag layout
@@ -5337,14 +5943,14 @@
         if (aliveAllies.length > 0) {
           const target = aliveAllies[specIdx % aliveAllies.length];
           document.getElementById('spectate-label').textContent = `観戦中: ${target.name} (${target.unit + 1}機目)`;
-          camera.position.set(target.pos.x, EYE_HEIGHT, target.pos.z);
+          camera.position.set(target.pos.x, (target.pos.y || 0) + EYE_HEIGHT, target.pos.z);
           camera.rotation.order = 'YXZ';
           camera.rotation.y = target.yaw;
           camera.rotation.x = 0;
           camera.rotation.z = 0;
         }
       } else {
-        camera.position.set(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
+        camera.position.set(pSelf.pos.x, (pSelf.pos.y || 0) + EYE_HEIGHT, pSelf.pos.z);
         camera.rotation.order = 'YXZ';
         camera.rotation.y = pSelf.yaw;
         camera.rotation.x = pSelf.pitch;
@@ -5390,10 +5996,18 @@
               document.getElementById('banner-overlay').classList.add('active');
             }
           } else {
+            if (selectedMode === 'custom' && custOnline && custIsHost) {
+              const myBlue = !customRoom.red.some(x => x && x.id === myNetId);
+              sendCustNet({ type: 'c_match_end', blueWon: myBlue ? gameWon : !gameWon, reason: '' });
+            }
             finishMatch(gameWon);
           }
           } else {
-            setupRound();
+            if (selectedMode === 'custom' && custOnline) {
+              if (custIsHost) { sendCustNet({ type: 'c_next_round' }); setupRound(); }
+            } else {
+              setupRound();
+            }
           }
           return;
         }
@@ -5535,21 +6149,48 @@
       if (isTeamMode()) {
         update5v5Bots(dt);
         teamAllies.forEach(a => {
-          if (a.hp <= 0) {
-            a.rig.group.position.set(a.pos.x, 0.22, a.pos.z);
-            a.rig.group.rotation.x = -Math.PI / 2;
-            a.rig.legL.rotation.x = 0; a.rig.legR.rotation.x = 0;
-          }
+          if (a.hp <= 0) updateCharacterPose(a.rig, false, false, false, dt, now, a.pos.y || 0);
         });
         teamEnemies.forEach(e => {
-          if (e.hp <= 0) {
-            e.rig.group.position.set(e.pos.x, 0.22, e.pos.z);
-            e.rig.group.rotation.x = -Math.PI / 2;
-            e.rig.legL.rotation.x = 0; e.rig.legR.rotation.x = 0;
-          }
+          if (e.hp <= 0) updateCharacterPose(e.rig, false, false, false, dt, now, e.pos.y || 0);
         });
       }
-      if ((!isOnlineMatch || selectedMode === 'pve') && selectedMode !== 'dm') {
+      if (selectedMode === 'custom' && custOnline) {
+        if (pEnemy.name !== 'なし' && pEnemy.isNpc && custIsHost) {
+          updateNPCAI(dt);
+        } else if (pEnemy.name !== 'なし') {
+          const lerpF = Math.min(1, dt * 18);
+          pEnemy.pos.lerp(pEnemy.targetPos, lerpF);
+          let dyaw = (pEnemy.targetYaw ?? pEnemy.yaw) - pEnemy.yaw;
+          while (dyaw > Math.PI) dyaw -= Math.PI * 2;
+          while (dyaw < -Math.PI) dyaw += Math.PI * 2;
+          pEnemy.yaw += dyaw * lerpF;
+        }
+        if (!isCustomSpectator) {
+          custStateAccum += dt;
+          if (custStateAccum >= 0.05) {
+            custStateAccum = 0;
+            sendCustNet({
+              type: 'c_pstate', id: myNetId,
+              x: +pSelf.pos.x.toFixed(2), z: +pSelf.pos.z.toFixed(2),
+              yw: +pSelf.yaw.toFixed(3), pt: +pSelf.pitch.toFixed(3),
+              hp: pSelf.hp, sh: pSelf.shield, un: pSelf.unit,
+              k: pSelf.kills, d: pSelf.deaths, a: pSelf.assists, dmg: Math.round(pSelf.dmgDealt)
+            });
+          }
+        }
+        if (custIsHost) {
+          custBotAccum += dt;
+          if (custBotAccum >= 0.065) {
+            custBotAccum = 0;
+            const states = [];
+            teamAllies.forEach(a => { if (a.isNpc && a.id) states.push({ id: a.id, x: +a.pos.x.toFixed(2), z: +a.pos.z.toFixed(2), yw: +a.yaw.toFixed(3), hp: a.hp, sh: !!a.shield, un: a.unit, k: a.stats?.k||0, d: a.stats?.d||0, a: a.stats?.a||0, dmg: Math.round(a.stats?.dmg||0) }); });
+            if (pEnemy.name !== 'なし' && pEnemy.isNpc && pEnemy.id) states.push({ id: pEnemy.id, x: +pEnemy.pos.x.toFixed(2), z: +pEnemy.pos.z.toFixed(2), yw: +pEnemy.yaw.toFixed(3), hp: pEnemy.hp, sh: !!pEnemy.shield, un: pEnemy.unit, k: pEnemy.kills||0, d: pEnemy.deaths||0, a: pEnemy.assists||0, dmg: Math.round(pEnemy.dmgDealt||0) });
+            teamEnemies.forEach(e => { if (e.isNpc && e.id) states.push({ id: e.id, x: +e.pos.x.toFixed(2), z: +e.pos.z.toFixed(2), yw: +e.yaw.toFixed(3), hp: e.hp, sh: !!e.shield, un: e.unit, k: e.stats?.k||0, d: e.stats?.d||0, a: e.stats?.a||0, dmg: Math.round(e.stats?.dmg||0) }); });
+            if (states.length > 0) sendCustNet({ type: 'c_bots', states });
+          }
+        }
+      } else if ((!isOnlineMatch || selectedMode === 'pve') && selectedMode !== 'dm') {
         updateNPCAI(dt);
       } else {
         // Dead-reckoning prediction + smooth exponential blend
@@ -5617,7 +6258,7 @@
           document.getElementById('spectate-bar').style.display = 'flex';
           const target = aliveAllies[specIdx % aliveAllies.length];
           document.getElementById('spectate-label').textContent = `観戦中: ${target.name} (${target.unit + 1}機目)`;
-          camera.position.set(target.pos.x, EYE_HEIGHT, target.pos.z);
+          camera.position.set(target.pos.x, (target.pos.y || 0) + EYE_HEIGHT, target.pos.z);
           camera.rotation.order = 'YXZ';
           camera.rotation.y = target.yaw;
           camera.rotation.x = 0;
@@ -5630,7 +6271,7 @@
         camera.rotation.y = pSelf.yaw;
         camera.rotation.x = 0.28;
       } else {
-        camera.position.set(pSelf.pos.x, EYE_HEIGHT, pSelf.pos.z);
+        camera.position.set(pSelf.pos.x, (pSelf.pos.y || 0) + EYE_HEIGHT, pSelf.pos.z);
         camera.rotation.order = 'YXZ';
         camera.rotation.y = pSelf.yaw + pSelf.recoilYaw;
         camera.rotation.x = pSelf.pitch + pSelf.recoilPitch;
@@ -5717,18 +6358,11 @@
       enemyRig.group.position.z = pEnemy.pos.z;
       enemyRig.group.rotation.y = pEnemy.yaw;
       if (pEnemy.hp <= 0) {
-        enemyRig.group.position.y = 0.22;
-        enemyRig.group.rotation.x = -Math.PI / 2;
         enemyRig.enemyMuzzle.material.opacity = 0;
-        enemyRig.legL.rotation.x = 0;
-        enemyRig.legR.rotation.x = 0;
+        updateCharacterPose(enemyRig, false, false, false, dt, now, pEnemy.pos.y || 0);
       } else {
-        enemyRig.group.position.y = 0;
-        enemyRig.group.rotation.x = 0;
         enemyRig.enemyMuzzle.material.opacity = pEnemy.muzzleT > 0 ? 0.95 : 0;
-        const walkSwing = pEnemy._isStopped ? 0 : Math.sin(now * 0.01) * 0.35;
-        enemyRig.legL.rotation.x = walkSwing;
-        enemyRig.legR.rotation.x = -walkSwing;
+        updateCharacterPose(enemyRig, true, !pEnemy._isStopped && matchState === 'playing', pEnemy.muzzleT > 0, dt, now, pEnemy.pos.y || 0);
       }
       const eOp = pEnemy.shadowT > 0 ? 0.22 : 1.0;
       enemyRig.matBody.transparent = eOp < 1; enemyRig.matBody.opacity = eOp;
