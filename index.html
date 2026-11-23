@@ -210,6 +210,43 @@
     background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(148,163,184,0.3);
     color: #e2e8f0; border-radius: 6px; padding: 2px 7px; font-size: 10px; font-weight: 700; cursor: pointer;
   }
+  #hud-team-bar {
+    position: absolute; top: calc(var(--safe-top) + 2px); left: 50%; transform: translateX(-50%); z-index: 28;
+    display: none; align-items: center; gap: 12px;
+    background: linear-gradient(90deg, rgba(14, 42, 71, 0.86) 0%, rgba(15, 23, 42, 0.92) 50%, rgba(69, 18, 32, 0.86) 100%);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 999px; padding: 5px 20px;
+    box-shadow: 0 6px 22px rgba(0, 0, 0, 0.52), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  }
+  .htb-side { display: flex; align-items: center; gap: 10px; }
+  .htb-squares { display: flex; gap: 6px; align-items: center; }
+  .htb-sq {
+    width: 11px; height: 16px; border-radius: 3px; transform: skewX(-16deg);
+    background: #0f172a; border: 1px solid rgba(148, 163, 184, 0.22);
+    transition: background 0.15s, box-shadow 0.15s, transform 0.15s;
+  }
+  .htb-sq.alive.blue {
+    background: linear-gradient(180deg, #7dd3fc, #0284c7);
+    border-color: #bae6fd;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.85);
+  }
+  .htb-sq.alive.red {
+    background: linear-gradient(180deg, #fda4af, #e11d48);
+    border-color: #fecdd3;
+    box-shadow: 0 0 10px rgba(244, 63, 94, 0.85);
+  }
+  .htb-score-wrap { display: flex; flex-direction: column; align-items: center; line-height: 1.0; }
+  .htb-lbl { font-size: 8px; font-weight: 900; letter-spacing: 1px; opacity: 0.85; }
+  .htb-score { font-size: 19px; font-weight: 900; }
+  .htb-div { width: 1px; height: 24px; background: rgba(255, 255, 255, 0.15); }
+  .htb-mid {
+    display: flex; flex-direction: column; align-items: center; min-width: 74px; line-height: 1.08;
+    background: rgba(2, 6, 23, 0.65); border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 10px; padding: 3px 10px;
+  }
+  .htb-rnd { font-size: 9px; font-weight: 900; color: #38bdf8; letter-spacing: 1.2px; }
+  .htb-time { font-size: 16px; font-weight: 900; color: #f8fafc; font-variant-numeric: tabular-nums; letter-spacing: 0.8px; }
 
   /* Crosshair & Hitmarker */
   #crosshair {
@@ -235,6 +272,16 @@
   .hm-4 { width: 7px; height: 2px; top: 10px; right: 0; }
 
   /* Status badges */
+  #hud-hp-card {
+    position: absolute; bottom: 12px; left: 50%; transform: translateX(calc(-100% - 62px));
+    min-width: 118px; background: rgba(7, 11, 20, 0.82); border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 8px; padding: 4px 10px; pointer-events: none; z-index: 25;
+  }
+  #hud-hp-row { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; margin-bottom: 3px; }
+  #hud-hp-lbl { font-size: 9px; font-weight: 800; color: #94a3b8; max-width: 72px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  #hud-hp-num { font-size: 14px; font-weight: 900; color: #38bdf8; font-variant-numeric: tabular-nums; }
+  #hud-hp-track { width: 100%; height: 6px; background: rgba(255,255,255,0.14); border-radius: 99px; overflow: hidden; }
+  #hud-hp-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #0284c7, #38bdf8); transition: width 0.1s; }
   #ammo-box {
     position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%);
     background: rgba(7, 11, 20, 0.78); border: 1px solid rgba(148,163,184,0.3);
@@ -328,6 +375,17 @@
   }
   #banner-actions, #match-end-table-wrap { pointer-events: auto; }
   #banner-overlay.fade-dark { background: rgba(2, 4, 12, 0.94); }
+  #banner-overlay.prep-top {
+    background: transparent; backdrop-filter: none;
+    justify-content: flex-start; padding-top: calc(var(--safe-top) + 54px);
+  }
+  #banner-overlay.prep-top #banner-title { font-size: 20px; margin-bottom: 2px; text-shadow: 0 2px 10px rgba(2,6,23,0.95); }
+  #banner-overlay.prep-top #banner-sub { font-size: 12px; margin-bottom: 4px; text-shadow: 0 1px 6px rgba(2,6,23,0.95); }
+  #banner-overlay.prep-top #banner-detail {
+    font-size: 13px; font-weight: 800; color: #4ade80;
+    background: rgba(6, 78, 59, 0.78); border: 1px solid rgba(74, 222, 128, 0.7);
+    padding: 3px 14px; border-radius: 999px; margin-bottom: 0;
+  }
   @keyframes victorySlam {
     0% { opacity: 0; transform: scale(1.85) translateY(-10px); }
     60% { opacity: 1; transform: scale(0.95) translateY(0); }
@@ -627,7 +685,34 @@
     <!-- IN-GAME HUD -->
     <div id="hud">
       <button class="hud-mini-btn" id="btn-scoreboard" style="position:absolute;top:calc(var(--safe-top) + 48px);left:14px;z-index:29;pointer-events:auto;padding:4px 10px;border-color:#38bdf8;">📊 戦績 (TAB)</button>
-      <div class="hud-top">
+      <div id="hud-team-bar">
+        <div class="htb-side">
+          <div class="htb-squares" id="htb-blue-sq"></div>
+          <div class="htb-score-wrap">
+            <span class="htb-lbl" style="color:#38bdf8;">BLUE</span>
+            <span class="htb-score" id="htb-blue-score" style="color:#38bdf8;">0</span>
+          </div>
+        </div>
+        <div class="htb-div"></div>
+        <div class="htb-mid">
+          <span class="htb-rnd" id="htb-round-txt">ROUND 1</span>
+          <span class="htb-time" id="htb-time-txt">00:00</span>
+        </div>
+        <div class="htb-div"></div>
+        <div class="htb-side">
+          <div class="htb-score-wrap">
+            <span class="htb-lbl" style="color:#f43f5e;">RED</span>
+            <span class="htb-score" id="htb-red-score" style="color:#f43f5e;">0</span>
+          </div>
+          <div class="htb-squares" id="htb-red-sq"></div>
+        </div>
+      </div>
+      <div id="hud-team-actions" style="display:none;position:absolute;top:var(--safe-top);right:14px;z-index:29;gap:6px;pointer-events:auto;">
+        <button class="hud-mini-btn" id="btn-ingame-settings-2">⚙</button>
+        <button class="hud-mini-btn" id="btn-ingame-mute-2">🔊</button>
+        <button class="hud-mini-btn" id="btn-ingame-quit-2">退出</button>
+      </div>
+      <div class="hud-top" id="hud-1v1-top">
         <div class="hud-player-box self">
           <div class="hud-name-row">
             <span id="hud-self-name">PLAYER1</span>
@@ -709,6 +794,13 @@
       <div id="spectate-bar" style="display:none;position:absolute;bottom:66px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);border:1px solid #38bdf8;border-radius:999px;padding:5px 14px;font-size:12px;font-weight:800;pointer-events:auto;z-index:28;gap:10px;align-items:center;">
         <span id="spectate-label">観戦中: ALLY-1</span>
         <button class="btn btn-sm btn-primary" id="btn-spec-next">視点切替</button>
+      </div>
+      <div id="hud-hp-card">
+        <div id="hud-hp-row">
+          <span id="hud-hp-lbl">HP</span>
+          <span id="hud-hp-num">100</span>
+        </div>
+        <div id="hud-hp-track"><div id="hud-hp-fill"></div></div>
       </div>
       <div id="ammo-box">
         <div id="ammo-text">20 / ∞</div>
@@ -1285,39 +1377,72 @@
   }
 
   const texFloor = makeCanvasTex(512, (ctx, s) => {
-    // Realistic weathered limestone courtyard paving with mortar joints & natural grain
-    ctx.fillStyle = '#9c9588'; ctx.fillRect(0, 0, s, s);
+    // 0: Arcadia - Beveled limestone & slate courtyard paving with diamond inlay & weathered stone grain
+    ctx.fillStyle = '#5a534a'; ctx.fillRect(0, 0, s, s);
     const tile = s / 4;
     for (let gy = 0; gy < 4; gy++) {
       for (let gx = 0; gx < 4; gx++) {
         const off = (gy % 2) * (tile / 2);
         const tx = (gx * tile + off) % s;
-        const shade = 148 + ((gx * 7 + gy * 13) % 18) - 9;
-        ctx.fillStyle = `rgb(${shade}, ${shade - 5}, ${shade - 13})`;
-        ctx.fillRect(tx + 2, gy * tile + 2, tile - 4, tile - 4);
-        ctx.strokeStyle = 'rgba(45,40,34,0.32)'; ctx.lineWidth = 2;
-        ctx.strokeRect(tx + 1, gy * tile + 1, tile - 2, tile - 2);
+        const isSlate = (gx + gy) % 2 === 0;
+        const v = ((gx * 13 + gy * 7) % 14) - 7;
+        const r = (isSlate ? 128 : 162) + v, g = (isSlate ? 126 : 154) + v, b = (isSlate ? 122 : 140) + v;
+        ctx.fillStyle = `rgb(${r},${g},${b})`;
+        ctx.fillRect(tx + 3, gy * tile + 3, tile - 6, tile - 6);
+        // 3D bevel highlight (top/left) & shadow (bottom/right)
+        ctx.fillStyle = 'rgba(255,250,240,0.18)';
+        ctx.fillRect(tx + 3, gy * tile + 3, tile - 6, 3);
+        ctx.fillRect(tx + 3, gy * tile + 3, 3, tile - 6);
+        ctx.fillStyle = 'rgba(25,22,18,0.28)';
+        ctx.fillRect(tx + 3, gy * tile + tile - 6, tile - 6, 3);
+        ctx.fillRect(tx + tile - 6, gy * tile + 3, 3, tile - 6);
+        // Subtle inner stone frame
+        ctx.strokeStyle = 'rgba(40,36,30,0.18)'; ctx.lineWidth = 1.5;
+        ctx.strokeRect(tx + 12, gy * tile + 12, tile - 24, tile - 24);
       }
     }
-    for (let i = 0; i < 6500; i++) {
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,250,240,0.06)' : 'rgba(30,25,20,0.07)';
+    // Center courtyard diamond medallion accent
+    ctx.save();
+    ctx.translate(s / 2, s / 2);
+    ctx.rotate(Math.PI / 4);
+    ctx.strokeStyle = 'rgba(214, 198, 170, 0.28)'; ctx.lineWidth = 4;
+    ctx.strokeRect(-42, -42, 84, 84);
+    ctx.restore();
+    // Fine stone pitting & subtle moss specks
+    for (let i = 0; i < 8000; i++) {
+      const m = Math.random();
+      ctx.fillStyle = m > 0.85 ? 'rgba(72,94,68,0.08)' : (m > 0.42 ? 'rgba(255,250,240,0.05)' : 'rgba(25,20,16,0.07)');
       ctx.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 2, 2);
     }
-    for (let i = 0; i < 18; i++) {
-      ctx.strokeStyle = 'rgba(40,35,30,0.16)'; ctx.lineWidth = 1;
+    for (let i = 0; i < 20; i++) {
+      ctx.strokeStyle = 'rgba(32,28,24,0.2)'; ctx.lineWidth = 1.2;
       ctx.beginPath();
       const cx = Math.random() * s, cy = Math.random() * s;
-      ctx.moveTo(cx, cy); ctx.lineTo(cx + (Math.random()-0.5)*36, cy + (Math.random()-0.5)*36); ctx.stroke();
+      ctx.moveTo(cx, cy); ctx.lineTo(cx + (Math.random()-0.5)*40, cy + (Math.random()-0.5)*40); ctx.stroke();
     }
   }, 14);
   const texWall = makeCanvasTex(256, (ctx, s) => {
-    // Clean stylized Mediterranean plaster + stone wainscot + subtle cornice
-    ctx.fillStyle = '#d9cbb8'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#8b7d6b'; ctx.fillRect(0, s - 58, s, 58);
-    ctx.fillStyle = '#c49b76'; ctx.fillRect(0, 0, s, 22);
-    ctx.fillStyle = 'rgba(255,255,255,0.14)'; ctx.fillRect(0, 22, s, 6);
-    ctx.strokeStyle = 'rgba(60, 50, 40, 0.22)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(0, s - 58); ctx.lineTo(s, s - 58); ctx.stroke();
+    // 0: Arcadia - Beveled ashlar castle stone masonry with architectural frieze band
+    ctx.fillStyle = '#8b8173'; ctx.fillRect(0, 0, s, s);
+    const rows = 4, cols = 2, h = s / rows, w = s / cols;
+    for (let r = 0; r < rows; r++) {
+      const off = (r % 2) * (w / 2);
+      for (let c = -1; c <= cols; c++) {
+        const bx = c * w + off;
+        const shade = 194 + ((r * 7 + c * 11) % 16) - 8;
+        ctx.fillStyle = `rgb(${shade}, ${shade - 9}, ${shade - 22})`;
+        ctx.fillRect(bx + 2, r * h + 2, w - 4, h - 4);
+        ctx.fillStyle = 'rgba(255,250,240,0.22)';
+        ctx.fillRect(bx + 2, r * h + 2, w - 4, 2);
+        ctx.fillStyle = 'rgba(45,38,30,0.26)';
+        ctx.fillRect(bx + 2, r * h + h - 4, w - 4, 2);
+      }
+    }
+    ctx.fillStyle = '#756b5e'; ctx.fillRect(0, s * 0.48, s, 8);
+    for (let i = 0; i < 1600; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(30,25,20,0.05)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2, 2);
+    }
   }, 1);
   const texCrate = makeCanvasTex(128, (ctx, s) => {
     // Kingdom-style matte tactical wood/composite crate
@@ -1353,81 +1478,164 @@
   const texCamoBlue = makeCamoTex('#33475e', '#263648');
   const texCamoRed = makeCamoTex('#5e3034', '#472226');
   const texFloorSand = makeCanvasTex(512, (ctx, s) => {
-    // Realistic desert sandstone slabs & wind-swept fine sand grain
-    ctx.fillStyle = '#b99972'; ctx.fillRect(0, 0, s, s);
+    // 1: Sunset Bazaar - Terracotta & sandstone mosaic slabs with geometric border inlays & sand drift
+    ctx.fillStyle = '#8b6a47'; ctx.fillRect(0, 0, s, s);
     const tile = s / 4;
     for (let gy = 0; gy < 4; gy++) {
       for (let gx = 0; gx < 4; gx++) {
+        const x0 = gx * tile, y0 = gy * tile;
         const v = ((gx * 11 + gy * 5) % 16) - 8;
-        ctx.fillStyle = `rgb(${190 + v}, ${156 + v}, ${114 + v})`;
-        ctx.fillRect(gx * tile + 2, gy * tile + 2, tile - 4, tile - 4);
-        ctx.strokeStyle = 'rgba(90, 62, 34, 0.28)'; ctx.lineWidth = 2;
-        ctx.strokeRect(gx * tile + 1, gy * tile + 1, tile - 2, tile - 2);
+        ctx.fillStyle = `rgb(${196 + v}, ${160 + v}, ${116 + v})`;
+        ctx.fillRect(x0 + 3, y0 + 3, tile - 6, tile - 6);
+        // Bevel highlights
+        ctx.fillStyle = 'rgba(255,240,215,0.22)';
+        ctx.fillRect(x0 + 3, y0 + 3, tile - 6, 3);
+        ctx.fillRect(x0 + 3, y0 + 3, 3, tile - 6);
+        ctx.fillStyle = 'rgba(92,58,28,0.28)';
+        ctx.fillRect(x0 + 3, y0 + tile - 6, tile - 6, 3);
+        // Terracotta geometric inlay frame
+        ctx.strokeStyle = 'rgba(154, 72, 42, 0.36)'; ctx.lineWidth = 2.5;
+        ctx.strokeRect(x0 + 14, y0 + 14, tile - 28, tile - 28);
+        if ((gx + gy) % 2 === 0) {
+          ctx.fillStyle = 'rgba(168, 84, 48, 0.24)';
+          ctx.beginPath();
+          const cx = x0 + tile / 2, cy = y0 + tile / 2;
+          ctx.moveTo(cx, cy - 16); ctx.lineTo(cx + 16, cy); ctx.lineTo(cx, cy + 16); ctx.lineTo(cx - 16, cy); ctx.closePath(); ctx.fill();
+        }
       }
     }
-    for (let i = 0; i < 7000; i++) {
-      ctx.fillStyle = Math.random() > 0.45 ? 'rgba(255,235,205,0.07)' : 'rgba(85,55,25,0.08)';
-      ctx.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 2, 1.5);
+    // Wind-swept sand streaks & grit
+    for (let i = 0; i < 7500; i++) {
+      ctx.fillStyle = Math.random() > 0.45 ? 'rgba(255,235,205,0.08)' : 'rgba(85,55,25,0.08)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 3 + Math.random() * 4, 1.5);
     }
   }, 14);
   const texWallSand = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#e2c7a4'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#9e6b43'; ctx.fillRect(0, s - 56, s, 56);
-    ctx.fillStyle = '#c97b4b'; ctx.fillRect(0, 0, s, 24);
-    ctx.strokeStyle = 'rgba(90, 55, 30, 0.22)'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(0, s - 56); ctx.lineTo(s, s - 56); ctx.moveTo(0, 24); ctx.lineTo(s, 24); ctx.stroke();
+    // 1: Sunset Bazaar - Textured desert adobe with cedar cross-beams, iron rivets & geometric arch niche
+    ctx.fillStyle = '#dcb88e'; ctx.fillRect(0, 0, s, s);
+    for (let i = 0; i < 2500; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(255,245,225,0.06)' : 'rgba(110,70,35,0.06)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 2, 2);
+    }
+    ctx.fillStyle = '#c49464'; ctx.fillRect(s * 0.16, s * 0.28, s * 0.68, s * 0.44);
+    ctx.strokeStyle = 'rgba(90, 52, 24, 0.35)'; ctx.lineWidth = 4;
+    ctx.strokeRect(s * 0.16, s * 0.28, s * 0.68, s * 0.44);
+    ctx.fillStyle = '#6f4222'; ctx.fillRect(0, s * 0.18, s, 14); ctx.fillRect(0, s * 0.78, s, 14);
+    ctx.fillStyle = '#332014';
+    for (let x = 20; x < s; x += 54) {
+      ctx.fillRect(x, s * 0.18 + 4, 6, 6);
+      ctx.fillRect(x, s * 0.78 + 4, 6, 6);
+    }
   }, 1);
 
   const texFloorSnow = makeCanvasTex(512, (ctx, s) => {
-    // Realistic arctic dock concrete slabs with frost & expansion seams
-    ctx.fillStyle = '#b6c2ce'; ctx.fillRect(0, 0, s, s);
+    // 2: Frost Dock - Industrial steel-framed arctic concrete deck with bolted plates, drains & frost
+    ctx.fillStyle = '#475569'; ctx.fillRect(0, 0, s, s);
     const tile = s / 2;
     for (let gy = 0; gy < 2; gy++) {
       for (let gx = 0; gx < 2; gx++) {
-        const v = ((gx * 9 + gy * 7) % 12) - 6;
-        ctx.fillStyle = `rgb(${186 + v}, ${198 + v}, ${210 + v})`;
-        ctx.fillRect(gx * tile + 2, gy * tile + 2, tile - 4, tile - 4);
-        ctx.strokeStyle = 'rgba(51, 65, 85, 0.3)'; ctx.lineWidth = 3;
-        ctx.strokeRect(gx * tile + 1, gy * tile + 1, tile - 2, tile - 2);
+        const x0 = gx * tile, y0 = gy * tile;
+        const v = ((gx * 9 + gy * 7) % 10) - 5;
+        ctx.fillStyle = `rgb(${172 + v}, ${188 + v}, ${204 + v})`;
+        ctx.fillRect(x0 + 4, y0 + 4, tile - 8, tile - 8);
+        // Bevel & steel trim
+        ctx.fillStyle = 'rgba(241,245,249,0.32)';
+        ctx.fillRect(x0 + 4, y0 + 4, tile - 8, 4);
+        ctx.fillRect(x0 + 4, y0 + 4, 4, tile - 8);
+        ctx.fillStyle = 'rgba(30,41,59,0.35)';
+        ctx.fillRect(x0 + 4, y0 + tile - 8, tile - 8, 4);
+        // Bolted steel corner plates
+        ctx.fillStyle = '#64748b';
+        [[x0+10, y0+10], [x0+tile-26, y0+10], [x0+10, y0+tile-26], [x0+tile-26, y0+tile-26]].forEach(([bx, by]) => {
+          ctx.fillRect(bx, by, 16, 16);
+          ctx.fillStyle = '#1e293b'; ctx.fillRect(bx+6, by+6, 4, 4);
+          ctx.fillStyle = '#64748b';
+        });
+        // Subtle hazard / dock lane stripe on one slab
+        if ((gx + gy) % 2 === 0) {
+          ctx.fillStyle = 'rgba(14, 165, 233, 0.22)';
+          ctx.fillRect(x0 + 28, y0 + tile/2 - 5, tile - 56, 10);
+        } else {
+          // Recessed drainage grate
+          ctx.fillStyle = '#334155';
+          ctx.fillRect(x0 + tile/2 - 26, y0 + tile/2 - 26, 52, 52);
+          ctx.fillStyle = '#0f172a';
+          for (let sl = -18; sl <= 18; sl += 9) ctx.fillRect(x0 + tile/2 - 20, y0 + tile/2 + sl - 2, 40, 4);
+        }
       }
     }
-    for (let i = 0; i < 6500; i++) {
-      ctx.fillStyle = Math.random() > 0.45 ? 'rgba(255,255,255,0.12)' : 'rgba(60,80,105,0.08)';
+    for (let i = 0; i < 7000; i++) {
+      ctx.fillStyle = Math.random() > 0.4 ? 'rgba(255,255,255,0.14)' : 'rgba(51,65,85,0.08)';
       ctx.fillRect(Math.random() * s, Math.random() * s, 2 + Math.random() * 3, 2);
     }
   }, 14);
   const texWallIce = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#536273'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#2b3542'; ctx.fillRect(0, s - 54, s, 54);
-    ctx.fillStyle = '#e2e8f0'; ctx.fillRect(0, 0, s, 28);
-    ctx.fillStyle = '#f97316'; ctx.fillRect(0, 28, s, 6);
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.32)'; ctx.lineWidth = 3; ctx.strokeRect(4, 34, s - 8, s - 90);
+    // 2: Frost Dock - Corrugated steel shipping container ribs with horizontal structural beams & frost
+    ctx.fillStyle = '#47596d'; ctx.fillRect(0, 0, s, s);
+    for (let x = 0; x < s; x += 24) {
+      ctx.fillStyle = '#334252'; ctx.fillRect(x, 0, 10, s);
+      ctx.fillStyle = '#647a91'; ctx.fillRect(x + 10, 0, 5, s);
+      ctx.fillStyle = '#7c94ad'; ctx.fillRect(x + 15, 0, 2, s);
+    }
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, s, 18); ctx.fillRect(0, s - 18, s, 18);
+    ctx.fillStyle = '#334155'; ctx.fillRect(0, s/2 - 6, s, 12);
+    ctx.fillStyle = 'rgba(224,242,254,0.18)';
+    ctx.fillRect(0, s - 22, s, 4);
   }, 1);
 
   const texFloorCyber = makeCanvasTex(512, (ctx, s) => {
-    // Realistic dark brushed industrial concrete & slate lab floor
-    ctx.fillStyle = '#283142'; ctx.fillRect(0, 0, s, s);
+    // 3: Neon Lab - Armored dark slate tech deck with beveled panels, hex micro-grid & cyan conduit seams
+    ctx.fillStyle = '#0f172a'; ctx.fillRect(0, 0, s, s);
     const tile = s / 4;
     for (let gy = 0; gy < 4; gy++) {
       for (let gx = 0; gx < 4; gx++) {
-        const v = ((gx * 5 + gy * 11) % 10) - 5;
-        ctx.fillStyle = `rgb(${44 + v}, ${53 + v}, ${70 + v})`;
-        ctx.fillRect(gx * tile + 2, gy * tile + 2, tile - 4, tile - 4);
-        ctx.strokeStyle = 'rgba(15, 23, 42, 0.45)'; ctx.lineWidth = 2;
-        ctx.strokeRect(gx * tile + 1, gy * tile + 1, tile - 2, tile - 2);
+        const x0 = gx * tile, y0 = gy * tile;
+        const v = ((gx * 5 + gy * 11) % 8) - 4;
+        ctx.fillStyle = `rgb(${30 + v}, ${41 + v}, ${59 + v})`;
+        ctx.fillRect(x0 + 3, y0 + 3, tile - 6, tile - 6);
+        // Subtle metallic bevel
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.14)';
+        ctx.fillRect(x0 + 3, y0 + 3, tile - 6, 2);
+        ctx.fillRect(x0 + 3, y0 + 3, 2, tile - 6);
+        // Inner tech frame & corner bolts
+        ctx.strokeStyle = 'rgba(15, 23, 42, 0.7)'; ctx.lineWidth = 2;
+        ctx.strokeRect(x0 + 12, y0 + 12, tile - 24, tile - 24);
+        ctx.fillStyle = '#475569';
+        ctx.fillRect(x0 + 7, y0 + 7, 3, 3); ctx.fillRect(x0 + tile - 10, y0 + 7, 3, 3);
+        ctx.fillRect(x0 + 7, y0 + tile - 10, 3, 3); ctx.fillRect(x0 + tile - 10, y0 + tile - 10, 3, 3);
       }
     }
-    for (let i = 0; i < 6000; i++) {
-      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(200,215,235,0.04)' : 'rgba(10,15,25,0.08)';
-      ctx.fillRect(Math.random() * s, Math.random() * s, 2, 2);
+    // Crisp, tasteful cyan power-conduit seams along major grid lines
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.32)';
+    ctx.fillRect(0, s / 2 - 1, s, 2);
+    ctx.fillRect(s / 2 - 1, 0, 2, s);
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.65)';
+    ctx.fillRect(s / 2 - 6, s / 2 - 6, 12, 12);
+    // Subtle diagonal brushed tech lines
+    for (let i = 0; i < 4500; i++) {
+      ctx.fillStyle = Math.random() > 0.5 ? 'rgba(186,230,253,0.035)' : 'rgba(2,6,23,0.09)';
+      ctx.fillRect(Math.random() * s, Math.random() * s, 3, 1);
     }
   }, 14);
   const texWallCyber = makeCanvasTex(256, (ctx, s) => {
-    ctx.fillStyle = '#3b475c'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#1b2230'; ctx.fillRect(0, s - 56, s, 56);
-    ctx.fillStyle = '#cbd5e1'; ctx.fillRect(0, 0, s, 22);
-    ctx.fillStyle = '#38bdf8'; ctx.fillRect(0, 22, s, 5);
-    ctx.strokeStyle = 'rgba(15, 23, 42, 0.35)'; ctx.lineWidth = 3; ctx.strokeRect(6, 30, s - 12, s - 88);
+    // 3: Neon Lab - Modular acoustic titanium bulkhead panels with vent louvers & cyan seam
+    ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, s, s);
+    for (let y = 0; y < 2; y++) {
+      for (let x = 0; x < 2; x++) {
+        const px = x * (s/2) + 6, py = y * (s/2) + 6, pw = s/2 - 12, ph = s/2 - 12;
+        ctx.fillStyle = (x + y) % 2 === 0 ? '#334155' : '#293548';
+        ctx.fillRect(px, py, pw, ph);
+        ctx.fillStyle = 'rgba(148,163,184,0.16)'; ctx.fillRect(px, py, pw, 2);
+        ctx.strokeStyle = '#0f172a'; ctx.lineWidth = 3; ctx.strokeRect(px, py, pw, ph);
+        // Subtle vent louvers on upper panels
+        if (y === 0) {
+          ctx.fillStyle = '#162032';
+          for (let ly = py + 18; ly < py + 54; ly += 10) ctx.fillRect(px + 16, ly, pw - 32, 4);
+        }
+      }
+    }
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+    ctx.fillRect(0, s / 2 - 1, s, 2);
   }, 1);
 
   const texRadianite = makeCanvasTex(256, (ctx, s) => {
@@ -1439,10 +1647,29 @@
     ctx.fillStyle = '#6ee7b7'; ctx.fillRect(s/2 - 18, s/2 - 18, 36, 36);
   }, 1);
 
-  const texSkin = makeCanvasTex(128, (ctx, s) => {
-    ctx.fillStyle = '#d7a88a'; ctx.fillRect(0, 0, s, s);
-    ctx.fillStyle = '#262626'; ctx.fillRect(0, 0, s, s * 0.24);
-    ctx.fillStyle = '#334155'; ctx.fillRect(0, s * 0.72, s, s * 0.28);
+  const texSkin = makeCanvasTex(256, (ctx, s) => {
+    // Smooth natural human skin tone with soft hair & subtle brow/eye/nose/mouth shading
+    const grad = ctx.createLinearGradient(0, 0, 0, s);
+    grad.addColorStop(0, '#e3b698');
+    grad.addColorStop(0.65, '#d6a485');
+    grad.addColorStop(1, '#c48f70');
+    ctx.fillStyle = grad; ctx.fillRect(0, 0, s, s);
+    // Natural dark hair cap
+    ctx.fillStyle = '#1f242d'; ctx.fillRect(0, 0, s, s * 0.26);
+    // Subtle natural facial features (front center of sphere UV)
+    ctx.fillStyle = '#26211e';
+    ctx.fillRect(s * 0.40, s * 0.41, s * 0.065, s * 0.018); // left brow
+    ctx.fillRect(s * 0.535, s * 0.41, s * 0.065, s * 0.018); // right brow
+    ctx.fillStyle = '#f8fafc';
+    ctx.beginPath(); ctx.ellipse(s * 0.432, s * 0.46, s * 0.026, s * 0.014, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(s * 0.568, s * 0.46, s * 0.026, s * 0.014, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#1c1917';
+    ctx.beginPath(); ctx.arc(s * 0.432, s * 0.46, s * 0.012, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(s * 0.568, s * 0.46, s * 0.012, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(130, 80, 55, 0.35)';
+    ctx.fillRect(s * 0.488, s * 0.47, s * 0.024, s * 0.09); // nose bridge shadow
+    ctx.fillStyle = 'rgba(155, 85, 70, 0.45)';
+    ctx.fillRect(s * 0.455, s * 0.62, s * 0.09, s * 0.018); // mouth
   }, 1);
 
   // ==================== THREE.JS SCENE & MAP ====================
@@ -1485,6 +1712,8 @@
   scene.add(floorMesh);
 
   const obstacles = []; // { minX, maxX, minZ, maxZ, height, bottom, mesh }
+  const spawnBarriers = [];
+  let spawnBarriersActive = false;
   const obstacleMeshes = [];
   const walkSurfaces = []; // { type: 'plat'|'ramp', minX, maxX, minZ, maxZ, y, y0, y1, axis }
 
@@ -1544,113 +1773,168 @@
   // Top-Down 2D Architectural Grid Maps (19x19 cells x 4.2m = 79.8m x 79.8m)
   // '#' = Tall Solid Building/Wall (9m), 'R' = Roofed Corridor/Room, 'C' = Tactical Cover Box, '.' = Walkable Floor
   // 'S' = Blue Spawn Room, 'E' = Red Spawn Room
+  function addSpawnBarrier(x, z, cell, isVertical = false) {
+    const w = isVertical ? 0.42 : (cell + 0.06), h = 4.3, d = isVertical ? (cell + 0.06) : 0.42;
+    const mat = new THREE.MeshStandardMaterial({
+      color: 0x22c55e, emissive: 0x15803d, emissiveIntensity: 0.48,
+      transparent: true, opacity: 0.36, roughness: 0.08, metalness: 0.15,
+      side: THREE.DoubleSide, depthWrite: false
+    });
+    const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+    mesh.position.set(x, h / 2, z);
+    const edgeMat = new THREE.MeshStandardMaterial({
+      color: 0x4ade80, emissive: 0x22c55e, emissiveIntensity: 0.85,
+      transparent: true, opacity: 0.72, roughness: 0.2
+    });
+    const topEdge = new THREE.Mesh(new THREE.BoxGeometry(w, 0.12, d + 0.06), edgeMat);
+    topEdge.position.set(x, h - 0.06, z);
+    const botEdge = new THREE.Mesh(new THREE.BoxGeometry(w, 0.12, d + 0.06), edgeMat);
+    botEdge.position.set(x, 0.06, z);
+    const obs = { minX: x - w / 2, maxX: x + w / 2, minZ: z - d / 2, maxZ: z + d / 2, height: h, mesh, disabled: false, isBarrier: true };
+    obstacles.push(obs);
+    spawnBarriers.push({ obs, mesh, frameMeshes: [topEdge, botEdge] });
+  }
+
+  function setSpawnBarriersActive(active) {
+    spawnBarriersActive = !!active;
+    for (const b of spawnBarriers) {
+      b.obs.disabled = !active;
+      if (active) {
+        if (!b.mesh.parent) scene.add(b.mesh);
+        b.frameMeshes.forEach(fm => { if (!fm.parent) scene.add(fm); });
+        if (!obstacleMeshes.includes(b.mesh)) obstacleMeshes.push(b.mesh);
+      } else {
+        if (b.mesh.parent) scene.remove(b.mesh);
+        b.frameMeshes.forEach(fm => { if (fm.parent) scene.remove(fm); });
+        const idx = obstacleMeshes.indexOf(b.mesh);
+        if (idx >= 0) obstacleMeshes.splice(idx, 1);
+      }
+    }
+  }
+
   const MAPS = [
     {
-      id: 0, name: 'アルカディア', desc: '城塞都市：オープンなサイトとピーク壁が繋がるフラットな3レーンマップ',
+      id: 0, name: 'アルカディア', desc: '設計図1：白通路・黒壁・赤壁・単一青ブロックを忠実再現',
       sky: 0x6b9ed4, floorTex: texFloor, wallTex: texWall, accent: 0x38bdf8,
       grid: [
-        '#####################',
-        '#......##EEE##......#',
-        '#..##........T..##..#',
-        '#..##..#..T..#..##..#',
-        '#............##.....#',
-        '####.###.....###....#',
-        '#A...#..#...#..#....#',
-        '#.D.......P......B..#',
-        '#..A.###.....###..D.#',
-        '#..C.##...#...##.B..#',
-        '#.....I.#####.I.....#',
-        '#..L.##...#...##.C..#',
-        '#....###.....###....#',
-        '#.M.......P......M..#',
-        '#....#..#...#..#....#',
-        '####.###.....###.####',
-        '#......I..T..I......#',
-        '#..##........T..##..#',
-        '#......##SSS##......#',
-        '#........SSS........#',
-        '#####################'
+        '#########################',
+        '##########EEEEEE#########',
+        '##########EEEEEE#########',
+        '#####....VEEEEEEV....####',
+        '#####....VEEEEEEV....####',
+        '#####.############...####',
+        '#####.#############..####',
+        '###.....###########.....#',
+        '###..B..###.....##rrr...#',
+        '###.....##......###.....#',
+        '###..........C.......H..#',
+        '###.......N.............#',
+        '###.....................#',
+        '###.............C.......#',
+        '###.rrr.##......#.......#',
+        '###.....###.....###..rrr#',
+        '###.....###########.....#',
+        '#####.################..#',
+        '#####.################..#',
+        '#####.#################.#',
+        '#####....VSSSSSSV.......#',
+        '##########SSSSSS#########',
+        '##########SSSSSS#########',
+        '##########SSSSSS#########',
+        '#########################'
       ]
     },
     {
-      id: 1, name: 'サンセット・バザール', desc: '砂漠市場：見通しの良い大通りと小路の遮蔽が繋がるフラット3レーン',
+      id: 1, name: 'サンセット・バザール', desc: '設計図2：白通路・黒壁・赤壁・単一青ブロックを忠実再現',
       sky: 0xc98558, floorTex: texFloorSand, wallTex: texWallSand, accent: 0xf59e0b,
       grid: [
-        '#####################',
-        '#.....###EEE###.....#',
-        '#..#.............#..#',
-        '#..#..#..T.T..#..#..#',
-        '#.....#.......#.....#',
-        '###..##.......##..###',
-        '#A...#..#...#..#....#',
-        '#.D.......P.......B.#',
-        '#..A.###.....###..D.#',
-        '#..M.##...L...##..B.#',
-        '#.....I.#####.I.....#',
-        '#..C.##...L...##.M..#',
-        '#....###.....###....#',
-        '#.L.......P......C..#',
-        '#....#..#...#..#....#',
-        '###..##.......##..###',
-        '#.....I..T.T..I.....#',
-        '#..#.............#..#',
-        '#.....###SSS###.....#',
-        '#........SSS........#',
-        '#####################'
+        '#########################',
+        '##########EEEEEE#########',
+        '#########EEEEEEE#########',
+        '###......VEEEEEEV....####',
+        '###..####EEEEEEE####.####',
+        '###..#######G#######.####',
+        '###..#######.#######.####',
+        '###..#####.....#####.####',
+        '###..................####',
+        '###..................####',
+        '###.................B####',
+        '###....RRRR###.......####',
+        '###.B..RRR####RRRR...####',
+        '###............RR....####',
+        '###..................####',
+        '###..................####',
+        '###.......###........####',
+        '###..####.###.#......####',
+        '###.#####.....######.####',
+        '###..######GG#######.####',
+        '###......VSSSSSSV....####',
+        '###......VSSSSSS#########',
+        '#########SSSSSSS#########',
+        '#########SSSSSSS#########',
+        '#########################'
       ]
     },
     {
-      id: 2, name: 'フロスト・ドック', desc: '氷結貨物港：青空の下でコンテナ遮蔽を使って戦うフラット港湾マップ',
+      id: 2, name: 'フロスト・ドック', desc: '設計図3：中央ボックスを挟んで上下左右の部屋が連結する港湾構成',
       sky: 0x7da4c4, floorTex: texFloorSnow, wallTex: texWallIce, accent: 0x22d3ee,
       grid: [
-        '#####################',
-        '#.....###EEE###.....#',
-        '#..##...........##..#',
-        '#..##.#...T...#.##..#',
-        '#.............#.....#',
-        '####..#...D...#..####',
-        '#A..A.#.#...#.#.B..B#',
-        '#.D.......P.......D.#',
-        '#..C..##.....##..M..#',
-        '#....###.....###....#',
-        '#.....I.#####.I.....#',
-        '#....###.....###....#',
-        '#..M..##.....##..C..#',
-        '#.D.......P.......L.#',
-        '#.....#.#...#.#.....#',
-        '####..#...D...#..####',
-        '#.....I...T...I.....#',
-        '#..##...........##..#',
-        '#.....###SSS###.....#',
-        '#........SSS........#',
-        '#####################'
+        '#########################',
+        '#########################',
+        '#########EEEEEEE#########',
+        '####.....VEEEEEEV.......#',
+        '####.....VEEEEEE#######.#',
+        '####.#####EEEEEE#######.#',
+        '####.#######G##########.#',
+        '###.....###.............#',
+        '###.....######..........#',
+        '##..RR.###########rrr...#',
+        '##..RR.###.....###......#',
+        '##......................#',
+        '##..B..###..B..###..B...#',
+        '##......................#',
+        '##.rrr.###########..rr..#',
+        '##.....###########..rr..#',
+        '##.....###########......#',
+        '#####..###########......#',
+        '######.###########.....##',
+        '######.###########.######',
+        '######...VSSSSSSV..######',
+        '##########SSSSSS#########',
+        '#########SSSSSSSS########',
+        '##########SSSSSS#########',
+        '#########################'
       ]
     },
     {
-      id: 3, name: 'ネオン・ラボ', desc: '実験施設：フラットな研究区画と壁ピークが連続する近未来マップ',
+      id: 3, name: 'ネオン・ラボ', desc: '設計図4：白通路・黒壁・赤壁・単一青ブロックを忠実再現',
       sky: 0x334475, floorTex: texFloorCyber, wallTex: texWallCyber, accent: 0x38bdf8,
       grid: [
-        '#####################',
-        '#......##EEE##......#',
-        '#..##........T..##..#',
-        '#..##..#..T..#..##..#',
-        '#......#.....#......#',
-        '####.###.....###.####',
-        '#A..A.#.#...#.#.B..B#',
-        '#.D.......P.......D.#',
-        '#..L..##..C..##..M..#',
-        '#....###.....###....#',
-        '#.....I.#####.I.....#',
-        '#....###.....###....#',
-        '#..M..##..C..##..L..#',
-        '#.C.......P.......D.#',
-        '#.....#.#...#.#.....#',
-        '####.###.....###.####',
-        '#......I..T..I......#',
-        '#..##........T..##..#',
-        '#......##SSS##......#',
-        '#........SSS........#',
-        '#####################'
+        '#########################',
+        '##########EEEEEE#########',
+        '#########EEEEEEE#########',
+        '########.VEEEEEEV....####',
+        '########.VEEEEEEV....####',
+        '########.##G#######..####',
+        '########.##.#######..####',
+        '###.......#.#######..####',
+        '###.RRRRR.#.#######..####',
+        '###.RRRRR.#.####.......##',
+        '###.......#.####.......##',
+        '###....................##',
+        '###...B...####.#.......##',
+        '###.......####.#...B...##',
+        '###.##########.#.......##',
+        '###.##########.#.......##',
+        '###.##########.#.......##',
+        '###.##########.######..##',
+        '###...########......#..##',
+        '###...#############.#..##',
+        '###.#####SSSSSSSV......##',
+        '###....##SSSSSSSV......##',
+        '###.....VSSSSSSS#########',
+        '#########SSSSSSS#########',
+        '#########################'
       ]
     }
   ];
@@ -1738,6 +2022,8 @@
     scene.background = new THREE.Color(m.sky);
     scene.fog = new THREE.FogExp2(m.sky, 0.017);
 
+    setSpawnBarriersActive(false);
+    spawnBarriers.length = 0;
     obstacleMeshes.forEach(mesh => scene.remove(mesh));
     roofMeshes.forEach(mesh => scene.remove(mesh));
     obstacles.length = 0;
@@ -1777,7 +2063,7 @@
         const wz = (r - (rows - 1) / 2) * cell;
         const isBorder = (r === 0 || r === rows - 1 || c === 0 || c === cols - 1);
         const areaCol = 0x334155;
-        if (ch === '#') {
+        if (ch === '#' || ch === 'R') {
           addObstacle(wx, wz, cell + 0.04, isBorder ? 5.2 : 4.3, cell + 0.04, 'wall', areaCol);
         } else if (ch === 'T') {
           addObstacle(wx, wz, cell * 1.02, 4.3, 1.15, 'wall', areaCol);
@@ -1785,6 +2071,14 @@
           addObstacle(wx, wz, 1.15, 4.3, cell * 1.02, 'wall', areaCol);
         } else if (ch === 'W') {
           addObstacle(wx, wz, cell * 0.96, 2.2, cell * 0.52, 'wall', areaCol);
+        } else if (ch === 'r') {
+          addObstacle(wx, wz, cell * 1.02, 4.3, 1.15, 'wall', areaCol);
+        } else if (ch === 'H') {
+          addObstacle(wx, wz, cell * 1.85, 2.2, cell * 0.92, 'radianite');
+        } else if (ch === 'N') {
+          addObstacle(wx, wz, cell * 0.92, 2.2, cell * 1.85, 'radianite');
+        } else if (ch === 'B') {
+          addObstacle(wx, wz, cell * 1.35, 2.35, cell * 1.35, 'radianite');
         } else if (ch === 'C') {
           addObstacle(wx, wz, 2.4, 1.95, 2.4, (r + c) % 2 === 0 ? 'radianite' : 'crate');
         } else if (ch === 'D') {
@@ -1797,6 +2091,10 @@
           addPillar(wx, wz, 4.3);
         } else if (ch === 'A' || ch === 'B') {
           addSitePad(wx, wz, ch === 'A');
+        } else if (ch === 'G') {
+          addSpawnBarrier(wx, wz, cell, false);
+        } else if (ch === 'V') {
+          addSpawnBarrier(wx, wz, cell, true);
         } else if (ch === 'S') {
           sCells.push({ x: wx, z: wz });
         } else if (ch === 'E') {
@@ -1804,8 +2102,18 @@
         }
       }
     }
-    if (sCells.length > 0) spawnBluePos.set(sCells[Math.floor(sCells.length / 2)].x, 0, sCells[0].z);
-    if (eCells.length > 0) spawnRedPos.set(eCells[Math.floor(eCells.length / 2)].x, 0, eCells[0].z);
+    if (sCells.length > 0) {
+      spawnBluePos.set(
+        sCells.reduce((a, b) => a + b.x, 0) / sCells.length, 0,
+        sCells.reduce((a, b) => a + b.z, 0) / sCells.length
+      );
+    }
+    if (eCells.length > 0) {
+      spawnRedPos.set(
+        eCells.reduce((a, b) => a + b.x, 0) / eCells.length, 0,
+        eCells.reduce((a, b) => a + b.z, 0) / eCells.length
+      );
+    }
 
   }
 
@@ -1914,49 +2222,42 @@
   // ==================== CHARACTER MODEL BUILDER (SMALL HEAD, REALISTIC PROPORTIONS) ====================
   function createCharacterRig(isEnemy, isIllusion = false) {
     const group = new THREE.Group();
-    const tex = isEnemy ? texCamoRed : texCamoBlue;
-    const teamAccent = isEnemy ? 0xef4444 : 0x38bdf8;
+    const jacketCol = isEnemy ? 0xc82838 : 0x2563eb;
+    const collarCol = isEnemy ? 0xfca5a5 : 0x7dd3fc;
     const matBody = new THREE.MeshStandardMaterial({
-      map: tex, roughness: 0.72, metalness: 0.12,
+      color: jacketCol, roughness: 0.72, metalness: 0.08,
       transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
     });
-    const matGear = new THREE.MeshStandardMaterial({
-      color: 0x1e293b, roughness: 0.65, metalness: 0.28,
-      transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
-    });
-    const matBoot = new THREE.MeshStandardMaterial({
-      color: 0x0f172a, roughness: 0.82, metalness: 0.12,
+    const matPants = new THREE.MeshStandardMaterial({
+      color: 0x111827, roughness: 0.82, metalness: 0.08,
       transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
     });
     const matHead = new THREE.MeshStandardMaterial({
-      map: texSkin, roughness: 0.6,
+      color: 0xd9ad8b, roughness: 0.65,
       transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
     });
-    const matVisor = new THREE.MeshStandardMaterial({
-      color: 0x111827, roughness: 0.22, metalness: 0.75
+    const matHair = new THREE.MeshStandardMaterial({
+      color: 0x1e293b, roughness: 0.85,
+      transparent: isIllusion, opacity: isIllusion ? 0.85 : 1.0
     });
-    const matGun = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.78, roughness: 0.3 });
+    const matGun = new THREE.MeshStandardMaterial({ color: 0x0f172a, metalness: 0.72, roughness: 0.32 });
 
     const hitboxes = [];
 
-    // Articulated Legs with hip pivot + knee pivot (realistic stride + knee bend)
+    // Clean, realistic-proportioned Legs with hip + knee pivots (dark tactical trousers)
     const buildLeg = (xOff) => {
       const hipPivot = new THREE.Group();
       hipPivot.position.set(xOff, 0.86, 0);
-      const thigh = new THREE.Mesh(new THREE.CylinderGeometry(0.088, 0.072, 0.42, 10), matBody);
-      thigh.position.y = -0.21; thigh.castShadow = true; thigh.userData = { part: 'legs' };
+      const thigh = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.44, 0.17), matPants);
+      thigh.position.y = -0.22; thigh.castShadow = true; thigh.userData = { part: 'legs' };
       const kneePivot = new THREE.Group();
-      kneePivot.position.set(0, -0.42, 0);
-      const knee = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.09, 0.11), matGear);
-      knee.position.set(0, -0.01, -0.025); knee.userData = { part: 'legs' };
-      const shin = new THREE.Mesh(new THREE.CylinderGeometry(0.068, 0.056, 0.34, 10), matBody);
-      shin.position.y = -0.18; shin.castShadow = true; shin.userData = { part: 'legs' };
-      const boot = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.11, 0.23), matBoot);
-      boot.position.set(0, -0.385, -0.035); boot.castShadow = true; boot.userData = { part: 'legs' };
-      kneePivot.add(knee, shin, boot);
+      kneePivot.position.set(0, -0.43, 0);
+      const shin = new THREE.Mesh(new THREE.BoxGeometry(0.145, 0.42, 0.16), matPants);
+      shin.position.y = -0.21; shin.castShadow = true; shin.userData = { part: 'legs' };
+      kneePivot.add(shin);
       hipPivot.add(thigh, kneePivot);
       hipPivot.knee = kneePivot;
-      hitboxes.push(thigh, shin, boot);
+      hitboxes.push(thigh, shin);
       group.add(hipPivot);
       return hipPivot;
     };
@@ -1965,69 +2266,46 @@
     const upperBody = new THREE.Group();
     group.add(upperBody);
 
-    // Tapered Pelvis + Tactical Belt + Sculpted Upper Torso + Plate Carrier Vest
-    const pelvis = new THREE.Mesh(new THREE.CylinderGeometry(0.175, 0.155, 0.16, 10), matBody);
-    pelvis.scale.set(1.12, 1, 0.72); pelvis.position.set(0, 0.90, 0);
-    pelvis.userData = { part: 'torso' };
-    const belt = new THREE.Mesh(new THREE.BoxGeometry(0.40, 0.06, 0.25), matGear);
-    belt.position.set(0, 0.94, 0);
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.215, 0.17, 0.50, 12), matBody);
-    torso.scale.set(1.12, 1, 0.66); torso.position.set(0, 1.22, 0); torso.castShadow = true;
+    // Clean Stylized Tactical Jacket Torso + Collar Accent
+    const torso = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.60, 0.24), matBody);
+    torso.position.set(0, 1.18, 0); torso.castShadow = true;
     torso.userData = { part: 'torso' };
-    const vest = new THREE.Mesh(new THREE.BoxGeometry(0.36, 0.36, 0.27), matGear);
-    vest.position.set(0, 1.24, 0); vest.castShadow = true; vest.userData = { part: 'torso' };
-    const vestTrim = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.025, 0.275), new THREE.MeshStandardMaterial({ color: isEnemy ? 0x7f1d1d : 0x1e3a5f, roughness: 0.6 }));
-    vestTrim.position.set(0, 1.35, 0);
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.065, 0.11, 10), matHead);
-    neck.position.set(0, 1.50, 0);
-    upperBody.add(pelvis, belt, torso, vest, vestTrim, neck);
-    hitboxes.push(pelvis, torso, vest);
+    const collar = new THREE.Mesh(
+      new THREE.BoxGeometry(0.28, 0.055, 0.25),
+      new THREE.MeshStandardMaterial({ color: collarCol, roughness: 0.55 })
+    );
+    collar.position.set(0, 1.46, 0);
+    upperBody.add(torso, collar);
+    hitboxes.push(torso);
 
-    // Shoulder pads, upper/lower arms & gloved hands holding rifle
-    const buildArm = (xSide, rotX, rotZ) => {
-      const sh = new THREE.Mesh(new THREE.SphereGeometry(0.078, 10, 8), matBody);
-      sh.position.set(xSide * 0.25, 1.40, 0);
-      const uArm = new THREE.Mesh(new THREE.CylinderGeometry(0.062, 0.052, 0.28, 8), matBody);
-      uArm.position.set(xSide * 0.26, 1.27, -0.06); uArm.rotation.set(rotX, 0, rotZ); uArm.castShadow = true;
-      const fArm = new THREE.Mesh(new THREE.CylinderGeometry(0.052, 0.044, 0.26, 8), matBody);
-      fArm.position.set(xSide * 0.16, 1.21, -0.22); fArm.rotation.set(-1.35, -xSide * 0.42, 0); fArm.castShadow = true;
-      const glove = new THREE.Mesh(new THREE.SphereGeometry(0.046, 8, 8), matBoot);
-      glove.position.set(xSide === 1 ? 0.15 : 0.11, 1.22, xSide === 1 ? -0.22 : -0.36);
-      upperBody.add(sh, uArm, fArm, glove);
-    };
-    buildArm(-1, -0.55, 0.14);
-    buildArm(1, -0.75, -0.10);
+    // Clean Arms & Hands gripping Rifle
+    const armL = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.48, 0.125), matBody);
+    armL.position.set(-0.26, 1.24, -0.10); armL.rotation.set(-0.72, 0, -0.22); armL.castShadow = true;
+    const armR = new THREE.Mesh(new THREE.BoxGeometry(0.115, 0.48, 0.125), matBody);
+    armR.position.set(0.24, 1.24, -0.12); armR.rotation.set(-0.85, 0, 0.14); armR.castShadow = true;
+    upperBody.add(armL, armR);
 
-    // Detailed Tactical Rifle
+    // Clean Tactical Rifle
     const rifle = new THREE.Group();
-    rifle.position.set(0.15, 1.24, -0.30);
-    const rBody = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.085, 0.44), matGun);
-    const rBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.34, 8), matGun);
-    rBarrel.rotation.x = Math.PI / 2; rBarrel.position.set(0, 0.01, -0.36);
-    const rMag = new THREE.Mesh(new THREE.BoxGeometry(0.032, 0.12, 0.055), matGear);
-    rMag.position.set(0, -0.08, -0.04); rMag.rotation.x = 0.18;
-    const rOptic = new THREE.Mesh(new THREE.BoxGeometry(0.034, 0.034, 0.09), matGear);
-    rOptic.position.set(0, 0.058, -0.02);
-    rifle.add(rBody, rBarrel, rMag, rOptic);
+    rifle.position.set(0.14, 1.23, -0.32);
+    const rBody = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.08, 0.44), matGun);
+    const rBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.015, 0.30, 8), matGun);
+    rBarrel.rotation.x = Math.PI / 2; rBarrel.position.set(0, 0.01, -0.34);
+    rifle.add(rBody, rBarrel);
     const enemyMuzzle = new THREE.Mesh(
       new THREE.SphereGeometry(0.075, 6, 6),
       new THREE.MeshBasicMaterial({ color: 0xfef08a, transparent: true, opacity: 0 })
     );
-    enemyMuzzle.position.set(0.15, 1.25, -0.82);
+    enemyMuzzle.position.set(0.14, 1.24, -0.80);
     upperBody.add(rifle, enemyMuzzle);
 
-    // Realistic Head + Tactical Helmet + Visor Goggles + Headset
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.118, 16, 14), matHead);
-    head.scale.set(0.92, 1.08, 0.98);
-    head.position.set(0, 1.63, 0); head.castShadow = true;
+    // Clean Head + Hair Cap (no VR goggles, no noisy face lines)
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.23, 0.21), matHead);
+    head.position.set(0, 1.62, 0); head.castShadow = true;
     head.userData = { part: 'head' };
-    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.18, 0.055, 0.10), matVisor);
-    visor.position.set(0, 1.645, -0.078);
-    const earL = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 10), matGear);
-    earL.rotation.z = Math.PI / 2; earL.position.set(-0.12, 1.62, 0.01);
-    const earR = new THREE.Mesh(new THREE.CylinderGeometry(0.036, 0.036, 0.03, 10), matGear);
-    earR.rotation.z = Math.PI / 2; earR.position.set(0.12, 1.62, 0.01);
-    upperBody.add(head, visor, earL, earR);
+    const hair = new THREE.Mesh(new THREE.BoxGeometry(0.225, 0.07, 0.225), matHair);
+    hair.position.set(0, 1.72, 0.005); hair.castShadow = true;
+    upperBody.add(head, hair);
     hitboxes.push(head);
 
     // Wallhack / Scan glow mesh (visible through walls when scanned!)
@@ -2203,6 +2481,7 @@
       pos.z = Math.max(-ARENA_HALF + radius, Math.min(ARENA_HALF - radius, pos.z));
       const curY = getGroundHeight(pos.x, pos.z);
       for (const o of obstacles) {
+        if (o.disabled) continue;
         const obBot = o.bottom || 0;
         if (o.height <= curY + 0.55 || obBot >= curY + 1.85) continue;
         const cx = Math.max(o.minX, Math.min(o.maxX, pos.x));
@@ -2243,6 +2522,7 @@
           nz < -ARENA_HALF + PLAYER_RADIUS || nz > ARENA_HALF - PLAYER_RADIUS) break;
       let hit = false;
       for (const o of obstacles) {
+        if (o.disabled) continue;
         const obBot = o.bottom || 0;
         if (o.height <= curY + 0.55 || obBot >= curY + 1.85) continue;
         const cx = Math.max(o.minX, Math.min(o.maxX, nx));
@@ -2260,11 +2540,43 @@
 
   const raycaster = new THREE.Raycaster();
 
+  function rayHitDistAABB(ox, oy, oz, dx, dy, dz, minX, maxX, minY, maxY, minZ, maxZ, maxDist) {
+    let tmin = 0, tmax = maxDist;
+    const axes = [[ox, dx, minX, maxX], [oy, dy, minY, maxY], [oz, dz, minZ, maxZ]];
+    for (let i = 0; i < 3; i++) {
+      const o = axes[i][0], d = axes[i][1], bmin = axes[i][2], bmax = axes[i][3];
+      if (Math.abs(d) < 1e-8) {
+        if (o < bmin || o > bmax) return -1;
+      } else {
+        let t1 = (bmin - o) / d, t2 = (bmax - o) / d;
+        if (t1 > t2) { const tmp = t1; t1 = t2; t2 = tmp; }
+        if (t1 > tmin) tmin = t1;
+        if (t2 < tmax) tmax = t2;
+        if (tmin > tmax) return -1;
+      }
+    }
+    return (tmin <= tmax && tmax >= 0 && tmin <= maxDist) ? Math.max(0, tmin) : -1;
+  }
+
+  function getObstacleRayHitDist(from, dir, maxDist) {
+    let best = -1;
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i];
+      if (o.disabled) continue;
+      const minY = o.bottom || 0;
+      const d = rayHitDistAABB(from.x, from.y, from.z, dir.x, dir.y, dir.z, o.minX, o.maxX, minY, o.height, o.minZ, o.maxZ, maxDist);
+      if (d >= 0 && (best < 0 || d < best)) best = d;
+    }
+    return best;
+  }
+
   function hasLineOfSight(from, to) {
     const dir = new THREE.Vector3().subVectors(to, from);
     const dist = dir.length();
     if (dist < 0.01) return true;
-    raycaster.set(from, dir.normalize());
+    dir.normalize();
+    if (getObstacleRayHitDist(from, dir, dist) >= 0) return false;
+    raycaster.set(from, dir);
     raycaster.far = dist;
     const hits = raycaster.intersectObjects(obstacleMeshes, false);
     return hits.length === 0;
@@ -2939,7 +3251,7 @@
       isScoped = next;
       const ov = document.getElementById('scope-overlay');
       ov.classList.toggle('active', isScoped);
-      if (!isScoped && matchState !== 'playing' && matchState !== 'round_end') {
+      if (!isScoped && matchState !== 'playing' && matchState !== 'round_end' && matchState !== 'round_intro') {
         gunAnim.adsT = 0;
         ov.style.opacity = '0';
         camera.fov = 72;
@@ -3057,6 +3369,8 @@
     pendingReplaySounds = [];
     replayAccum = 0;
 
+    // Reset enemy heartbeat timer so map_vote + map_reveal never triggers a false disconnect forfeit!
+    lastEnemyNetTime = performance.now();
     // Map Reveal Phase before Round 1 starts
     matchState = 'map_reveal';
     stateTimer = 2.6;
@@ -3073,6 +3387,7 @@
     bSub.className = '';
     bSub.textContent = m.desc;
     bDet.textContent = 'まもなく試合を開始します...';
+    banner.classList.remove('prep-top');
     banner.classList.add('active');
   }
 
@@ -3095,6 +3410,7 @@
       p.recoilPitch = 0; p.recoilYaw = 0;
       const sp = zPos > 0 ? spawnBluePos : spawnRedPos;
       p.pos.set(sp.x + (Math.random() - 0.5) * 2.5, 0, sp.z);
+      resolveCircleObstacles(p.pos, PLAYER_RADIUS);
       if (p.targetPos) p.targetPos.copy(p.pos);
       p.yaw = yaw; p.targetYaw = yaw; p.pitch = 0;
     };
@@ -3107,8 +3423,10 @@
     teamEnemies = [];
     dmBots = [];
 
-    const selfZ = (isOnlineMatch && !isHost && selectedMode !== 'pve') ? -32 : 32;
-    const selfYaw = (isOnlineMatch && !isHost && selectedMode !== 'pve') ? Math.PI : 0;
+    const swapSides = (selectedMode !== 'dm') && (Math.floor((roundNum - 1) / 5) % 2 === 1);
+    const selfAtNorth = (isOnlineMatch && !isHost && selectedMode !== 'pve') ? !swapSides : swapSides;
+    const selfZ = selfAtNorth ? spawnRedPos.z : spawnBluePos.z;
+    const selfYaw = selfAtNorth ? Math.PI : 0;
     resetP(pSelf, selfZ, selfYaw);
     resetP(pEnemy, -selfZ, selfYaw === 0 ? Math.PI : 0);
 
@@ -3172,10 +3490,11 @@
       const inRed = customRoom.red.some(x => x && x.id === myNetId);
       const myTeamArr = (inRed ? customRoom.red : customRoom.blue).filter(Boolean);
       const oppTeamArr = (inRed ? customRoom.blue : customRoom.red).filter(Boolean);
-      const mySpawn = inRed ? spawnRedPos : spawnBluePos;
-      const oppSpawn = inRed ? spawnBluePos : spawnRedPos;
-      const myYaw = inRed ? Math.PI : 0;
-      const oppYaw = inRed ? 0 : Math.PI;
+      const myAtNorth = swapSides ? !inRed : inRed;
+      const mySpawn = myAtNorth ? spawnRedPos : spawnBluePos;
+      const oppSpawn = myAtNorth ? spawnBluePos : spawnRedPos;
+      const myYaw = myAtNorth ? Math.PI : 0;
+      const oppYaw = myAtNorth ? 0 : Math.PI;
 
       ['stick-zone', 'btn-fire', 'btn-ability', 'btn-reload', 'btn-scope', 'ammo-box', 'crosshair'].forEach(id => {
         const el = document.getElementById(id);
@@ -3202,13 +3521,13 @@
       let aIdx = 0;
       myTeamArr.forEach((slot, sOrder) => {
         if (slot.id === myNetId) {
-          const sx = mySpawn.x + (sOrder % 2 ? 1 : -1) * (1.4 * Math.ceil(sOrder / 2));
+          const sx = mySpawn.x + (sOrder % 2 ? 1 : -1) * (2.2 * Math.ceil(sOrder / 2));
           pSelf.pos.set(sx, 0, mySpawn.z);
           return;
         }
         const u = allyUnits[aIdx] || 0;
         const alive = u < 6;
-        const ax = mySpawn.x + (sOrder % 2 ? 1 : -1) * (1.4 * Math.ceil(sOrder / 2));
+        const ax = mySpawn.x + (sOrder % 2 ? 1 : -1) * (2.2 * Math.ceil(sOrder / 2));
         const aRig = createCharacterRig(false, false);
         aRig.group.position.set(ax, 0, mySpawn.z);
         aRig.group.rotation.y = myYaw;
@@ -3247,7 +3566,7 @@
           const idx = oi - 1;
           const u = enemyUnits[idx] || 0;
           const alive = u < 6;
-          const ex = oppSpawn.x + (oi % 2 ? 1 : -1) * (1.4 * Math.ceil(oi / 2));
+          const ex = oppSpawn.x + (oi % 2 ? 1 : -1) * (2.2 * Math.ceil(oi / 2));
           const eRig = createCharacterRig(true, false);
           eRig.group.position.set(ex, 0, oppSpawn.z);
           eRig.group.rotation.y = oppYaw;
@@ -3269,13 +3588,15 @@
     } else if (isTeamMode()) {
       const tSize = getTeamSize();
       suddenDeath = false;
-      pSelf.pos.set(spawnBluePos.x + (isOnlineMatch && !isHost && selectedMode === 'pve' ? 1.5 : -1.5), 0, selfZ);
+      const myTeamSp = selfAtNorth ? spawnRedPos : spawnBluePos;
+      const oppTeamSp = selfAtNorth ? spawnBluePos : spawnRedPos;
+      pSelf.pos.set(myTeamSp.x + (isOnlineMatch && !isHost && selectedMode === 'pve' ? 1.5 : -1.5), 0, selfZ);
       if (pSelf.unit >= 6) {
         pSelf.hp = 0;
         gunGroup.visible = false;
         document.getElementById('spectate-bar').style.display = 'flex';
       }
-      pEnemy.pos.set(spawnRedPos.x + 1.5, 0, -selfZ);
+      pEnemy.pos.set(oppTeamSp.x + 1.5, 0, oppTeamSp.z);
       pEnemy.targetPos.copy(pEnemy.pos);
       if (pEnemy.unit >= 6) { pEnemy.hp = 0; enemyRig.group.visible = false; }
 
@@ -3283,15 +3604,15 @@
         const idx = i - 1;
         const u = allyUnits[idx];
         const alive = u < 6;
-        const ax = spawnBluePos.x + (i - 2) * 1.4;
+        const ax = myTeamSp.x + (i - 2) * 2.4;
         const aRig = createCharacterRig(false, false);
-        aRig.group.position.set(ax, 0, selfZ);
+        aRig.group.position.set(ax, 0, myTeamSp.z);
         aRig.group.rotation.y = selfYaw;
         aRig.group.visible = alive;
         scene.add(aRig.group);
         const isOnlineAlly = (selectedMode === 'pve' && isOnlineMatch && i === 1);
         teamAllies.push({
-          name: isOnlineAlly ? (window._onlinePeerName || 'PARTNER') : `ALLY-${i}`, isOnlineAlly, stats: allyStats[idx], hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, selfZ),
+          name: isOnlineAlly ? (window._onlinePeerName || 'PARTNER') : `ALLY-${i}`, isOnlineAlly, stats: allyStats[idx], hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ax, 0, myTeamSp.z),
           yaw: selfYaw, rig: aRig, fireCd: Math.random() * 0.4, strafeDir: i % 2 ? 1 : -1, strafeT: 1,
           abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false
         });
@@ -3300,15 +3621,15 @@
         const idx = i - 1;
         const u = enemyUnits[idx];
         const alive = u < 6;
-        const ex = spawnRedPos.x + (i - 2) * 1.4;
+        const ex = oppTeamSp.x + (i - 2) * 2.4;
         const eRig = createCharacterRig(true, false);
-        eRig.group.position.set(ex, 0, -selfZ);
+        eRig.group.position.set(ex, 0, oppTeamSp.z);
         eRig.group.rotation.y = selfYaw === 0 ? Math.PI : 0;
         eRig.group.visible = alive;
         eRig.hitboxes.forEach(hb => { hb.userData.teamIdx = idx; });
         scene.add(eRig.group);
         teamEnemies.push({
-          name: `ENEMY-${i}`, stats: enemyStats[idx], hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ex, 0, -selfZ),
+          name: `ENEMY-${i}`, stats: enemyStats[idx], hp: alive ? 100 : 0, unit: u, pos: new THREE.Vector3(ex, 0, oppTeamSp.z),
           yaw: selfYaw === 0 ? Math.PI : 0, rig: eRig, fireCd: Math.random() * 0.4, strafeDir: i % 2 ? -1 : 1, strafeT: 1,
           abCd: 0, rushT: 0, clusterT: 0, scanGlowT: 0, shield: false
         });
@@ -3324,9 +3645,10 @@
     camera.rotation.order = 'YXZ';
     camera.rotation.z = 0;
     document.getElementById('round-result-top').style.display = 'none';
-    window._lastCdSec = 4;
+    setSpawnBarriersActive(selectedMode !== 'dm');
+    window._lastCdSec = 8;
     matchState = 'round_intro';
-    stateTimer = 3.0;
+    stateTimer = 7.0;
 
     const banner = document.getElementById('banner-overlay');
     const bTitle = document.getElementById('banner-title');
@@ -3334,11 +3656,11 @@
     const bDet = document.getElementById('banner-detail');
     document.getElementById('banner-actions').innerHTML = '';
 
-    document.getElementById('banner-overlay').classList.remove('fade-dark');
+    document.getElementById('banner-overlay').classList.remove('fade-dark', 'prep-top');
     document.getElementById('match-end-table-wrap').style.display = 'none';
     bTitle.className = suddenDeath ? 'text-sd' : '';
     bSub.style.display = 'block'; bDet.style.display = 'block'; document.getElementById('banner-actions').style.display = 'flex';
-    bTitle.textContent = selectedMode === 'dm' ? 'DEATHMATCH' : (suddenDeath ? 'SUDDEN DEATH!' : `ROUND ${roundNum}`);
+    bTitle.textContent = selectedMode === 'dm' ? 'DEATHMATCH' : (suddenDeath ? 'SUDDEN DEATH!' : `ROUND ${roundNum}` + ((roundNum > 1 && (roundNum - 1) % 5 === 0) ? ' (サイド交代!)' : ''));
     bSub.textContent = selectedMode === 'dm'
       ? '15人個人戦 — 制限時間6分・40キル先取'
       : (isTeamMode()
@@ -3348,8 +3670,9 @@
             return `${bCnt}v${rCnt} TEAM BATTLE — BLUE ${selfTeamScore} : ${enemyTeamScore} RED`;
           })()
         : `${pSelf.unit + 1}機目 (${UNITS[pSelf.unit]?.name || '観戦'})  VS  ${pEnemy.unit + 1}機目 (${UNITS[pEnemy.unit]?.name || '観戦'})`);
-    bDet.textContent = `MAP: ${MAPS[currentMapIdx].name} — 開始まで: 3`;
-    banner.classList.add('active');
+    bDet.style.display = 'none';
+    bDet.textContent = '';
+    banner.classList.add('active', 'prep-top');
   }
 
   function endRound(selfWon, reason, fromNet = false) {
@@ -3491,9 +3814,11 @@
         const sp = chosen === pSelf ? ({ easy: 0.14, normal: 0.08, hard: 0.04, expert: 0.022 }[npcDifficulty] || 0.08) : 0.035;
         const sy = bot.yaw + (Math.random() - 0.5) * 2 * sp;
         const sDir = new THREE.Vector3(-Math.sin(sy), (Math.random() - 0.5) * sp, -Math.cos(sy)).normalize();
-        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), bEye.clone().addScaledVector(sDir, Math.min(60, minD + 3)));
+        const dmWallHit = getObstacleRayHitDist(bEye, sDir, Math.min(60, minD + 3));
+        const dmTracerDist = dmWallHit >= 0 ? dmWallHit : Math.min(60, minD + 3);
+        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), bEye.clone().addScaledVector(sDir, dmTracerDist));
         const toEye = new THREE.Vector3().subVectors(tEye, bEye).normalize();
-        if (sDir.angleTo(toEye) < Math.atan2(0.45, Math.max(2, minD))) {
+        if ((dmWallHit < 0 || dmWallHit > minD - 0.3) && hasLineOfSight(bEye, tEye) && sDir.angleTo(toEye) < Math.atan2(0.45, Math.max(2, minD))) {
           if (chosen === pSelf) {
             if (pSelf.hp - 18 <= 0) { bot.stats.k++; if (bot.stats.k >= 40) finishDeathmatch(); }
             applyDamageToSelf(18, 'torso', bot.pos, bot.name);
@@ -4349,14 +4674,16 @@
       ).normalize();
 
       const startPos = new THREE.Vector3(pEnemy.pos.x, 1.32, pEnemy.pos.z);
-      const endPos = eEye.clone().addScaledVector(shotDir, Math.min(60, dist + 6));
+      const npcWallHit = getObstacleRayHitDist(eEye, shotDir, Math.min(60, dist + 6));
+      const npcTracerDist = npcWallHit >= 0 ? npcWallHit : Math.min(60, dist + 6);
+      const endPos = eEye.clone().addScaledVector(shotDir, npcTracerDist);
       spawnBulletTracer(startPos, endPos);
 
-      // Check angular accuracy against player hitbox
+      // Check angular accuracy against player hitbox (strictly blocked by walls)
       const toEye = new THREE.Vector3().subVectors(sEye, eEye).normalize();
       const angErr = shotDir.angleTo(toEye);
       const hitAngleThreshold = Math.atan2(0.36, Math.max(2, dist));
-      if (angErr < hitAngleThreshold) {
+      if ((npcWallHit < 0 || npcWallHit > dist - 0.3) && hasLineOfSight(eEye, sEye) && angErr < hitAngleThreshold) {
         const isHS = angErr < hitAngleThreshold * 0.28 && Math.random() < diffCfg.hsProb * 2.5;
         const dmgVal = isHS ? 100 : 18;
         if (aiTarget === pSelf || aiTarget.isSelf) {
@@ -4455,7 +4782,7 @@
     try { aimZone.setPointerCapture(e.pointerId); } catch (err) {}
   });
   aimZone.addEventListener('pointermove', e => {
-    if (e.pointerId === aimTouchId && ((pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) || (isCustomSpectator && (matchState === 'round_intro' || matchState === 'playing' || matchState === 'round_end')))) {
+    if (e.pointerId === aimTouchId && ((pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end' || matchState === 'round_intro')) || (isCustomSpectator && (matchState === 'round_intro' || matchState === 'playing' || matchState === 'round_end')))) {
       const dx = Math.max(-90, Math.min(90, e.clientX - lastAimPos.x));
       const dy = Math.max(-90, Math.min(90, e.clientY - lastAimPos.y));
       lastAimPos = { x: e.clientX, y: e.clientY };
@@ -4496,7 +4823,7 @@
     btnFire.setPointerCapture(e.pointerId);
   });
   btnFire.addEventListener('pointermove', e => {
-    if (e.pointerId === fireTouchId && pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) {
+    if (e.pointerId === fireTouchId && pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end' || matchState === 'round_intro')) {
       const dx = e.clientX - lastFireAimPos.x;
       const dy = e.clientY - lastFireAimPos.y;
       lastFireAimPos = { x: e.clientX, y: e.clientY };
@@ -4519,7 +4846,7 @@
   btnScope.addEventListener('pointerdown', e => {
     e.stopPropagation(); initAudio();
     if (isLiveUiEdit) return;
-    if ((matchState === 'playing' || matchState === 'round_end') && pSelf.hp > 0) {
+    if ((matchState === 'playing' || matchState === 'round_end' || matchState === 'round_intro') && pSelf.hp > 0) {
       if (config.scopeMode === 'hold') setScoped(true);
       else setScoped(!wantScoped);
     }
@@ -4537,10 +4864,25 @@
   canvas.addEventListener('contextmenu', e => e.preventDefault());
   document.getElementById('viewport-16-9').addEventListener('contextmenu', e => e.preventDefault());
 
+  const cycleAllySpectate = () => {
+    if (!isTeamMode() || pSelf.hp > 0 || isCustomSpectator) return;
+    const aliveAllies = teamAllies.filter(a => a.hp > 0);
+    if (aliveAllies.length > 0) specIdx = (specIdx + 1) % aliveAllies.length;
+  };
+  const specBtn = document.getElementById('btn-spec-next');
+  if (specBtn) {
+    specBtn.addEventListener('pointerdown', e => { e.stopPropagation(); e.preventDefault(); cycleAllySpectate(); });
+    specBtn.addEventListener('click', e => { e.stopPropagation(); });
+  }
+
   const enterPcPointerLock = (e) => {
     if (isLiveUiEdit || listeningKeyAction) return;
     if (e.target && (e.target.tagName === 'BUTTON' || e.target.closest('.hud-top-actions') || e.target.closest('#spectate-bar'))) return;
-    if (matchState !== 'playing' && matchState !== 'round_end' && !(isCustomSpectator && matchState === 'round_intro')) return;
+    if (isTeamMode() && pSelf.hp <= 0 && !isCustomSpectator && (matchState === 'playing' || matchState === 'round_end')) {
+      if (e.button === 0) cycleAllySpectate();
+      return;
+    }
+    if (matchState !== 'playing' && matchState !== 'round_end' && matchState !== 'round_intro') return;
     initAudio();
     if (document.pointerLockElement !== canvas && canvas.requestPointerLock) {
       try { canvas.requestPointerLock(); } catch (err) {}
@@ -4565,7 +4907,7 @@
   });
 
   document.addEventListener('mousemove', e => {
-    if (document.pointerLockElement === canvas && ((pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end')) || (isCustomSpectator && (matchState === 'round_intro' || matchState === 'playing' || matchState === 'round_end')))) {
+    if (document.pointerLockElement === canvas && ((pSelf.hp > 0 && (matchState === 'playing' || matchState === 'round_end' || matchState === 'round_intro')) || (isCustomSpectator && (matchState === 'round_intro' || matchState === 'playing' || matchState === 'round_end')))) {
       const s = 0.0024 * config.sens * (isScoped ? 0.55 : 1.0);
       if (isCustomSpectator) {
         ghostYaw -= e.movementX * s;
@@ -4584,6 +4926,11 @@
   document.getElementById('btn-close-dmglog').addEventListener('click', closeDmgLog);
 
   window.addEventListener('keydown', e => {
+    if (isTeamMode() && pSelf.hp <= 0 && !isCustomSpectator && (matchState === 'playing' || matchState === 'round_end') && (e.code === 'Space' || e.code === 'ArrowRight' || e.code === 'ArrowLeft')) {
+      e.preventDefault();
+      if (!e.repeat) cycleAllySpectate();
+      return;
+    }
     if (e.code === 'Tab' && (matchState === 'playing' || matchState === 'round_end' || matchState === 'round_intro')) {
       e.preventDefault();
       if (!e.repeat) toggleScoreboard();
@@ -4601,7 +4948,7 @@
     if (e.code === config.keys.reload) startReload(pSelf, true);
     if (e.code === config.keys.ability) useSelfAbility();
     if (e.code === config.keys.fire && (matchState === 'playing' || matchState === 'round_end')) isFiringTouch = true;
-    if (e.code === config.keys.scope && (matchState === 'playing' || matchState === 'round_end') && pSelf.hp > 0) {
+    if (e.code === config.keys.scope && (matchState === 'playing' || matchState === 'round_end' || matchState === 'round_intro') && pSelf.hp > 0) {
       if (config.scopeMode === 'hold') setScoped(true);
       else if (!e.repeat) setScoped(!wantScoped);
     }
@@ -4643,9 +4990,14 @@
       const topK = Math.max(pSelf.kills, pEnemy.kills, ...dmBots.map(b => b.stats.k));
       rText = `DM ${dStr} | TOP ${topK}/40`;
     } else {
-      const elSec = Math.floor(roundElapsed);
-      const elStr = `${String(Math.floor(elSec / 60)).padStart(2, '0')}:${String(elSec % 60).padStart(2, '0')}`;
-      rText = (suddenDeath ? 'SUDDEN DEATH' : `ROUND ${roundNum}`) + ` | ${elStr}`;
+      if (matchState === 'round_intro') {
+        const cd = Math.max(1, Math.ceil(stateTimer));
+        rText = (suddenDeath ? 'SUDDEN DEATH' : `ROUND ${roundNum}`) + ` | バリア ${cd}s`;
+      } else {
+        const elSec = Math.floor(roundElapsed);
+        const elStr = `${String(Math.floor(elSec / 60)).padStart(2, '0')}:${String(elSec % 60).padStart(2, '0')}`;
+        rText = (suddenDeath ? 'SUDDEN DEATH' : `ROUND ${roundNum}`) + ` | ${elStr}`;
+      }
     }
     document.getElementById('hud-round-label').textContent =
       selectedMode === 'rank' ? `GAME ${selfGames + enemyGames + 1} (${selfGames}-${enemyGames}) | ${rText}` : rText;
@@ -4659,27 +5011,75 @@
         el.appendChild(d);
       }
     };
+    const teamBarEl = document.getElementById('hud-team-bar');
+    const teamActEl = document.getElementById('hud-team-actions');
+    const soloTopEl = document.getElementById('hud-1v1-top');
+    const sbBtnEl = document.getElementById('btn-scoreboard');
     if (isTeamMode()) {
+      if (teamBarEl) teamBarEl.style.display = 'flex';
+      if (teamActEl) teamActEl.style.display = 'flex';
+      if (soloTopEl) soloTopEl.style.display = 'none';
+      if (sbBtnEl) sbBtnEl.style.top = 'var(--safe-top)';
       const blueTotal = selectedMode === 'custom' ? (isCustomSpectator ? teamAllies.length : 1 + teamAllies.length) : getTeamSize();
       const redTotal = selectedMode === 'custom' ? ((pEnemy.name === 'なし' ? 0 : 1) + teamEnemies.length) : getTeamSize();
-      const tSize = blueTotal;
-      const tSub = Math.max(0, blueTotal - 1);
-      const aAlive = (!isCustomSpectator && pSelf.hp > 0 ? 1 : 0) + teamAllies.filter(a => a.hp > 0).length;
-      const eAlive = (pEnemy.name !== 'なし' && pEnemy.hp > 0 ? 1 : 0) + teamEnemies.filter(e => e.hp > 0).length;
-      const rSub = Math.max(0, redTotal - 1);
-      const aRemain = (pSelf.unit < 6 ? 1 : 0) + allyUnits.slice(0, tSub).filter(u => u < 6).length;
-      const eRemain = (pEnemy.name !== 'なし' && pEnemy.unit < 6 ? 1 : 0) + enemyUnits.slice(0, rSub).filter(u => u < 6).length;
-      if (isCustomSpectator) {
-        document.getElementById('hud-self-unit').textContent = `観戦中 (BLUE ${teamAllies.filter(a=>a.hp>0).length}/${teamAllies.length})`;
+      const blueStates = [
+        ...(!isCustomSpectator ? [pSelf.hp > 0] : []),
+        ...teamAllies.map(a => a.hp > 0)
+      ];
+      const redStates = [
+        ...(pEnemy.name !== 'なし' ? [pEnemy.hp > 0] : []),
+        ...teamEnemies.map(e => e.hp > 0)
+      ];
+      document.getElementById('htb-blue-sq').innerHTML = Array.from({length: blueTotal}, (_, i) => `<div class="htb-sq ${blueStates[i] ? 'alive blue' : ''}"></div>`).join('');
+      document.getElementById('htb-red-sq').innerHTML = Array.from({length: redTotal}, (_, i) => `<div class="htb-sq ${redStates[i] ? 'alive red' : ''}"></div>`).join('');
+      document.getElementById('htb-blue-score').textContent = String(selfTeamScore || 0);
+      document.getElementById('htb-red-score').textContent = String(enemyTeamScore || 0);
+      if (matchState === 'round_intro') {
+        const cd2 = Math.max(1, Math.ceil(stateTimer));
+        document.getElementById('htb-round-txt').textContent = `PREP ${roundNum}`;
+        document.getElementById('htb-time-txt').textContent = `00:0${cd2}`;
       } else {
-        document.getElementById('hud-self-unit').textContent = `残り ${aAlive}/${tSize}人 (残機あり${aRemain})`;
+        document.getElementById('htb-round-txt').textContent = `ROUND ${roundNum}`;
+        const elSec2 = Math.floor(roundElapsed);
+        document.getElementById('htb-time-txt').textContent = `${String(Math.floor(elSec2 / 60)).padStart(2, '0')}:${String(elSec2 % 60).padStart(2, '0')}`;
       }
-      document.getElementById('hud-enemy-unit').textContent = `残り ${eAlive}/${redTotal}人 (残機あり${eRemain})`;
-      document.getElementById('hud-self-pips').innerHTML = Array.from({length: tSize}, (_, i) => `<div class="pip ${i < aAlive ? 'alive self' : ''}"></div>`).join('');
-      document.getElementById('hud-enemy-pips').innerHTML = Array.from({length: redTotal}, (_, i) => `<div class="pip ${i < eAlive ? 'alive enemy' : ''}"></div>`).join('');
-    } else if (selectedMode !== 'dm') {
-      renderPips('hud-self-pips', pSelf.unit, 'self');
-      renderPips('hud-enemy-pips', pEnemy.unit, 'enemy');
+      document.getElementById('btn-ingame-mute-2').textContent = config.muted ? '🔇' : '🔊';
+    } else {
+      if (teamBarEl) teamBarEl.style.display = 'none';
+      if (teamActEl) teamActEl.style.display = 'none';
+      if (soloTopEl) soloTopEl.style.display = 'flex';
+      if (sbBtnEl) sbBtnEl.style.top = 'calc(var(--safe-top) + 48px)';
+      if (selectedMode !== 'dm') {
+        renderPips('hud-self-pips', pSelf.unit, 'self');
+        renderPips('hud-enemy-pips', pEnemy.unit, 'enemy');
+      }
+    }
+
+    const hpCard = document.getElementById('hud-hp-card');
+    if (hpCard) {
+      if (isCustomSpectator) {
+        hpCard.style.display = 'none';
+      } else {
+        let dispName = 'HP';
+        let dispHp = Math.max(0, Math.round(pSelf.hp));
+        if (isTeamMode() && pSelf.hp <= 0) {
+          const aliveAllies = teamAllies.filter(a => a.hp > 0);
+          if (aliveAllies.length > 0) {
+            const spTgt = aliveAllies[specIdx % aliveAllies.length];
+            dispName = spTgt.name || '観戦';
+            dispHp = Math.max(0, Math.round(spTgt.hp));
+          }
+        }
+        hpCard.style.display = 'block';
+        document.getElementById('hud-hp-lbl').textContent = dispName;
+        const hpNumEl = document.getElementById('hud-hp-num');
+        const hpFillEl = document.getElementById('hud-hp-fill');
+        hpNumEl.textContent = String(dispHp);
+        hpFillEl.style.width = `${Math.min(100, dispHp)}%`;
+        const low = dispHp <= 35;
+        hpNumEl.style.color = low ? '#f87171' : '#38bdf8';
+        hpFillEl.style.background = low ? 'linear-gradient(90deg, #dc2626, #f87171)' : 'linear-gradient(90deg, #0284c7, #38bdf8)';
+      }
     }
 
     document.getElementById('ammo-text').textContent =
@@ -5005,6 +5405,7 @@
   }
 
   function closeCustomRoomNet() {
+    if (custHbTimer) { clearInterval(custHbTimer); custHbTimer = null; }
     try { if (custMqtt) custMqtt.end(true); } catch (e) {}
     try { if (custBc) custBc.close(); } catch (e) {}
     custMqtt = null; custBc = null; custTopic = '';
@@ -5106,6 +5507,7 @@
     }
   }
 
+  let custHbTimer = null;
   function tryTriggerCustomStartFromReady() {
     if (customRoom.started) return;
     const humanIds = getCustomHumanIds();
@@ -5165,6 +5567,12 @@
         customRoom.readyIds = (customRoom.readyIds || []).filter(id => id !== d.id);
         renderCustomRoom();
         tryTriggerCustomStartFromReady();
+      } else if (d.type === 'cust_ready' && d.id && !customRoom.started) {
+        if (!customRoom.readyIds) customRoom.readyIds = [];
+        if (d.ready) { if (!customRoom.readyIds.includes(d.id)) customRoom.readyIds.push(d.id); }
+        else { customRoom.readyIds = customRoom.readyIds.filter(id => id !== d.id); }
+        renderCustomRoom();
+        tryTriggerCustomStartFromReady();
       } else if (d.type === 'cust_start') {
         if (d.room) customRoom = d.room;
         launchCustomMatch(d.mapIdx, d.hostId, d.matchId);
@@ -5186,6 +5594,12 @@
           custMqtt.subscribe(custTopic);
           custMqtt.publish(custTopic, JSON.stringify({ type: 'cust_join', from: myNetId, id: myNetId, name: config.name }));
         });
+        custHbTimer = setInterval(() => {
+          if (matchState !== 'custom_lobby' || customRoom.started) return;
+          const hb = { type: 'cust_join', from: myNetId, id: myNetId, name: config.name };
+          try { if (custBc) custBc.postMessage(hb); } catch (e) {}
+          try { if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, JSON.stringify(hb)); } catch (e) {}
+        }, 2200);
         custMqtt.on('message', (_, raw) => {
           try { handleCustMsg(JSON.parse(raw.toString())); } catch (e) {}
         });
@@ -5338,22 +5752,14 @@
     if (customRoom.started) return;
     if (!customRoom.readyIds) customRoom.readyIds = [];
     const idx = customRoom.readyIds.indexOf(myNetId);
-    if (idx >= 0) customRoom.readyIds.splice(idx, 1);
-    else customRoom.readyIds.push(myNetId);
-    const humanIds = getCustomHumanIds();
-    const ready = customRoom.readyIds.filter(id => humanIds.includes(id));
-    if (humanIds.length > 0 && ready.length >= humanIds.length) {
-      const hostId = humanIds.slice().sort()[0];
-      const mIdx = (Number.isInteger(customRoom.mapIdx) && customRoom.mapIdx >= 0 && customRoom.mapIdx < MAPS.length) ? customRoom.mapIdx : Math.floor(Math.random() * MAPS.length);
-      const matchId = encodeURIComponent((custTopic || 'c') + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6));
-      const startPayload = { type: 'cust_start', from: myNetId, mapIdx: mIdx, room: customRoom, hostId, matchId };
-      if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, JSON.stringify(startPayload));
-      if (custBc) custBc.postMessage(startPayload);
-      launchCustomMatch(mIdx, hostId, matchId);
-    } else {
-      broadcastCustomRoom();
-      renderCustomRoom();
-    }
+    const nowReady = idx < 0;
+    if (nowReady) customRoom.readyIds.push(myNetId);
+    else customRoom.readyIds.splice(idx, 1);
+    const rdyMsg = { type: 'cust_ready', from: myNetId, id: myNetId, ready: nowReady };
+    try { if (custBc) custBc.postMessage(rdyMsg); } catch (e) {}
+    try { if (custMqtt && custMqtt.connected && custTopic) custMqtt.publish(custTopic, JSON.stringify(rdyMsg)); } catch (e) {}
+    renderCustomRoom();
+    tryTriggerCustomStartFromReady();
   });
   function sendCustomLeave() {
     const msg = { type: 'cust_leave', from: myNetId, id: myNetId };
@@ -5537,11 +5943,13 @@
         const sy = bot.yaw + (Math.random() - 0.5) * 2 * spread;
         const sp = (Math.random() - 0.5) * 2 * spread * 0.6;
         const sDir = new THREE.Vector3(-Math.sin(sy)*Math.cos(sp), Math.sin(sp), -Math.cos(sy)*Math.cos(sp)).normalize();
-        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), bEye.clone().addScaledVector(sDir, Math.min(60, minD + 3)));
+        const bWallHit = getObstacleRayHitDist(bEye, sDir, Math.min(60, minD + 3));
+        const bTracerDist = bWallHit >= 0 ? bWallHit : Math.min(60, minD + 3);
+        spawnBulletTracer(new THREE.Vector3(bot.pos.x, 1.3, bot.pos.z), bEye.clone().addScaledVector(sDir, bTracerDist));
 
         const toEye = new THREE.Vector3().subVectors(tEye, bEye).normalize();
         const hitTol = Math.atan2(0.46, Math.max(2, minD));
-        if (sDir.angleTo(toEye) < hitTol) {
+        if ((bWallHit < 0 || bWallHit > minD - 0.3) && hasLineOfSight(bEye, tEye) && sDir.angleTo(toEye) < hitTol) {
           const hsMult = chosen.isPlayer ? ({ easy: 0.0, normal: 0.08, hard: 0.22, expert: 0.40 }[npcDifficulty] || 0.1) : 0.45;
           const isHS = sDir.angleTo(toEye) < hitTol * 0.25 && Math.random() < hsMult;
           const bDmg = isHS ? 100 : 18;
@@ -5692,6 +6100,14 @@
     saveConfig();
   });
   document.getElementById('btn-ingame-quit').addEventListener('click', exitToLobby);
+  document.getElementById('btn-ingame-settings-2').addEventListener('click', () => openSettings(true));
+  document.getElementById('btn-ingame-mute-2').addEventListener('click', e => {
+    config.muted = !config.muted;
+    e.target.textContent = config.muted ? '🔇' : '🔊';
+    document.getElementById('btn-ingame-mute').textContent = e.target.textContent;
+    saveConfig();
+  });
+  document.getElementById('btn-ingame-quit-2').addEventListener('click', exitToLobby);
 
   document.getElementById('btn-export-save').addEventListener('click', () => {
     saveConfig();
@@ -5849,8 +6265,8 @@
     const dt = Math.min(0.05, (now - lastTime) / 1000);
     lastTime = now;
 
-    // Online disconnect check (skip forfeit in PvE since enemies are NPCs; self-disconnect = DEFEAT, opponent-disconnect = VICTORY)
-    if (isOnlineMatch && selectedMode !== 'pve' && (matchState === 'playing' || matchState === 'round_intro' || matchState === 'round_end' || matchState === 'game_end')) {
+    // Online disconnect check (skip forfeit in PvE; keep ping alive during map_vote/map_reveal so map selection never false-triggers!)
+    if (isOnlineMatch && selectedMode !== 'pve' && (matchState === 'map_vote' || matchState === 'map_reveal' || matchState === 'playing' || matchState === 'round_intro' || matchState === 'round_end' || matchState === 'game_end')) {
       if (matchState !== 'playing') {
         netSyncAccum += dt;
         if (netSyncAccum >= 1.2) {
@@ -5858,11 +6274,13 @@
           sendNet({ type: 'ping' });
         }
       }
-      const myConnAlive = (navigator.onLine !== false) && ((rtcDc && rtcDc.readyState === 'open') || (mqttClient && mqttClient.connected));
-      if (!myConnAlive) {
-        finishMatch(false, '自分の回線が切断されたため不戦敗…');
-      } else if (lastEnemyNetTime > 0 && now - lastEnemyNetTime > 6500) {
-        finishMatch(true, '対戦相手が切断したため不戦勝！');
+      if (matchState !== 'map_vote' && matchState !== 'map_reveal') {
+        const myConnAlive = (navigator.onLine !== false) && ((rtcDc && rtcDc.readyState === 'open') || (mqttClient && mqttClient.connected) || !!bc);
+        if (!myConnAlive) {
+          finishMatch(false, '自分の回線が切断されたため不戦敗…');
+        } else if (lastEnemyNetTime > 0 && now - lastEnemyNetTime > 10500) {
+          finishMatch(true, '対戦相手が切断したため不戦勝！');
+        }
       }
     }
 
@@ -5903,67 +6321,22 @@
         document.getElementById('banner-title').style.color = '';
         setupRound();
       }
-    } else if (matchState === 'round_intro') {
-      stateTimer -= dt;
-      const cnt = Math.max(1, Math.ceil(stateTimer));
-      if (cnt !== window._lastCdSec) {
-        window._lastCdSec = cnt;
-        playSpatialSound('countdownBeep', null, true);
-      }
-      document.getElementById('banner-detail').textContent = `MAP: ${MAPS[currentMapIdx].name} — 開始まで: ${cnt}`;
-      if (isCustomSpectator) {
-        gunGroup.visible = false;
-        document.getElementById('ghost-fly-pad').style.display = 'flex';
-        const gSpd = 12.0;
-        const fx = -Math.sin(ghostYaw) * Math.cos(ghostPitch);
-        const fy = Math.sin(ghostPitch);
-        const fz = -Math.cos(ghostYaw) * Math.cos(ghostPitch);
-        const rx = Math.cos(ghostYaw), rz = -Math.sin(ghostYaw);
-        let gx = ghostStickVec.x, gy = ghostStickVec.y;
-        if (keys[config.keys.up] || keys['ArrowUp']) gy = -1;
-        if (keys[config.keys.down] || keys['ArrowDown']) gy = 1;
-        if (keys[config.keys.left] || keys['ArrowLeft']) gx = -1;
-        if (keys[config.keys.right] || keys['ArrowRight']) gx = 1;
-        if (Math.hypot(gx, gy) > 0.08) {
-          ghostPos.x += (rx * gx + fx * (-gy)) * gSpd * dt;
-          ghostPos.y += (fy * (-gy)) * gSpd * dt;
-          ghostPos.z += (rz * gx + fz * (-gy)) * gSpd * dt;
+    } else if (matchState === 'round_intro' || matchState === 'round_end' || matchState === 'playing') {
+      if (matchState === 'round_intro') {
+        stateTimer -= dt;
+        const cnt = Math.max(1, Math.ceil(stateTimer));
+        if (cnt !== window._lastCdSec) {
+          window._lastCdSec = cnt;
+          if (cnt <= 3) playSpatialSound('countdownBeep', null, true);
         }
-        if (ghostMoveHold.up || keys['Space'] || keys['KeyE']) ghostPos.y += gSpd * 0.7 * dt;
-        if (ghostMoveHold.down || keys['ShiftLeft'] || keys['ShiftRight'] || keys['KeyQ'] || keys['KeyC']) ghostPos.y -= gSpd * 0.7 * dt;
-        ghostPos.y = Math.max(0.6, Math.min(28, ghostPos.y));
-        camera.position.copy(ghostPos);
-        camera.rotation.order = 'YXZ';
-        camera.rotation.y = ghostYaw;
-        camera.rotation.x = ghostPitch;
-        camera.rotation.z = 0;
-      } else if (isTeamMode() && pSelf.hp <= 0) {
-        gunGroup.visible = false;
-        const aliveAllies = teamAllies.filter(a => a.hp > 0);
-        if (aliveAllies.length > 0) {
-          const target = aliveAllies[specIdx % aliveAllies.length];
-          document.getElementById('spectate-label').textContent = `観戦中: ${target.name} (${target.unit + 1}機目)`;
-          camera.position.set(target.pos.x, (target.pos.y || 0) + EYE_HEIGHT, target.pos.z);
-          camera.rotation.order = 'YXZ';
-          camera.rotation.y = target.yaw;
-          camera.rotation.x = 0;
-          camera.rotation.z = 0;
+
+        if (stateTimer <= 0) {
+          setSpawnBarriersActive(false);
+          playSpatialSound('countdownGo', null, true);
+          document.getElementById('banner-overlay').classList.remove('active', 'prep-top');
+          matchState = 'playing';
         }
-      } else {
-        camera.position.set(pSelf.pos.x, (pSelf.pos.y || 0) + EYE_HEIGHT, pSelf.pos.z);
-        camera.rotation.order = 'YXZ';
-        camera.rotation.y = pSelf.yaw;
-        camera.rotation.x = pSelf.pitch;
-        camera.rotation.z = 0;
       }
-      enemyRig.group.position.copy(pEnemy.pos);
-      enemyRig.group.rotation.y = pEnemy.yaw;
-      if (stateTimer <= 0) {
-        playSpatialSound('countdownGo', null, true);
-        document.getElementById('banner-overlay').classList.remove('active');
-        matchState = 'playing';
-      }
-    } else if (matchState === 'round_end' || matchState === 'playing') {
       if (matchState === 'round_end') {
         stateTimer -= dt;
         if (stateTimer <= 0) {
@@ -6139,7 +6512,7 @@
           }
         }
 
-        if (isFiringTouch) fireSelfWeapon();
+        if (matchState !== 'round_intro' && isFiringTouch) fireSelfWeapon();
       } else {
         pSelf.moveMag = 0;
         document.getElementById('move-state-text').textContent = 'DOWN';
@@ -6375,10 +6748,12 @@
       updateHUD();
 
       // Record replay at 20Hz
+      if (matchState === 'playing') {
       replayAccum += dt;
       if (replayAccum >= 0.05) {
         replayAccum = 0;
         recordReplayFrame();
+      }
       }
     } else if (matchState === 'game_end') {
       stateTimer -= dt;
