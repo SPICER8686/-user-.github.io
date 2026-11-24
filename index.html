@@ -127,12 +127,17 @@
         </div>
         <div>
           <p class="font-bold text-sm sm:text-base">現在「ゲストモード」でご利用中です</p>
-          <p class="text-xs sm:text-sm text-indigo-100 mt-0.5">無料アカウント登録・ログイン（メール二段階認証対応）を行うと、作成したテストの保存・改名・削除ができます。</p>
+          <p class="text-xs sm:text-sm text-indigo-100 mt-0.5">無料アカウント作成または体験ログインで、作成したテストの保存・改名・削除・最高スコア記録が使えます。</p>
         </div>
       </div>
-      <button type="button" onclick="openAuthModal('signup')" class="w-full sm:w-auto shrink-0 px-4 py-2.5 bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-colors">
-        新規登録 / ログイン
-      </button>
+      <div class="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
+        <button type="button" onclick="loginWithDemoAccount()" class="flex-1 sm:flex-initial px-3.5 py-2.5 bg-indigo-500/40 hover:bg-indigo-500/60 text-white border border-white/25 font-bold text-xs sm:text-sm rounded-xl transition-colors">
+          1クリック体験ログイン
+        </button>
+        <button type="button" onclick="openAuthModal('signup')" class="flex-1 sm:flex-initial px-4 py-2.5 bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-colors">
+          新規登録 / ログイン
+        </button>
+      </div>
     </div>
 
     <!-- ==================== 1. テスト作成ビュー ==================== -->
@@ -166,10 +171,13 @@
           <div class="flex flex-wrap items-center gap-2">
             <span class="text-xs text-slate-400">画像がない場合：</span>
             <button type="button" onclick="loadSampleNoteImage('history')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200/80 transition-colors">
-              + サンプル日本史ノートを生成して試す
+              + サンプル日本史ノート
             </button>
             <button type="button" onclick="loadSampleNoteImage('english')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200/80 transition-colors">
-              + サンプル英文法ノートを生成して試す
+              + サンプル英文法ノート
+            </button>
+            <button type="button" onclick="loadSampleNoteImage('biology')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-200/80 transition-colors">
+              + サンプル生物ノート
             </button>
           </div>
         </div>
@@ -343,6 +351,19 @@
         <div class="pt-4 border-t border-white/15">
           <div class="text-xs font-bold text-indigo-200 mb-2.5">大問別正答率ブレイクダウン</div>
           <div id="section-breakdown-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5"></div>
+        </div>
+
+        <!-- 採点後の復習アクションバー -->
+        <div class="pt-4 border-t border-white/15 flex flex-wrap items-center justify-end gap-2.5">
+          <button type="button" id="retry-wrong-only-btn" onclick="retryWrongQuestionsOnly()" class="hidden px-4 py-2.5 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-extrabold text-xs sm:text-sm shadow-sm transition-colors flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.4" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+            </svg>
+            <span id="retry-wrong-only-label">間違えた問題だけ再挑戦</span>
+          </button>
+          <button type="button" onclick="retryFullQuiz()" class="px-4 py-2.5 rounded-xl bg-white/15 hover:bg-white/25 text-white border border-white/25 font-bold text-xs sm:text-sm transition-colors">
+            もう一度最初から解く
+          </button>
         </div>
       </div>
 
@@ -523,75 +544,75 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
               </svg>
               <span>メール送信設定 (EmailJS・任意)</span>
-            </span>
-            <span id="emailjs-status-tag" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500">標準送信</span>
-          </button>
-
-          <div id="emailjs-settings-panel" class="hidden mt-2.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2.5">
-            <p class="text-[11px] text-slate-500 leading-relaxed">
-              標準では入力されたメールアドレス宛に直接送信します。独自のEmailJSを利用する場合は以下を入力してください。
-            </p>
-            <input id="ejs-service-id" type="text" placeholder="Service ID (例: service_xxxxxxx)" class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs focus:outline-none focus:border-indigo-500" />
-            <input id="ejs-template-id" type="text" placeholder="Template ID (例: template_xxxxxxx)" class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs focus:outline-none focus:border-indigo-500" />
-            <input id="ejs-public-key" type="text" placeholder="Public Key (例: user_xxxxxxx)" class="w-full px-3 py-2 rounded-lg bg-white border border-slate-300 text-xs focus:outline-none focus:border-indigo-500" />
-            <div class="flex justify-end gap-2">
-              <button type="button" onclick="clearEmailJsConfig()" class="px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-500 hover:bg-slate-200">クリア</button>
-              <button type="button" onclick="saveEmailJsConfigFromModal()" class="px-3 py-1 rounded-lg bg-indigo-600 text-white text-[11px] font-bold hover:bg-indigo-700">設定を保存</button>
-            </div>
-          </div>
-        </div>
+  <!-- ==================== 認証モーダル（1ステップ即時登録・ログイン・体験ログイン） ==================== -->
+  <div id="auth-modal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-7 shadow-2xl border border-slate-100 animate-fade-in my-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="auth-modal-title" class="text-xl font-extrabold text-slate-900">新規アカウント登録</h3>
+        <button type="button" onclick="closeAuthModal()" class="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
       </div>
 
-      <!-- STEP 2: 6桁メール二段階認証コード確認画面 -->
-      <div id="auth-step-2fa" class="hidden space-y-4">
-        <div class="p-3.5 rounded-2xl bg-indigo-50 border border-indigo-100 space-y-1">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-extrabold text-indigo-800">メール二段階認証（2FA）</span>
-            <span id="twofa-timer-badge" class="text-xs font-mono font-extrabold px-2 py-0.5 rounded-md bg-white text-indigo-700 border border-indigo-200">05:00</span>
-          </div>
-          <p class="text-xs text-slate-600">
-            送信先：<span id="twofa-target-email" class="font-bold text-slate-900"></span>
-          </p>
-        </div>
-
-        <!-- メール送信ステータス通知ボックス（送信中・送信完了・初回有効化案内・環境制限案内） -->
-        <div id="twofa-delivery-banner" class="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed space-y-2">
-          <div class="flex items-center gap-2 font-bold text-indigo-700">
-            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-            </svg>
-            <span>認証メールを送信しています...</span>
-          </div>
-        </div>
-
-        <!-- 6桁認証コード入力ボックス -->
-        <div class="space-y-2">
-          <label class="block text-xs font-bold text-slate-700 text-center">メールに届いた6桁の認証コードを入力</label>
-          <div id="otp-boxes-container" class="flex items-center justify-center gap-2 sm:gap-2.5">
-            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-mono font-extrabold rounded-xl border-2 border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-mono font-extrabold rounded-xl border-2 border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-mono font-extrabold rounded-xl border-2 border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-mono font-extrabold rounded-xl border-2 border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-mono font-extrabold rounded-xl border-2 border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-            <input type="text" inputmode="numeric" maxlength="1" class="otp-digit w-10 h-12 sm:w-11 sm:h-13 text-center text-lg sm:text-xl font-mono font-extrabold rounded-xl border-2 border-slate-300 focus:border-indigo-600 focus:ring-2 focus:ring-indigo-500/20 focus:outline-none" />
-          </div>
-        </div>
-
-        <div id="twofa-error-box" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 text-center"></div>
-
-        <button type="button" id="twofa-verify-btn" onclick="verifyTwoFactorCode()" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-200 transition-colors">
-          認証コードを確定して完了する
+      <!-- タブ切替 -->
+      <div class="grid grid-cols-2 gap-1 bg-slate-100 p-1 rounded-xl mb-5">
+        <button type="button" id="auth-tab-signup" onclick="setAuthMode('signup')" class="py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-700 shadow-xs transition-all">
+          新規登録（無料）
         </button>
+        <button type="button" id="auth-tab-login" onclick="setAuthMode('login')" class="py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-all">
+          ログイン
+        </button>
+      </div>
 
-        <div class="flex items-center justify-between pt-1 text-xs">
-          <button type="button" onclick="backToCredentialsStep()" class="font-bold text-slate-500 hover:text-slate-800">
-            ← 入力画面に戻る
-          </button>
-          <button type="button" id="twofa-resend-btn" onclick="resendTwoFactorCode()" class="font-bold text-indigo-600 hover:text-indigo-800 disabled:text-slate-400 disabled:cursor-not-allowed">
-            認証コードを再送信
-          </button>
+      <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+        <!-- 表示名（新規登録時のみ表示・必須） -->
+        <div id="auth-displayname-group">
+          <label for="auth-displayname" class="block text-xs font-bold text-slate-700 mb-1">
+            表示名（ニックネーム） <span class="text-red-500">*</span>
+          </label>
+          <input id="auth-displayname" type="text" maxlength="30" placeholder="例：田中 太郎" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
         </div>
+
+        <div>
+          <label for="auth-email" class="block text-xs font-bold text-slate-700 mb-1">
+            メールアドレス <span class="text-red-500">*</span>
+          </label>
+          <input id="auth-email" type="email" required placeholder="example@domain.com" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+        </div>
+
+        <div>
+          <label for="auth-password" class="block text-xs font-bold text-slate-700 mb-1">
+            パスワード（4文字以上） <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input id="auth-password" type="password" required minlength="4" placeholder="4文字以上で入力" class="w-full pl-3.5 pr-11 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500" />
+            <button type="button" onclick="togglePasswordVisibility('auth-password', 'auth-pw-eye')" aria-label="パスワードの表示切替" class="absolute right-2.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-slate-600">
+              <svg id="auth-pw-eye" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="auth-error-box" class="hidden p-3 rounded-xl bg-red-50 border border-red-200 text-xs font-bold text-red-700 leading-relaxed"></div>
+
+        <button type="submit" id="auth-submit-btn" class="w-full py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-sm shadow-md shadow-indigo-200 transition-colors">
+          アカウントを作成して始める
+        </button>
+      </form>
+
+      <!-- ワンクリック体験ログイン（デモアカウント） -->
+      <div class="mt-5 pt-4 border-t border-slate-100 space-y-2.5">
+        <p class="text-[11px] font-bold text-slate-400 text-center">入力なしで今すぐ試したい方はこちら</p>
+        <button type="button" onclick="loginWithDemoAccount()" class="w-full py-2.5 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold text-xs sm:text-sm transition-colors flex items-center justify-center gap-2">
+          <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+          <span>ワンクリック体験ログイン（デモアカウント）</span>
+        </button>
       </div>
     </div>
   </div>
@@ -702,8 +723,89 @@
 
   <!-- ==================== メインスクリプト ==================== -->
   <script>
-    // -------------------- 1. 安全なストレージエンジン（SafeStorage） --------------------
+    // -------------------- 1. localStorage + IndexedDB 二重永続化ストレージエンジン --------------------
     const memoryStorageCache = {};
+    const IDB_NAME = 'StudySnapAI_DB';
+    const IDB_STORE = 'kv_store';
+
+    function openIndexedDB() {
+      return new Promise((resolve) => {
+        try {
+          if (!window.indexedDB) {
+            resolve(null);
+            return;
+          }
+          const req = window.indexedDB.open(IDB_NAME, 1);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains(IDB_STORE)) {
+              db.createObjectStore(IDB_STORE);
+            }
+          };
+          req.onsuccess = (e) => resolve(e.target.result);
+          req.onerror = () => resolve(null);
+        } catch (err) {
+          resolve(null);
+        }
+      });
+    }
+
+    async function idbSet(key, value) {
+      const db = await openIndexedDB();
+      if (!db) return;
+      try {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).put(value, key);
+      } catch (e) {
+        // 無視
+      }
+    }
+
+    async function idbRemove(key) {
+      const db = await openIndexedDB();
+      if (!db) return;
+      try {
+        const tx = db.transaction(IDB_STORE, 'readwrite');
+        tx.objectStore(IDB_STORE).delete(key);
+      } catch (e) {
+        // 無視
+      }
+    }
+
+    function hydrateCacheFromIndexedDB() {
+      return new Promise(async (resolve) => {
+        const db = await openIndexedDB();
+        if (!db) {
+          resolve();
+          return;
+        }
+        try {
+          const tx = db.transaction(IDB_STORE, 'readonly');
+          const store = tx.objectStore(IDB_STORE);
+          const keysReq = store.getAllKeys();
+          const valsReq = store.getAll();
+          tx.oncomplete = () => {
+            const keys = keysReq.result || [];
+            const vals = valsReq.result || [];
+            keys.forEach((k, i) => {
+              if (vals[i] !== undefined && vals[i] !== null) {
+                memoryStorageCache[k] = vals[i];
+                try {
+                  if (window.localStorage.getItem(k) === null) {
+                    window.localStorage.setItem(k, vals[i]);
+                  }
+                } catch (e) {}
+              }
+            });
+            resolve();
+          };
+          tx.onerror = () => resolve();
+        } catch (e) {
+          resolve();
+        }
+      });
+    }
+
     const SafeStorage = {
       getItem(key) {
         try {
@@ -712,9 +814,7 @@
             memoryStorageCache[key] = val;
             return val;
           }
-        } catch (e) {
-          // サンドボックス等でlocalStorageが制限されている場合はメモリキャッシュを使用
-        }
+        } catch (e) {}
         return Object.prototype.hasOwnProperty.call(memoryStorageCache, key)
           ? memoryStorageCache[key]
           : null;
@@ -723,17 +823,15 @@
         memoryStorageCache[key] = value;
         try {
           window.localStorage.setItem(key, value);
-        } catch (e) {
-          // メモリキャッシュに保持済みのためエラーにしない
-        }
+        } catch (e) {}
+        idbSet(key, value);
       },
       removeItem(key) {
         delete memoryStorageCache[key];
         try {
           window.localStorage.removeItem(key);
-        } catch (e) {
-          // 無視
-        }
+        } catch (e) {}
+        idbRemove(key);
       }
     };
 
@@ -817,10 +915,9 @@
 
     // -------------------- 3. ストレージキー & ユーザー管理 --------------------
     const APP_ID = typeof __app_id !== 'undefined' && __app_id ? __app_id : 'studysnap-ai-default';
-    const USERS_STORAGE_KEY = `studysnap_users_v2_${APP_ID}`;
-    const SESSION_STORAGE_KEY = `studysnap_session_v2_${APP_ID}`;
-    const EMAILJS_STORAGE_KEY = `studysnap_emailjs_v2_${APP_ID}`;
-    const getQuizzesStorageKey = (uid) => `studysnap_quizzes_v2_${APP_ID}_${uid}`;
+    const USERS_STORAGE_KEY = `studysnap_users_v3_${APP_ID}`;
+    const SESSION_STORAGE_KEY = `studysnap_session_v3_${APP_ID}`;
+    const getQuizzesStorageKey = (uid) => `studysnap_quizzes_v3_${APP_ID}_${uid}`;
 
     function getStoredUsers() {
       try {
@@ -833,33 +930,6 @@
 
     function saveStoredUsers(users) {
       SafeStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-    }
-
-    function getEmailJsConfig() {
-      try {
-        const raw = SafeStorage.getItem(EMAILJS_STORAGE_KEY);
-        return raw ? JSON.parse(raw) : { serviceId: '', templateId: '', publicKey: '' };
-      } catch (e) {
-        return { serviceId: '', templateId: '', publicKey: '' };
-      }
-    }
-
-    function saveEmailJsConfig(cfg) {
-      SafeStorage.setItem(EMAILJS_STORAGE_KEY, JSON.stringify(cfg));
-      updateEmailJsStatusTag();
-    }
-
-    function updateEmailJsStatusTag() {
-      const cfg = getEmailJsConfig();
-      const tag = document.getElementById('emailjs-status-tag');
-      if (!tag) return;
-      if (cfg.serviceId && cfg.templateId && cfg.publicKey) {
-        tag.textContent = 'EmailJS設定済み';
-        tag.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700 font-bold';
-      } else {
-        tag.textContent = '標準メール送信';
-        tag.className = 'text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
-      }
     }
 
     // -------------------- 4. アプリケーション状態 --------------------
@@ -884,6 +954,8 @@
         }
       ],
       currentQuiz: null,
+      fullQuizBackup: null, // 間違えた問題だけ再挑戦した後に元の全問に戻すためのバックアップ
+      isWrongOnlyMode: false,
       quizMode: 'solving', // 'solving' | 'graded'
       quizStartTime: null,
       quizElapsedSeconds: 0,
@@ -894,9 +966,6 @@
       aiGradingFeedback: {},
       savedQuizzes: [],
       authMode: 'signup',
-      pendingAuth: null, // { mode, displayName, email, passwordHash, userObj?, code, expiresAt, lastSentAt }
-      twoFaCountdownInterval: null,
-      twoFaResendCooldownInterval: null,
       pendingSaveAfterAuth: false,
       renameTarget: null,
       confirmCallback: null
@@ -966,7 +1035,8 @@
     }
 
     // -------------------- 6. 認証・セッション管理 --------------------
-    function initSession() {
+    async function initSession() {
+      await hydrateCacheFromIndexedDB();
       try {
         const raw = SafeStorage.getItem(SESSION_STORAGE_KEY);
         if (raw) {
@@ -980,7 +1050,6 @@
         state.user = null;
       }
       updateAuthUI();
-      updateEmailJsStatusTag();
     }
 
     function completeUserLoginSession(userObj) {
@@ -1393,159 +1462,159 @@
       document.getElementById('twofa-error-box').classList.add('hidden');
       clearOtpBoxes();
       startTwoFaTimers();
-      await sendVerificationEmail(state.pendingAuth);
+    // -------------------- 7. 1ステップ即時登録・ログイン・ワンクリック体験ログイン --------------------
+    window.openAuthModal = function(mode = 'signup') {
+      document.getElementById('auth-error-box').classList.add('hidden');
+      setAuthMode(mode);
+      document.getElementById('auth-modal').classList.remove('hidden');
+      setTimeout(() => {
+        const focusTarget = mode === 'signup' ? document.getElementById('auth-displayname') : document.getElementById('auth-email');
+        if (focusTarget) focusTarget.focus();
+      }, 40);
     };
 
-    function startTwoFaTimers() {
-      stopTwoFaTimers();
-
-      const updateTimers = () => {
-        if (!state.pendingAuth) return;
-        const now = Date.now();
-
-        // 5分有効期限カウントダウン
-        const remainingMs = state.pendingAuth.expiresAt - now;
-        const timerBadge = document.getElementById('twofa-timer-badge');
-        const verifyBtn = document.getElementById('twofa-verify-btn');
-        if (remainingMs <= 0) {
-          timerBadge.textContent = '期限切れ';
-          timerBadge.className = 'text-xs font-extrabold px-2 py-0.5 rounded-md bg-red-100 text-red-700 border border-red-200';
-          verifyBtn.disabled = true;
-          verifyBtn.classList.add('opacity-50', 'cursor-not-allowed');
-        } else {
-          timerBadge.textContent = formatSecondsMMSS(Math.ceil(remainingMs / 1000));
-          timerBadge.className = 'text-xs font-mono font-extrabold px-2 py-0.5 rounded-md bg-white text-indigo-700 border border-indigo-200';
-          verifyBtn.disabled = false;
-          verifyBtn.classList.remove('opacity-50', 'cursor-not-allowed');
-        }
-
-        // 30秒再送信クールダウン
-        const resendBtn = document.getElementById('twofa-resend-btn');
-        const sinceLastSend = Math.floor((now - state.pendingAuth.lastSentAt) / 1000);
-        const cooldownLeft = 30 - sinceLastSend;
-        if (cooldownLeft > 0) {
-          resendBtn.disabled = true;
-          resendBtn.textContent = `認証コードを再送信（${cooldownLeft}秒）`;
-        } else {
-          resendBtn.disabled = false;
-          resendBtn.textContent = '認証コードを再送信';
-        }
-      };
-
-      updateTimers();
-      state.twoFaCountdownInterval = setInterval(updateTimers, 500);
-    }
-
-    function stopTwoFaTimers() {
-      if (state.twoFaCountdownInterval) {
-        clearInterval(state.twoFaCountdownInterval);
-        state.twoFaCountdownInterval = null;
-      }
-    }
-
-    function setupOtpInputs() {
-      const inputs = Array.from(document.querySelectorAll('.otp-digit'));
-      inputs.forEach((input, idx) => {
-        input.addEventListener('input', (e) => {
-          const val = e.target.value.replace(/\D/g, '');
-          e.target.value = val.slice(-1);
-          if (e.target.value && idx < inputs.length - 1) {
-            inputs[idx + 1].focus();
-          }
-        });
-
-        input.addEventListener('keydown', (e) => {
-          if (e.key === 'Backspace' && !e.target.value && idx > 0) {
-            inputs[idx - 1].focus();
-          } else if (e.key === 'Enter') {
-            e.preventDefault();
-            verifyTwoFactorCode();
-          }
-        });
-
-        input.addEventListener('paste', (e) => {
-          e.preventDefault();
-          const pasted = (e.clipboardData || window.clipboardData)
-            .getData('text')
-            .replace(/\D/g, '')
-            .slice(0, 6);
-          if (!pasted) return;
-          pasted.split('').forEach((ch, i) => {
-            if (inputs[i]) inputs[i].value = ch;
-          });
-          const focusIndex = Math.min(pasted.length, inputs.length - 1);
-          inputs[focusIndex].focus();
-        });
-      });
-    }
-
-    function clearOtpBoxes() {
-      const inputs = Array.from(document.querySelectorAll('.otp-digit'));
-      inputs.forEach((inp) => (inp.value = ''));
-      if (inputs[0]) {
-        setTimeout(() => inputs[0].focus(), 50);
-      }
-    }
-
-    function getEnteredOtpCode() {
-      return Array.from(document.querySelectorAll('.otp-digit'))
-        .map((inp) => inp.value.trim())
-        .join('');
-    }
-
-    window.verifyTwoFactorCode = function() {
-      if (!state.pendingAuth) return;
-      const errBox = document.getElementById('twofa-error-box');
-      errBox.classList.add('hidden');
-
-      if (Date.now() > state.pendingAuth.expiresAt) {
-        errBox.textContent = '認証コードの有効期限（5分）が切れました。「認証コードを再送信」を押してください。';
-        errBox.classList.remove('hidden');
-        return;
-      }
-
-      const entered = getEnteredOtpCode();
-      if (entered.length !== 6) {
-        errBox.textContent = '6桁の認証コードをすべて入力してください。';
-        errBox.classList.remove('hidden');
-        return;
-      }
-
-      if (entered !== state.pendingAuth.code) {
-        errBox.textContent = '認証コードが一致しません。メールに記載された6桁の数字をご確認ください。';
-        errBox.classList.remove('hidden');
-        return;
-      }
-
-      finalizeTwoFactorSuccess();
+    window.closeAuthModal = function() {
+      document.getElementById('auth-modal').classList.add('hidden');
     };
 
-    function finalizeTwoFactorSuccess() {
-      const pending = state.pendingAuth;
-      if (!pending) return;
+    window.setAuthMode = function(mode) {
+      state.authMode = mode;
+      const titleEl = document.getElementById('auth-modal-title');
+      const tabSignup = document.getElementById('auth-tab-signup');
+      const tabLogin = document.getElementById('auth-tab-login');
+      const nameGroup = document.getElementById('auth-displayname-group');
+      const nameInput = document.getElementById('auth-displayname');
+      const submitBtn = document.getElementById('auth-submit-btn');
 
-      if (pending.mode === 'signup') {
-        const users = getStoredUsers();
+      document.getElementById('auth-error-box').classList.add('hidden');
+
+      if (mode === 'signup') {
+        titleEl.textContent = '新規アカウント登録';
+        tabSignup.className = 'py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-700 shadow-xs transition-all';
+        tabLogin.className = 'py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-all';
+        nameGroup.classList.remove('hidden');
+        nameInput.required = true;
+        submitBtn.textContent = 'アカウントを作成して始める';
+      } else {
+        titleEl.textContent = 'ログイン';
+        tabLogin.className = 'py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-700 shadow-xs transition-all';
+        tabSignup.className = 'py-2 rounded-lg text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 transition-all';
+        nameGroup.classList.add('hidden');
+        nameInput.required = false;
+        submitBtn.textContent = 'ログイン';
+      }
+    };
+
+    window.togglePasswordVisibility = function(inputId, eyeIconId) {
+      const input = document.getElementById(inputId);
+      const eye = document.getElementById(eyeIconId);
+      if (!input) return;
+      if (input.type === 'password') {
+        input.type = 'text';
+        if (eye) {
+          eye.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+          `;
+        }
+      } else {
+        input.type = 'password';
+        if (eye) {
+          eye.innerHTML = `
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+          `;
+        }
+      }
+    };
+
+    window.handleAuthSubmit = function(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('auth-error-box');
+      errorBox.classList.add('hidden');
+
+      const normEmail = document.getElementById('auth-email').value.trim().toLowerCase();
+      const cleanPassword = document.getElementById('auth-password').value.trim();
+      const displayName = document.getElementById('auth-displayname').value.trim();
+
+      if (!normEmail || !normEmail.includes('@')) {
+        errorBox.textContent = '有効なメールアドレスを入力してください。';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+      if (cleanPassword.length < 4) {
+        errorBox.textContent = 'パスワードは4文字以上で入力してください。';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      const users = getStoredUsers();
+      const passwordHash = sha256Hex(cleanPassword);
+
+      if (state.authMode === 'signup') {
+        if (!displayName) {
+          errorBox.textContent = '表示名（ニックネーム）を入力してください。';
+          errorBox.classList.remove('hidden');
+          return;
+        }
+        const alreadyExists = users.some((u) => (u.email || '').trim().toLowerCase() === normEmail);
+        if (alreadyExists) {
+          errorBox.textContent = 'このメールアドレスは既に登録されています。「ログイン」タブからログインしてください。';
+          errorBox.classList.remove('hidden');
+          return;
+        }
+
         const newUser = {
           uid: 'user-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-          displayName: pending.displayName,
-          email: pending.email,
-          passwordHash: pending.passwordHash,
+          displayName,
+          email: normEmail,
+          passwordHash,
           createdAt: Date.now()
         };
         users.push(newUser);
         saveStoredUsers(users);
         completeUserLoginSession(newUser);
-        showToast(`ようこそ、${newUser.displayName} さん！アカウント登録が完了しました`, 'success');
+        document.getElementById('auth-form').reset();
+        closeAuthModal();
+        showToast(`ようこそ、${newUser.displayName} さん！アカウントを作成しました`, 'success');
       } else {
-        completeUserLoginSession(pending.userObj);
-        showToast(`おかえりなさい、${pending.displayName} さん！`, 'success');
-      }
+        const matchedUser = users.find((u) => {
+          const uEmail = (u.email || '').trim().toLowerCase();
+          if (uEmail !== normEmail) return false;
+          return u.passwordHash === passwordHash || u.password === cleanPassword;
+        });
 
-      state.pendingAuth = null;
-      document.getElementById('auth-form').reset();
+        if (!matchedUser) {
+          errorBox.textContent = 'メールアドレスまたはパスワードが正しくありません。';
+          errorBox.classList.remove('hidden');
+          return;
+        }
+
+        completeUserLoginSession(matchedUser);
+        document.getElementById('auth-form').reset();
+        closeAuthModal();
+        showToast(`おかえりなさい、${matchedUser.displayName} さん！`, 'success');
+      }
+    };
+
+    window.loginWithDemoAccount = function() {
+      const demoEmail = 'demo@studysnap.local';
+      const users = getStoredUsers();
+      let demoUser = users.find((u) => u.email === demoEmail);
+      if (!demoUser) {
+        demoUser = {
+          uid: 'demo-user-studysnap',
+          displayName: '体験ユーザー',
+          email: demoEmail,
+          passwordHash: sha256Hex('demo1234'),
+          createdAt: Date.now()
+        };
+        users.push(demoUser);
+        saveStoredUsers(users);
+      }
+      completeUserLoginSession(demoUser);
       closeAuthModal();
-    }
+      showToast('体験アカウントでログインしました！クイズの保存・管理を試せます', 'success');
+    };
 
     // -------------------- 8. プロフィール・表示名変更モーダル --------------------
     window.openProfileModal = function() {
@@ -1811,7 +1880,7 @@
           ctx.fillStyle = line.startsWith('1.') || line.startsWith('2.') || line.startsWith('3.') ? '#1d4ed8' : '#1e293b';
           ctx.fillText(line, 115, 120 + idx * 36);
         });
-      } else {
+      } else if (topic === 'english') {
         ctx.fillStyle = '#bae6fd';
         ctx.fillRect(110, 42, 650, 32);
 
@@ -1842,13 +1911,47 @@
           ctx.fillStyle = line.startsWith('1.') || line.startsWith('2.') ? '#4338ca' : '#1e293b';
           ctx.fillText(line, 115, 120 + idx * 36);
         });
+      } else {
+        ctx.fillStyle = '#bbf7d0';
+        ctx.fillRect(110, 42, 650, 32);
+
+        ctx.font = 'bold 26px "Noto Sans JP", sans-serif';
+        ctx.fillStyle = '#064e3b';
+        ctx.fillText('【高校生物まとめ】細胞小器官のはたらきと光合成・呼吸', 115, 68);
+
+        const lines = [
+          '1. 真核細胞の主な細胞小器官',
+          '  ・核：遺伝情報（DNA）を含み、細胞の生命活動を制御する。',
+          '  ・ミトコンドリア：好気呼吸の場。有機物を分解してATPを合成する。',
+          '  ・葉緑体：植物細胞に存在し、光エネルギーを用いて光合成を行う。',
+          '  ・リボソーム：mRNAの情報をもとにタンパク質を合成する（膜をもたない）。',
+          '  ・ゴルジ体：小胞体で合成されたタンパク質を修飾・濃縮し細胞外へ分泌。',
+          '  ・液胞：細胞液を含み、浸透圧の調節や老廃物の貯蔵を担う。',
+          '',
+          '2. 代謝（同化と異化）とATP',
+          '  ・ATP（アデノシン三リン酸）：高エネルギーリン酸結合をもちエネルギーの仲介役。',
+          '  ・光合成（同化）：6CO2 + 12H2O + 光エネルギー → C6H12O6 + 6O2 + 6H2O',
+          '    ※ チラコイドで光化学反応（ATP・NADPH生成）、ストロマでカルビン回路。',
+          '  ・呼吸（異化）：C6H12O6 + 6O2 + 6H2O → 6CO2 + 12H2O + 最大38ATP',
+          '    ※ 細胞質基質（解糖系）→ ミトコンドリアマトリックス（クエン酸回路）→ 内膜（電子伝達系）。'
+        ];
+        ctx.font = '18px "Noto Sans JP", sans-serif';
+        lines.forEach((line, idx) => {
+          ctx.fillStyle = line.startsWith('1.') || line.startsWith('2.') ? '#047857' : '#1e293b';
+          ctx.fillText(line, 115, 120 + idx * 36);
+        });
       }
 
+      const fileNameMap = {
+        history: 'サンプル日本史ノート.jpg',
+        english: 'サンプル英文法ノート.jpg',
+        biology: 'サンプル生物ノート.jpg'
+      };
       const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
       const base64 = dataUrl.split(',')[1];
       state.uploadedImages.push({
         id: 'sample-' + Date.now() + '-' + Math.random().toString(36).slice(2, 5),
-        name: topic === 'history' ? 'サンプル日本史ノート.jpg' : 'サンプル英文法ノート.jpg',
+        name: fileNameMap[topic] || 'サンプル学習ノート.jpg',
         dataUrl,
         base64,
         mimeType: 'image/jpeg'
@@ -2305,6 +2408,8 @@ ${sectionSpecsText}`;
 
     function startQuizSession(quizObj) {
       state.currentQuiz = JSON.parse(JSON.stringify(quizObj));
+      state.fullQuizBackup = JSON.parse(JSON.stringify(quizObj));
+      state.isWrongOnlyMode = false;
       state.quizMode = 'solving';
       state.userAnswers = {};
       state.manualGrades = {};
@@ -2321,7 +2426,15 @@ ${sectionSpecsText}`;
     }
 
     window.retryCurrentQuiz = function() {
+      retryFullQuiz();
+    };
+
+    window.retryFullQuiz = function() {
       if (!state.currentQuiz) return;
+      if (state.fullQuizBackup && state.isWrongOnlyMode) {
+        state.currentQuiz = JSON.parse(JSON.stringify(state.fullQuizBackup));
+        state.isWrongOnlyMode = false;
+      }
       state.quizMode = 'solving';
       state.userAnswers = {};
       state.manualGrades = {};
@@ -2330,6 +2443,38 @@ ${sectionSpecsText}`;
       renderQuizView();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       showToast('回答をリセットしました。再挑戦しましょう！', 'info');
+    };
+
+    window.retryWrongQuestionsOnly = function() {
+      if (!state.currentQuiz) return;
+      const filteredSections = state.currentQuiz.sections
+        .map((sec) => ({
+          ...sec,
+          questions: (sec.questions || []).filter((q) => !evaluateQuestionCorrectness(q))
+        }))
+        .filter((sec) => sec.questions.length > 0);
+
+      if (filteredSections.length === 0) {
+        showToast('間違えた問題はありません！', 'success');
+        return;
+      }
+
+      if (!state.isWrongOnlyMode) {
+        state.fullQuizBackup = JSON.parse(JSON.stringify(state.currentQuiz));
+      }
+      state.isWrongOnlyMode = true;
+      state.currentQuiz = {
+        ...state.currentQuiz,
+        sections: filteredSections
+      };
+      state.quizMode = 'solving';
+      state.userAnswers = {};
+      state.manualGrades = {};
+      state.aiGradingFeedback = {};
+      startQuizTimer();
+      renderQuizView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('間違えた問題だけを抽出しました！弱点を克服しましょう', 'info');
     };
 
     window.handleSaveCurrentQuiz = function() {
@@ -2417,6 +2562,24 @@ ${sectionSpecsText}`;
     function executeGradeQuiz() {
       stopQuizTimer();
       state.quizMode = 'graded';
+
+      // 保存済みテストの全問受験時は最高スコアを自動更新
+      if (!state.isWrongOnlyMode && state.currentQuiz?.id && isLoggedInUser()) {
+        const all = getAllQuestions();
+        const correct = all.filter((q) => evaluateQuestionCorrectness(q)).length;
+        const score100 = all.length > 0 ? Math.round((correct / all.length) * 100) : 0;
+        const updated = state.savedQuizzes.map((q) => {
+          if (q.id !== state.currentQuiz.id) return q;
+          const prevBest = typeof q.bestScore === 'number' ? q.bestScore : 0;
+          return {
+            ...q,
+            bestScore: Math.max(prevBest, score100),
+            updatedAt: Date.now()
+          };
+        });
+        persistSavedQuizzesForUser(state.user.uid, updated);
+      }
+
       renderQuizView();
       window.scrollTo({ top: 0, behavior: 'smooth' });
       showToast('採点が完了しました！', 'success');
@@ -2542,6 +2705,19 @@ ${sectionSpecsText}`;
 
       document.getElementById('score-rank').textContent = rank;
       document.getElementById('score-headline').textContent = headline;
+
+      // 「間違えた問題だけ再挑戦」ボタンの表示制御
+      const wrongCount = total - correct;
+      const retryWrongBtn = document.getElementById('retry-wrong-only-btn');
+      const retryWrongLabel = document.getElementById('retry-wrong-only-label');
+      if (retryWrongBtn && retryWrongLabel) {
+        if (wrongCount > 0) {
+          retryWrongBtn.classList.remove('hidden');
+          retryWrongLabel.textContent = `間違えた問題だけ再挑戦（${wrongCount}問）`;
+        } else {
+          retryWrongBtn.classList.add('hidden');
+        }
+      }
 
       // 大問別正答率ブレイクダウン描画
       const breakdownGrid = document.getElementById('section-breakdown-grid');
@@ -2813,20 +2989,31 @@ ${sectionSpecsText}`;
         return;
       }
 
+      const targetQuiz = state.isWrongOnlyMode && state.fullQuizBackup ? state.fullQuizBackup : quiz;
       const uid = state.user.uid;
-      const totalQuestions = quiz.sections.reduce((acc, s) => acc + (s.questions?.length || 0), 0);
+      const totalQuestions = targetQuiz.sections.reduce((acc, s) => acc + (s.questions?.length || 0), 0);
       const currentList = [...state.savedQuizzes];
       const now = Date.now();
 
-      if (quiz.id) {
-        const idx = currentList.findIndex((item) => item.id === quiz.id);
+      let currentScore = null;
+      if (state.quizMode === 'graded' && !state.isWrongOnlyMode) {
+        const all = getAllQuestions();
+        const correct = all.filter((q) => evaluateQuestionCorrectness(q)).length;
+        currentScore = all.length > 0 ? Math.round((correct / all.length) * 100) : 0;
+      }
+
+      if (targetQuiz.id) {
+        const idx = currentList.findIndex((item) => item.id === targetQuiz.id);
         if (idx !== -1) {
+          const prevBest = typeof currentList[idx].bestScore === 'number' ? currentList[idx].bestScore : null;
+          const nextBest = currentScore !== null ? (prevBest !== null ? Math.max(prevBest, currentScore) : currentScore) : prevBest;
           currentList[idx] = {
             ...currentList[idx],
             title: quiz.title || 'AI作成練習問題テスト',
-            sectionCount: quiz.sections.length,
+            sectionCount: targetQuiz.sections.length,
             totalQuestions,
-            sections: JSON.parse(JSON.stringify(quiz.sections)),
+            bestScore: nextBest,
+            sections: JSON.parse(JSON.stringify(targetQuiz.sections)),
             updatedAt: now
           };
           persistSavedQuizzesForUser(uid, currentList);
@@ -2837,14 +3024,17 @@ ${sectionSpecsText}`;
 
       const newId = 'quiz-' + now + '-' + Math.random().toString(36).slice(2, 6);
       state.currentQuiz.id = newId;
+      if (state.fullQuizBackup) state.fullQuizBackup.id = newId;
+
       currentList.unshift({
         id: newId,
         title: quiz.title || 'AI作成練習問題テスト',
         createdAt: now,
         updatedAt: now,
-        sectionCount: quiz.sections.length,
+        sectionCount: targetQuiz.sections.length,
         totalQuestions,
-        sections: JSON.parse(JSON.stringify(quiz.sections))
+        bestScore: currentScore,
+        sections: JSON.parse(JSON.stringify(targetQuiz.sections))
       });
 
       persistSavedQuizzesForUser(uid, currentList);
@@ -2884,14 +3074,22 @@ ${sectionSpecsText}`;
             .map((s, idx) => `<span class="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-semibold">大問${idx + 1}: ${getQuestionTypeLabel(s.questionType)}</span>`)
             .join('');
 
+          const bestScoreBadge =
+            typeof quiz.bestScore === 'number'
+              ? `<span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200">最高 ${quiz.bestScore}点</span>`
+              : '';
+
           return `
             <div class="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs hover:shadow-md hover:border-indigo-200 transition-all flex flex-col justify-between gap-4">
               <div class="space-y-2.5">
                 <div class="flex items-start justify-between gap-2">
                   <h3 class="text-base sm:text-lg font-extrabold text-slate-900 line-clamp-2">${escapeHtml(quiz.title)}</h3>
-                  <span class="shrink-0 text-xs font-extrabold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
-                    全${quiz.totalQuestions}問
-                  </span>
+                  <div class="flex items-center gap-1.5 shrink-0">
+                    ${bestScoreBadge}
+                    <span class="text-xs font-extrabold px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100">
+                      全${quiz.totalQuestions}問
+                    </span>
+                  </div>
                 </div>
                 <p class="text-xs text-slate-400">作成日: ${formatDate(quiz.createdAt)} ・ 大問${quiz.sectionCount}構成</p>
                 <div class="flex flex-wrap gap-1.5 pt-1">
@@ -2904,7 +3102,7 @@ ${sectionSpecsText}`;
                   <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                   </svg>
-                  <span>再挑戦する</span>
+                  <span>受験・復習する</span>
                 </button>
                 <button type="button" onclick="openRenameSavedQuizModal('${quiz.id}')" title="タイトルを改名" class="py-2.5 px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors">
                   改名
@@ -3027,11 +3225,10 @@ ${sectionSpecsText}`;
     });
 
     // -------------------- 16. 初期起動 --------------------
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
       setupImageUpload();
-      setupOtpInputs();
       renderSectionsConfig();
-      initSession();
+      await initSession();
     });
   </script>
 </body>
