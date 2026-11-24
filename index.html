@@ -35,15 +35,13 @@
             font-family: 'Noto Sans JP', 'Inter', sans-serif;
             -webkit-tap-highlight-color: transparent;
         }
-        /* スムーズなフェードインアニメーション */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
+            from { opacity: 0; transform: translateY(-6px); }
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in {
-            animation: fadeIn 0.25s ease-out forwards;
+            animation: fadeIn 0.22s ease-out forwards;
         }
-        /* カスタムスクロールバー */
         ::-webkit-scrollbar {
             width: 6px;
             height: 6px;
@@ -62,8 +60,8 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col overflow-x-hidden selection:bg-indigo-100 selection:text-indigo-900">
 
-    <!-- トースト通知コンテナ -->
-    <div id="toast-container" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2 max-w-[calc(100vw-2rem)] sm:max-w-sm pointer-events-none"></div>
+    <!-- 画面上部トースト通知コンテナ -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-[60] flex flex-col items-center gap-2 w-[calc(100vw-2rem)] max-w-md pointer-events-none"></div>
 
     <!-- AI生成・採点中ローディングモーダル -->
     <div id="loading-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
@@ -92,8 +90,8 @@
             <p class="text-xs text-slate-500 mb-4">新しいテストタイトルを入力してください。</p>
             <input type="text" id="rename-input" maxlength="80" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm mb-5" placeholder="テストのタイトルを入力">
             <div class="flex justify-end gap-2">
-                <button type="button" id="rename-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">キャンセル</button>
-                <button type="button" id="rename-save-btn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition">保存する</button>
+                <button type="button" id="rename-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer">キャンセル</button>
+                <button type="button" id="rename-save-btn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition cursor-pointer">保存する</button>
             </div>
         </div>
     </div>
@@ -109,8 +107,8 @@
             <h3 class="text-lg font-bold text-slate-900 mb-1">テストを削除しますか？</h3>
             <p id="delete-modal-message" class="text-sm text-slate-600 mb-6 leading-relaxed">このテストを削除すると元に戻せません。</p>
             <div class="flex justify-end gap-2">
-                <button type="button" id="delete-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition">キャンセル</button>
-                <button type="button" id="delete-confirm-btn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition">削除する</button>
+                <button type="button" id="delete-cancel-btn" class="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-100 transition cursor-pointer">キャンセル</button>
+                <button type="button" id="delete-confirm-btn" class="px-5 py-2.5 rounded-xl text-sm font-semibold text-white bg-rose-600 hover:bg-rose-700 shadow-sm transition cursor-pointer">削除する</button>
             </div>
         </div>
     </div>
@@ -118,7 +116,7 @@
     <!-- 画像拡大プレビューモーダル -->
     <div id="image-preview-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
         <div class="relative max-w-4xl w-full max-h-[90vh] flex flex-col items-center">
-            <button type="button" id="close-image-preview-btn" class="self-end mb-2 px-3 py-1.5 rounded-full bg-white/90 text-slate-800 text-sm font-semibold hover:bg-white shadow flex items-center gap-1">
+            <button type="button" id="close-image-preview-btn" class="self-end mb-2 px-4 py-2 rounded-full bg-white/95 text-slate-800 text-sm font-semibold hover:bg-white shadow flex items-center gap-1 cursor-pointer">
                 <span>閉じる</span>
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -146,8 +144,8 @@
             <div class="bg-white rounded-3xl shadow-xl shadow-slate-200/70 border border-slate-100 p-6 sm:p-8">
                 <!-- タブ切り替え -->
                 <div class="grid grid-cols-2 p-1 bg-slate-100 rounded-xl mb-6">
-                    <button type="button" id="tab-login" class="py-2.5 text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition">ログイン</button>
-                    <button type="button" id="tab-register" class="py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition">新規アカウント作成</button>
+                    <button type="button" id="tab-login" class="py-2.5 text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition cursor-pointer">ログイン</button>
+                    <button type="button" id="tab-register" class="py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer">新規アカウント作成</button>
                 </div>
 
                 <!-- エラー表示ボックス -->
@@ -174,7 +172,7 @@
                                 class="w-full px-4 py-3 pr-11 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm transition"
                                 placeholder="6文字以上のパスワード">
                             <button type="button" id="toggle-password-btn" aria-label="パスワード表示切替"
-                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1">
+                                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1.5 cursor-pointer">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
@@ -191,7 +189,7 @@
                     </div>
 
                     <button type="submit" id="auth-submit-btn"
-                        class="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-indigo-200 transition flex items-center justify-center gap-2 mt-2">
+                        class="w-full py-3.5 px-4 rounded-xl bg-indigo-600 hover:bg-indigo-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-indigo-200 transition flex items-center justify-center gap-2 mt-2 cursor-pointer">
                         <span id="auth-submit-text">ログインする</span>
                     </button>
                 </form>
@@ -219,31 +217,31 @@
             <div class="max-w-6xl mx-auto px-4 sm:px-6">
                 <div class="flex items-center justify-between h-16 gap-2">
                     <!-- ロゴ -->
-                    <button type="button" id="nav-logo-btn" class="flex items-center gap-2.5 text-left group shrink-0">
+                    <button type="button" id="nav-logo-btn" class="flex items-center gap-2.5 text-left group shrink-0 cursor-pointer">
                         <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-500 text-white flex items-center justify-center shadow-sm group-hover:scale-105 transition">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
                             </svg>
                         </div>
-                        <span class="font-bold text-slate-900 text-base sm:text-lg tracking-tight hidden xs:inline sm:inline">AIテストメーカー</span>
+                        <span class="font-bold text-slate-900 text-base sm:text-lg tracking-tight hidden sm:inline">AIテストメーカー</span>
                     </button>
 
                     <!-- メインナビゲーションタブ -->
                     <nav class="flex items-center bg-slate-100 p-1 rounded-xl">
                         <button type="button" id="nav-create-btn"
-                            class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5">
+                            class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                             </svg>
                             <span>テスト作成</span>
                         </button>
                         <button type="button" id="nav-library-btn"
-                            class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+                            class="px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
                             </svg>
                             <span>マイテスト一覧</span>
-                            <span id="library-count-badge" class="ml-0.5 px-1.5 py-0.2 text-[11px] font-bold rounded-full bg-indigo-100 text-indigo-700">0</span>
+                            <span id="library-count-badge" class="ml-0.5 px-1.5 py-0.5 text-[11px] font-bold rounded-full bg-indigo-100 text-indigo-700">0</span>
                         </button>
                     </nav>
 
@@ -254,7 +252,7 @@
                             <span id="header-username" class="max-w-[120px] truncate">ユーザー</span>
                         </div>
                         <button type="button" id="logout-btn" title="ログアウト"
-                            class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1.5">
+                            class="px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition flex items-center gap-1.5 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path>
                             </svg>
@@ -279,7 +277,7 @@
             </div>
 
             <!-- ステップ1: 画像の読み込み -->
-            <section class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-5 sm:p-7">
+            <section id="step1-image-section" class="bg-white rounded-3xl shadow-sm border border-slate-200/80 p-5 sm:p-7">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2.5">
                         <span class="w-7 h-7 rounded-lg bg-indigo-600 text-white text-xs font-bold flex items-center justify-center">1</span>
@@ -288,21 +286,21 @@
                             <p class="text-xs text-slate-500">教科書・ノート・プリント・問題集の画像をアップロード（複数枚対応）</p>
                         </div>
                     </div>
-                    <button type="button" id="clear-images-btn" class="hidden text-xs font-semibold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition">
+                    <button type="button" id="clear-images-btn" class="hidden text-xs font-semibold text-rose-600 hover:bg-rose-50 px-3 py-1.5 rounded-lg transition cursor-pointer">
                         すべてクリア
                     </button>
                 </div>
 
-                <!-- ドラッグ＆ドロップエリア -->
-                <div id="dropzone"
+                <!-- ドラッグ＆ドロップ＆クリック選択エリア -->
+                <div id="dropzone" role="button" tabindex="0" aria-label="画像をアップロード"
                     class="border-2 border-dashed border-slate-300 hover:border-indigo-400 bg-slate-50/70 hover:bg-indigo-50/30 rounded-2xl p-6 sm:p-8 text-center transition cursor-pointer">
-                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3">
+                    <div class="w-12 h-12 rounded-2xl bg-indigo-100 text-indigo-600 flex items-center justify-center mx-auto mb-3 pointer-events-none">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
                         </svg>
                     </div>
-                    <p class="text-sm font-bold text-slate-800 mb-1">ここに画像をドラッグ＆ドロップ</p>
-                    <p class="text-xs text-slate-500 mb-4">または下のボタンからファイル選択・カメラ撮影（JPG / PNG / WEBP対応）</p>
+                    <p class="text-sm font-bold text-slate-800 mb-1 pointer-events-none">ここをクリック、または画像をドラッグ＆ドロップ</p>
+                    <p class="text-xs text-slate-500 mb-4 pointer-events-none">下のボタンからもファイル選択・カメラ撮影ができます（JPG / PNG / WEBP対応）</p>
                     <div class="flex flex-wrap items-center justify-center gap-3">
                         <label class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-semibold shadow-sm cursor-pointer transition inline-flex items-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -359,10 +357,10 @@
                             大問数 <span class="text-xs font-normal text-slate-400">（2問〜5問から選択）</span>
                         </label>
                         <div id="section-count-selector" class="grid grid-cols-4 gap-2">
-                            <button type="button" data-count="2" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300">2問</button>
-                            <button type="button" data-count="3" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-indigo-600 bg-indigo-600 text-white shadow-sm">3問</button>
-                            <button type="button" data-count="4" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300">4問</button>
-                            <button type="button" data-count="5" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300">5問</button>
+                            <button type="button" data-count="2" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300 cursor-pointer">2問</button>
+                            <button type="button" data-count="3" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-indigo-600 bg-indigo-600 text-white shadow-sm cursor-pointer">3問</button>
+                            <button type="button" data-count="4" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300 cursor-pointer">4問</button>
+                            <button type="button" data-count="5" class="section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300 cursor-pointer">5問</button>
                         </div>
                     </div>
                 </div>
@@ -375,11 +373,11 @@
                     <input type="text" id="extra-prompt-input" maxlength="200"
                         class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none text-sm transition"
                         placeholder="例：基礎レベル中心で、重要語句を重点的に出題してください">
-                    <div class="flex flex-wrap gap-1.5 mt-2">
-                        <button type="button" class="prompt-chip text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition">+ 基礎レベル中心で</button>
-                        <button type="button" class="prompt-chip text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition">+ 応用・発展問題も含めて</button>
-                        <button type="button" class="prompt-chip text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition">+ 計算問題を含めて</button>
-                        <button type="button" class="prompt-chip text-xs px-2.5 py-1 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition">+ 定期テスト対策向けに</button>
+                    <div id="prompt-chips-container" class="flex flex-wrap gap-1.5 mt-2">
+                        <button type="button" class="prompt-chip text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition cursor-pointer">+ 基礎レベル中心で</button>
+                        <button type="button" class="prompt-chip text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition cursor-pointer">+ 応用・発展問題も含めて</button>
+                        <button type="button" class="prompt-chip text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition cursor-pointer">+ 計算問題を含めて</button>
+                        <button type="button" class="prompt-chip text-xs px-3 py-1.5 rounded-full bg-slate-100 hover:bg-indigo-50 text-slate-600 hover:text-indigo-700 transition cursor-pointer">+ 定期テスト対策向けに</button>
                     </div>
                 </div>
             </section>
@@ -402,15 +400,15 @@
                 <div id="sections-config-container" class="space-y-3.5"></div>
             </section>
 
-            <!-- エラー再試行バナー -->
-            <div id="generate-error-box" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <!-- バリデーション・通信エラーバナー -->
+            <div id="generate-error-box" class="hidden p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-fade-in">
                 <div class="flex items-start gap-2.5 text-sm">
                     <svg class="w-5 h-5 shrink-0 text-rose-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
                     </svg>
                     <span id="generate-error-text">問題の生成中にエラーが発生しました。</span>
                 </div>
-                <button type="button" id="retry-generate-btn" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 self-end sm:self-center">
+                <button type="button" id="retry-generate-btn" class="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shrink-0 self-end sm:self-center cursor-pointer">
                     再試行する
                 </button>
             </div>
@@ -418,7 +416,7 @@
             <!-- 生成実行ボタン -->
             <div class="pt-1 pb-6">
                 <button type="button" id="generate-test-btn"
-                    class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-emerald-600 hover:from-indigo-700 hover:to-emerald-700 active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-indigo-200 transition flex items-center justify-center gap-2.5">
+                    class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-600 to-emerald-600 hover:from-indigo-700 hover:to-emerald-700 active:scale-[0.99] text-white font-bold text-base shadow-lg shadow-indigo-200 transition flex items-center justify-center gap-2.5 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                     </svg>
@@ -437,7 +435,7 @@
                     <p class="text-xs sm:text-sm text-slate-500 mt-0.5">保存済みの練習問題テストをいつでも受験・管理できます</p>
                 </div>
                 <button type="button" id="library-new-btn"
-                    class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition inline-flex items-center justify-center gap-1.5 self-start sm:self-auto">
+                    class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition inline-flex items-center justify-center gap-1.5 self-start sm:self-auto cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
@@ -456,7 +454,7 @@
                         placeholder="テスト名や単元キーワードで検索...">
                 </div>
                 <select id="library-sort-select"
-                    class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 outline-none text-sm font-medium text-slate-700">
+                    class="px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-500 outline-none text-sm font-medium text-slate-700 cursor-pointer">
                     <option value="newest">作成日時が新しい順</option>
                     <option value="oldest">作成日時が古い順</option>
                     <option value="title">タイトル順</option>
@@ -475,7 +473,7 @@
                 </div>
                 <h3 class="text-base sm:text-lg font-bold text-slate-900 mb-1">保存されたテストがまだありません</h3>
                 <p class="text-xs sm:text-sm text-slate-500 mb-5">教科書やノートの画像を読み込んで、最初の練習問題テストを作成しましょう！</p>
-                <button type="button" id="empty-create-btn" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition">
+                <button type="button" id="empty-create-btn" class="px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold shadow-sm transition cursor-pointer">
                     テスト作成画面へ
                 </button>
             </div>
@@ -488,7 +486,7 @@
             <!-- 上部アクションバー -->
             <div class="flex flex-wrap items-center justify-between gap-2">
                 <button type="button" id="exam-back-btn"
-                    class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition inline-flex items-center gap-1.5">
+                    class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs sm:text-sm font-semibold transition inline-flex items-center gap-1.5 cursor-pointer">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                     </svg>
@@ -501,7 +499,7 @@
                         <span>クラウド保存済み</span>
                     </span>
                     <button type="button" id="exam-rename-btn"
-                        class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1">
+                        class="px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition inline-flex items-center gap-1 cursor-pointer">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                         <span>改名</span>
                     </button>
@@ -544,7 +542,7 @@
 
                     <div class="flex flex-wrap gap-2.5 shrink-0">
                         <button type="button" id="retake-exam-btn"
-                            class="px-5 py-3 rounded-xl bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-sm shadow-md transition flex items-center gap-2">
+                            class="px-5 py-3 rounded-xl bg-white text-indigo-700 hover:bg-indigo-50 font-bold text-sm shadow-md transition flex items-center gap-2 cursor-pointer">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                             </svg>
@@ -566,7 +564,7 @@
                     穴埋め・一問一答・記述式もAIが柔軟に採点し、詳しい解説を表示します。
                 </p>
                 <button type="button" id="grade-exam-btn"
-                    class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-emerald-200 transition flex items-center justify-center gap-2 shrink-0">
+                    class="w-full sm:w-auto px-8 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-bold text-sm shadow-md shadow-emerald-200 transition flex items-center justify-center gap-2 shrink-0 cursor-pointer">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
@@ -577,7 +575,7 @@
     </div>
 
     <!-- ========================================================= -->
-    <!-- JavaScript Application Logic (Firebase + Gemini AI)       -->
+    <!-- JavaScript Application Logic (UI優先初期化 + Firebase + AI) -->
     <!-- ========================================================= -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
@@ -603,26 +601,7 @@
         } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // ---------------------------------------------------------
-        // 1. Firebase 初期化と環境変数設定
-        // ---------------------------------------------------------
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ai-quiz-maker-default';
-        let firebaseConfig = {};
-        try {
-            firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        } catch (e) {
-            console.error("Firebase設定の解析に失敗しました:", e);
-        }
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // Gemini API キー（実行環境で自動注入されるため空文字のままにする）
-        const apiKey = "";
-        const GEMINI_MODEL = "gemini-3-flash-preview";
-
-        // ---------------------------------------------------------
-        // 2. 出題形式マスタ定義
+        // 1. 出題形式マスタ定義 & アプリケーション状態管理
         // ---------------------------------------------------------
         const QUESTION_TYPES = {
             multiple_choice: { label: "4択問題", shortLabel: "4択", badgeClass: "bg-indigo-50 text-indigo-700 border-indigo-200" },
@@ -632,9 +611,6 @@
             essay:           { label: "記述式", shortLabel: "記述式", badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200" }
         };
 
-        // ---------------------------------------------------------
-        // 3. アプリケーション状態管理
-        // ---------------------------------------------------------
         const state = {
             authMode: 'login', // 'login' | 'register'
             isRegistering: false,
@@ -650,18 +626,22 @@
                 { type: 'short_answer', count: 3 },
                 { type: 'essay', count: 2 }
             ],
-            quizzes: [], // Firestoreから同期されるマイテスト一覧
+            quizzes: [],
             unsubscribeQuizzes: null,
-            activeQuiz: null, // 現在表示・受験中のテストオブジェクト
-            userAnswers: {}, // { "s1_q1": "解答テキスト" }
+            activeQuiz: null,
+            userAnswers: {},
             isGraded: false,
-            gradingResults: null, // { totalScore, maxScore, accuracy, sectionScores, questionResults }
+            gradingResults: null,
             targetRenameQuizId: null,
-            targetDeleteQuizId: null
+            targetDeleteQuizId: null,
+            firebaseReady: false
         };
 
+        const apiKey = "";
+        const GEMINI_MODEL = "gemini-3-flash-preview";
+
         // ---------------------------------------------------------
-        // 4. ユーティリティ関数
+        // 2. ユーティリティ関数
         // ---------------------------------------------------------
         function escapeHtml(str) {
             if (str === null || str === undefined) return '';
@@ -673,7 +653,6 @@
                 .replace(/'/g, '&#039;');
         }
 
-        // 日本語ユーザー名対応: UTF-8文字列を16進数(Hex)文字列へエンコード
         function utf8ToHex(str) {
             const encoder = new TextEncoder();
             const bytes = encoder.encode(str);
@@ -695,20 +674,21 @@
 
         function showToast(message, type = 'info') {
             const container = document.getElementById('toast-container');
+            if (!container) return;
             const toast = document.createElement('div');
-            const colors = {
-                success: 'bg-emerald-600 text-white',
-                error: 'bg-rose-600 text-white',
-                info: 'bg-slate-800 text-white'
+            const styles = {
+                success: 'bg-emerald-600 text-white border-emerald-500',
+                error: 'bg-rose-600 text-white border-rose-500',
+                info: 'bg-slate-800 text-white border-slate-700'
             };
-            toast.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg text-xs sm:text-sm font-semibold flex items-center gap-2.5 animate-fade-in ${colors[type] || colors.info}`;
+            toast.className = `pointer-events-auto w-full px-4 py-3 rounded-xl shadow-xl border text-xs sm:text-sm font-semibold flex items-center justify-center gap-2 text-center animate-fade-in ${styles[type] || styles.info}`;
             toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
                 toast.style.transition = 'opacity 0.25s ease';
                 setTimeout(() => toast.remove(), 250);
-            }, 3200);
+            }, 3400);
         }
 
         let loadingTimer = null;
@@ -740,7 +720,7 @@
         }
 
         // ---------------------------------------------------------
-        // 5. 認証処理（ユーザー名重複チェック + Email/Password認証）
+        // 3. UI操作・画面切替関数（Firebase依存なしで即座に動作）
         // ---------------------------------------------------------
         function setAuthMode(mode) {
             state.authMode = mode;
@@ -754,15 +734,15 @@
             hideAuthError();
 
             if (mode === 'login') {
-                tabLogin.className = "py-2.5 text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition";
-                tabRegister.className = "py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition";
+                tabLogin.className = "py-2.5 text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition cursor-pointer";
+                tabRegister.className = "py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer";
                 confirmGroup.classList.add('hidden');
                 usernameHint.classList.add('hidden');
                 submitText.textContent = "ログインする";
                 passwordInput.setAttribute('autocomplete', 'current-password');
             } else {
-                tabRegister.className = "py-2.5 text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition";
-                tabLogin.className = "py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition";
+                tabRegister.className = "py-2.5 text-sm font-bold rounded-lg bg-white text-indigo-600 shadow-sm transition cursor-pointer";
+                tabLogin.className = "py-2.5 text-sm font-semibold rounded-lg text-slate-600 hover:text-slate-900 transition cursor-pointer";
                 confirmGroup.classList.remove('hidden');
                 usernameHint.classList.remove('hidden');
                 submitText.textContent = "アカウントを作成して始める";
@@ -778,125 +758,6 @@
 
         function hideAuthError() {
             document.getElementById('auth-error-box').classList.add('hidden');
-        }
-
-        async function handleAuthSubmit(e) {
-            e.preventDefault();
-            hideAuthError();
-
-            const rawUsername = document.getElementById('auth-username').value.trim();
-            const password = document.getElementById('auth-password').value;
-            const passwordConfirm = document.getElementById('auth-password-confirm').value;
-
-            if (!rawUsername) {
-                showAuthError("ユーザー名を入力してください。");
-                return;
-            }
-            if (rawUsername.length < 2) {
-                showAuthError("ユーザー名は2文字以上で入力してください。");
-                return;
-            }
-
-            const normalizedUsername = rawUsername.toLowerCase();
-            const hexUsername = utf8ToHex(normalizedUsername);
-
-            if (hexUsername.length > 64) {
-                showAuthError("ユーザー名が長すぎます（全角15文字・半角30文字以内にしてください）。");
-                return;
-            }
-
-            if (!password || password.length < 6) {
-                showAuthError("パスワードは6文字以上で入力してください。");
-                return;
-            }
-
-            const dummyEmail = `${hexUsername}@quizmaker.local`;
-            const submitBtn = document.getElementById('auth-submit-btn');
-            const submitText = document.getElementById('auth-submit-text');
-            const originalBtnText = submitText.textContent;
-
-            submitBtn.disabled = true;
-            submitText.textContent = state.authMode === 'login' ? "ログイン中..." : "アカウント登録中...";
-
-            try {
-                if (state.authMode === 'login') {
-                    // ログイン処理
-                    await signInWithEmailAndPassword(auth, dummyEmail, password);
-                    showToast(`おかえりなさい、${rawUsername} さん！`, 'success');
-                } else {
-                    // 新規アカウント登録処理
-                    if (password !== passwordConfirm) {
-                        showAuthError("確認用パスワードが一致しません。");
-                        return;
-                    }
-
-                    state.isRegistering = true;
-
-                    // Firestoreのusernamesコレクションを参照するため、未認証なら一時的に匿名認証を行う
-                    if (!auth.currentUser) {
-                        await signInAnonymously(auth);
-                    }
-
-                    // 1. ユーザー名の重複チェック（小文字正規化 + Hexキー）
-                    const usernameDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'usernames', hexUsername);
-                    const usernameSnap = await getDoc(usernameDocRef);
-
-                    if (usernameSnap.exists()) {
-                        if (auth.currentUser && auth.currentUser.isAnonymous) {
-                            await signOut(auth);
-                        }
-                        state.isRegistering = false;
-                        showAuthError("このユーザー名は既に使用されています");
-                        return;
-                    }
-
-                    // 2. Firebase Authenticationでメール/パスワード新規ユーザー作成
-                    const userCred = await createUserWithEmailAndPassword(auth, dummyEmail, password);
-                    const newUser = userCred.user;
-
-                    // 3. プロフィールに元のユーザー名を設定
-                    await updateProfile(newUser, { displayName: rawUsername });
-
-                    // 4. Firestoreのusernamesコレクションへ一意登録
-                    await setDoc(usernameDocRef, {
-                        username: rawUsername,
-                        normalized: normalizedUsername,
-                        uid: newUser.uid,
-                        createdAt: serverTimestamp()
-                    });
-
-                    // 5. ユーザープライベートプロフィール保存
-                    await setDoc(doc(db, 'artifacts', appId, 'users', newUser.uid, 'profile', 'info'), {
-                        username: rawUsername,
-                        createdAt: serverTimestamp()
-                    });
-
-                    state.isRegistering = false;
-                    state.displayUsername = rawUsername;
-                    updateUserHeaderUI(rawUsername);
-                    subscribeUserQuizzes(newUser.uid);
-                    showAppScreen();
-                    showToast(`アカウント「${rawUsername}」を作成しました！`, 'success');
-                }
-            } catch (err) {
-                state.isRegistering = false;
-                console.error("認証エラー:", err);
-                const code = err?.code || '';
-                if (code === 'auth/email-already-in-use') {
-                    showAuthError("このユーザー名は既に使用されています");
-                } else if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
-                    showAuthError("ユーザー名またはパスワードが正しくありません。");
-                } else if (code === 'auth/weak-password') {
-                    showAuthError("パスワードは6文字以上の英数字を設定してください。");
-                } else if (code === 'auth/too-many-requests') {
-                    showAuthError("試行回数が多すぎます。しばらく時間を置いてから再度お試しください。");
-                } else {
-                    showAuthError(`認証エラーが発生しました: ${err.message || '再度お試しください'}`);
-                }
-            } finally {
-                submitBtn.disabled = false;
-                submitText.textContent = originalBtnText;
-            }
         }
 
         function updateUserHeaderUI(name) {
@@ -917,111 +778,6 @@
             document.getElementById('auth-password-confirm').value = '';
         }
 
-        // 認証状態の監視
-        onAuthStateChanged(auth, async (user) => {
-            if (state.isRegistering) return;
-
-            if (user && !user.isAnonymous) {
-                state.currentUser = user;
-                let resolvedName = user.displayName;
-                if (!resolvedName) {
-                    try {
-                        const profSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'info'));
-                        if (profSnap.exists()) {
-                            resolvedName = profSnap.data().username;
-                        }
-                    } catch (_) {
-                        // フォールバック
-                    }
-                }
-                state.displayUsername = resolvedName || '学習ユーザー';
-                updateUserHeaderUI(state.displayUsername);
-                subscribeUserQuizzes(user.uid);
-                showAppScreen();
-            } else {
-                state.currentUser = null;
-                state.quizzes = [];
-                if (state.unsubscribeQuizzes) {
-                    state.unsubscribeQuizzes();
-                    state.unsubscribeQuizzes = null;
-                }
-                showAuthScreen();
-            }
-        });
-
-        // ---------------------------------------------------------
-        // 6. Firestore リアルタイム同期（マイテスト一覧）
-        // ---------------------------------------------------------
-        function subscribeUserQuizzes(uid) {
-            if (!uid) return;
-            if (state.unsubscribeQuizzes) {
-                state.unsubscribeQuizzes();
-            }
-
-            // RULE 1 & RULE 2 遵守: 単一コレクション参照のみ使用し、ソートはJSメモリで実行
-            const quizzesColRef = collection(db, 'artifacts', appId, 'users', uid, 'quizzes');
-            state.unsubscribeQuizzes = onSnapshot(
-                quizzesColRef,
-                (snapshot) => {
-                    const list = [];
-                    snapshot.forEach((docSnap) => {
-                        list.push({
-                            id: docSnap.id,
-                            ...docSnap.data()
-                        });
-                    });
-                    state.quizzes = list;
-                    document.getElementById('library-count-badge').textContent = String(list.length);
-                    renderLibrary();
-                },
-                (error) => {
-                    console.error("テスト一覧の同期エラー:", error);
-                    showToast("テスト一覧の読み込み中に通信エラーが発生しました。", "error");
-                }
-            );
-        }
-
-        async function saveQuizToFirestore(quizObj) {
-            const user = auth.currentUser;
-            if (!user || user.isAnonymous) return null;
-
-            const quizRef = doc(db, 'artifacts', appId, 'users', user.uid, 'quizzes', quizObj.id);
-            await setDoc(quizRef, quizObj);
-            return quizObj.id;
-        }
-
-        async function renameQuizInFirestore(quizId, newTitle) {
-            const user = auth.currentUser;
-            if (!user || user.isAnonymous || !quizId) return;
-
-            const quizRef = doc(db, 'artifacts', appId, 'users', user.uid, 'quizzes', quizId);
-            await updateDoc(quizRef, {
-                title: newTitle,
-                updatedAtMs: Date.now()
-            });
-
-            if (state.activeQuiz && state.activeQuiz.id === quizId) {
-                state.activeQuiz.title = newTitle;
-                document.getElementById('exam-title').textContent = newTitle;
-            }
-        }
-
-        async function deleteQuizFromFirestore(quizId) {
-            const user = auth.currentUser;
-            if (!user || user.isAnonymous || !quizId) return;
-
-            const quizRef = doc(db, 'artifacts', appId, 'users', user.uid, 'quizzes', quizId);
-            await deleteDoc(quizRef);
-
-            if (state.activeQuiz && state.activeQuiz.id === quizId) {
-                state.activeQuiz = null;
-                switchTab('library');
-            }
-        }
-
-        // ---------------------------------------------------------
-        // 7. ナビゲーション切り替え
-        // ---------------------------------------------------------
         function switchTab(tab) {
             state.activeTab = tab;
             const views = {
@@ -1031,6 +787,7 @@
             };
 
             Object.entries(views).forEach(([key, el]) => {
+                if (!el) return;
                 if (key === tab) {
                     el.classList.remove('hidden');
                 } else {
@@ -1042,23 +799,73 @@
             const libraryBtn = document.getElementById('nav-library-btn');
 
             if (tab === 'create') {
-                createBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5";
-                libraryBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
+                createBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5 cursor-pointer";
+                libraryBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
             } else if (tab === 'library') {
-                libraryBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5";
-                createBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
+                libraryBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-bold bg-white text-indigo-600 shadow-sm transition flex items-center gap-1.5 cursor-pointer";
+                createBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
                 renderLibrary();
             } else {
-                createBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
-                libraryBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5";
+                createBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
+                libraryBtn.className = "px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5 cursor-pointer";
             }
 
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // ---------------------------------------------------------
-        // 8. 画像アップロード・圧縮・プレビュー機能
-        // ---------------------------------------------------------
+        function renderSectionsConfig() {
+            const container = document.getElementById('sections-config-container');
+            if (!container) return;
+            let totalQ = 0;
+
+            let html = '';
+            for (let i = 0; i < state.sectionCount; i++) {
+                const cfg = state.sectionsConfig[i];
+                totalQ += cfg.count;
+
+                const typeOptions = Object.entries(QUESTION_TYPES).map(([val, info]) =>
+                    `<option value="${val}" ${cfg.type === val ? 'selected' : ''}>${info.label}</option>`
+                ).join('');
+
+                let countOptions = '';
+                for (let c = 1; c <= 10; c++) {
+                    countOptions += `<option value="${c}" ${cfg.count === c ? 'selected' : ''}>${c}問</option>`;
+                }
+
+                html += `
+                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/80 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-bold shrink-0">
+                                大問 ${i + 1}
+                            </div>
+                            <span class="text-xs text-slate-500 hidden md:inline">出題形式と小問数を選択</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:flex sm:items-center gap-3 flex-1 sm:justify-end">
+                            <div class="sm:w-56">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">出題形式</label>
+                                <select data-sec-idx="${i}" data-field="type"
+                                    class="sec-cfg-select w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 focus:border-indigo-500 outline-none text-sm font-medium text-slate-800 cursor-pointer">
+                                    ${typeOptions}
+                                </select>
+                            </div>
+
+                            <div class="sm:w-32">
+                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">出題数</label>
+                                <select data-sec-idx="${i}" data-field="count"
+                                    class="sec-cfg-select w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 focus:border-indigo-500 outline-none text-sm font-bold text-indigo-700 cursor-pointer">
+                                    ${countOptions}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+            document.getElementById('total-questions-summary').textContent = `合計：大問 ${state.sectionCount}問 ／ 全 ${totalQ}問`;
+        }
+
         function compressImageFile(file) {
             return new Promise((resolve, reject) => {
                 if (!file.type.startsWith('image/')) {
@@ -1119,6 +926,7 @@
                 const processed = await Promise.all(files.map(f => compressImageFile(f)));
                 state.uploadedImages.push(...processed);
                 renderUploadedImages();
+                document.getElementById('generate-error-box').classList.add('hidden');
                 showToast(`${processed.length}枚の画像を読み込みました`, 'success');
             } catch (err) {
                 showToast(err.message || "画像の読み込みに失敗しました。", "error");
@@ -1147,12 +955,12 @@
                     <img src="${img.dataUrl}" alt="${escapeHtml(img.name)}"
                         data-preview-idx="${idx}"
                         class="w-full h-full object-cover cursor-zoom-in group-hover:scale-105 transition duration-200">
-                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/75 text-white text-[11px] font-bold">
+                    <span class="absolute top-2 left-2 px-2 py-0.5 rounded-md bg-slate-900/75 text-white text-[11px] font-bold pointer-events-none">
                         画像 ${idx + 1}
                     </span>
                     <button type="button" data-remove-img="${img.id}" aria-label="画像を削除"
-                        class="absolute top-2 right-2 w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow transition">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        class="absolute top-2 right-2 w-7 h-7 rounded-full bg-rose-600 hover:bg-rose-700 text-white flex items-center justify-center shadow transition cursor-pointer">
+                        <svg class="w-4 h-4 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
@@ -1160,63 +968,548 @@
             `).join('');
         }
 
-        // ---------------------------------------------------------
-        // 9. 大問設定UIの動的レンダリング
-        // ---------------------------------------------------------
-        function renderSectionsConfig() {
-            const container = document.getElementById('sections-config-container');
-            let totalQ = 0;
+        function openRenameModal(quizId) {
+            const quiz = state.quizzes.find(q => q.id === quizId) || (state.activeQuiz?.id === quizId ? state.activeQuiz : null);
+            if (!quiz) return;
+            state.targetRenameQuizId = quizId;
+            const input = document.getElementById('rename-input');
+            input.value = quiz.title || '';
+            const modal = document.getElementById('rename-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => input.focus(), 50);
+        }
 
-            let html = '';
-            for (let i = 0; i < state.sectionCount; i++) {
-                const cfg = state.sectionsConfig[i];
-                totalQ += cfg.count;
+        function closeRenameModal() {
+            const modal = document.getElementById('rename-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            state.targetRenameQuizId = null;
+        }
 
-                const typeOptions = Object.entries(QUESTION_TYPES).map(([val, info]) =>
-                    `<option value="${val}" ${cfg.type === val ? 'selected' : ''}>${info.label}</option>`
-                ).join('');
+        function openDeleteModal(quizId) {
+            const quiz = state.quizzes.find(q => q.id === quizId);
+            if (!quiz) return;
+            state.targetDeleteQuizId = quizId;
+            document.getElementById('delete-modal-message').textContent =
+                `「${quiz.title}」を削除しますか？この操作は取り消せません。`;
+            const modal = document.getElementById('delete-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
 
-                let countOptions = '';
-                for (let c = 1; c <= 10; c++) {
-                    countOptions += `<option value="${c}" ${cfg.count === c ? 'selected' : ''}>${c}問</option>`;
-                }
-
-                html += `
-                    <div class="p-4 sm:p-5 rounded-2xl bg-slate-50/80 border border-slate-200/90 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                        <div class="flex items-center gap-3">
-                            <div class="px-3 py-1.5 rounded-xl bg-indigo-600 text-white text-xs sm:text-sm font-bold shrink-0">
-                                大問 ${i + 1}
-                            </div>
-                            <span class="text-xs text-slate-500 hidden md:inline">出題形式と小問数を選択</span>
-                        </div>
-
-                        <div class="grid grid-cols-1 xs:grid-cols-2 sm:flex sm:items-center gap-3 flex-1 sm:justify-end">
-                            <div class="sm:w-56">
-                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">出題形式</label>
-                                <select data-sec-idx="${i}" data-field="type"
-                                    class="sec-cfg-select w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 focus:border-indigo-500 outline-none text-sm font-medium text-slate-800">
-                                    ${typeOptions}
-                                </select>
-                            </div>
-
-                            <div class="sm:w-32">
-                                <label class="block text-[11px] font-semibold text-slate-500 mb-1">出題数</label>
-                                <select data-sec-idx="${i}" data-field="count"
-                                    class="sec-cfg-select w-full px-3.5 py-2.5 rounded-xl bg-white border border-slate-300 focus:border-indigo-500 outline-none text-sm font-bold text-indigo-700">
-                                    ${countOptions}
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-            document.getElementById('total-questions-summary').textContent = `合計：大問 ${state.sectionCount}問 ／ 全 ${totalQ}問`;
+        function closeDeleteModal() {
+            const modal = document.getElementById('delete-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            state.targetDeleteQuizId = null;
         }
 
         // ---------------------------------------------------------
-        // 10. Gemini API 呼び出し（指数バックオフリトライ付き）
+        // 4. 同期UIイベントリスナー登録（最優先で実行・ブロックされない）
+        // ---------------------------------------------------------
+        function initUIEventListeners() {
+            // 認証タブ・パスワード表示切替
+            document.getElementById('tab-login').addEventListener('click', () => setAuthMode('login'));
+            document.getElementById('tab-register').addEventListener('click', () => setAuthMode('register'));
+            document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
+
+            document.getElementById('toggle-password-btn').addEventListener('click', () => {
+                const input = document.getElementById('auth-password');
+                const confirmInput = document.getElementById('auth-password-confirm');
+                const nextType = input.type === 'password' ? 'text' : 'password';
+                input.type = nextType;
+                if (confirmInput) confirmInput.type = nextType;
+            });
+
+            // ヘッダー・ナビゲーションボタン
+            document.getElementById('nav-logo-btn').addEventListener('click', () => switchTab('create'));
+            document.getElementById('nav-create-btn').addEventListener('click', () => switchTab('create'));
+            document.getElementById('nav-library-btn').addEventListener('click', () => switchTab('library'));
+            document.getElementById('library-new-btn').addEventListener('click', () => switchTab('create'));
+            document.getElementById('empty-create-btn').addEventListener('click', () => switchTab('create'));
+            document.getElementById('exam-back-btn').addEventListener('click', () => switchTab('library'));
+
+            // ログアウト
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+            // ドロップゾーン（クリック＆ドラッグ＆ドロップ）
+            const dropzone = document.getElementById('dropzone');
+            dropzone.addEventListener('click', (e) => {
+                if (e.target.tagName === 'INPUT' || e.target.closest('label')) return;
+                document.getElementById('file-input').click();
+            });
+            dropzone.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    document.getElementById('file-input').click();
+                }
+            });
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-indigo-500', 'bg-indigo-50/50');
+            });
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+            });
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
+                if (e.dataTransfer?.files) {
+                    handleFilesSelected(e.dataTransfer.files);
+                }
+            });
+
+            // ファイル選択・カメラ入力・クリア
+            document.getElementById('file-input').addEventListener('change', (e) => {
+                handleFilesSelected(e.target.files);
+                e.target.value = '';
+            });
+            document.getElementById('camera-input').addEventListener('change', (e) => {
+                handleFilesSelected(e.target.files);
+                e.target.value = '';
+            });
+            document.getElementById('clear-images-btn').addEventListener('click', () => {
+                state.uploadedImages = [];
+                renderUploadedImages();
+                showToast("選択中の画像をすべてクリアしました。", "info");
+            });
+
+            // 画像プレビューグリッド（削除・拡大）
+            document.getElementById('image-preview-grid').addEventListener('click', (e) => {
+                const removeBtn = e.target.closest('[data-remove-img]');
+                if (removeBtn) {
+                    const targetId = removeBtn.getAttribute('data-remove-img');
+                    state.uploadedImages = state.uploadedImages.filter(img => img.id !== targetId);
+                    renderUploadedImages();
+                    return;
+                }
+                const imgEl = e.target.closest('[data-preview-idx]');
+                if (imgEl) {
+                    const idx = Number(imgEl.getAttribute('data-preview-idx'));
+                    const imgObj = state.uploadedImages[idx];
+                    if (imgObj) {
+                        document.getElementById('modal-preview-img').src = imgObj.dataUrl;
+                        const modal = document.getElementById('image-preview-modal');
+                        modal.classList.remove('hidden');
+                        modal.classList.add('flex');
+                    }
+                }
+            });
+
+            // 画像拡大モーダル閉じる
+            const imgPreviewModal = document.getElementById('image-preview-modal');
+            document.getElementById('close-image-preview-btn').addEventListener('click', () => {
+                imgPreviewModal.classList.add('hidden');
+                imgPreviewModal.classList.remove('flex');
+            });
+            imgPreviewModal.addEventListener('click', (e) => {
+                if (e.target === imgPreviewModal) {
+                    imgPreviewModal.classList.add('hidden');
+                    imgPreviewModal.classList.remove('flex');
+                }
+            });
+
+            // 大問数ボタン (2〜5問)
+            document.getElementById('section-count-selector').addEventListener('click', (e) => {
+                const btn = e.target.closest('.section-count-btn');
+                if (!btn) return;
+                const count = Number(btn.getAttribute('data-count'));
+                if (count >= 2 && count <= 5) {
+                    state.sectionCount = count;
+                    document.querySelectorAll('.section-count-btn').forEach(b => {
+                        const bCount = Number(b.getAttribute('data-count'));
+                        if (bCount === count) {
+                            b.className = "section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-indigo-600 bg-indigo-600 text-white shadow-sm cursor-pointer";
+                        } else {
+                            b.className = "section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300 cursor-pointer";
+                        }
+                    });
+                    renderSectionsConfig();
+                }
+            });
+
+            // 大問ごとの個別設定変更
+            document.getElementById('sections-config-container').addEventListener('change', (e) => {
+                const sel = e.target.closest('.sec-cfg-select');
+                if (!sel) return;
+                const idx = Number(sel.getAttribute('data-sec-idx'));
+                const field = sel.getAttribute('data-field');
+                if (field === 'type') {
+                    state.sectionsConfig[idx].type = sel.value;
+                } else if (field === 'count') {
+                    state.sectionsConfig[idx].count = Math.max(1, Math.min(10, Number(sel.value)));
+                }
+                renderSectionsConfig();
+            });
+
+            // 補足リクエストチップ（イベント委譲）
+            document.getElementById('prompt-chips-container').addEventListener('click', (e) => {
+                const chip = e.target.closest('.prompt-chip');
+                if (!chip) return;
+                const input = document.getElementById('extra-prompt-input');
+                const phrase = chip.textContent.replace(/^\+\s*/, '').trim();
+                input.value = input.value.trim() ? `${input.value.trim()}、${phrase}` : phrase;
+                input.focus();
+            });
+
+            // テスト生成・再試行
+            document.getElementById('generate-test-btn').addEventListener('click', generatePracticeTest);
+            document.getElementById('retry-generate-btn').addEventListener('click', generatePracticeTest);
+
+            // テスト受験画面内の選択・入力・採点・再受験
+            document.getElementById('exam-sections-container').addEventListener('click', (e) => {
+                if (state.isGraded) return;
+                const choiceBtn = e.target.closest('.choice-btn');
+                if (choiceBtn) {
+                    const qid = choiceBtn.getAttribute('data-qid');
+                    const choice = choiceBtn.getAttribute('data-choice');
+                    state.userAnswers[qid] = choice;
+                    renderExamView();
+                }
+            });
+
+            document.getElementById('exam-sections-container').addEventListener('input', (e) => {
+                if (state.isGraded) return;
+                const inputEl = e.target.closest('.text-answer-input');
+                if (inputEl) {
+                    const qid = inputEl.getAttribute('data-qid');
+                    state.userAnswers[qid] = inputEl.value;
+                    updateExamProgress();
+                }
+            });
+
+            document.getElementById('grade-exam-btn').addEventListener('click', gradeCurrentExam);
+
+            document.getElementById('retake-exam-btn').addEventListener('click', () => {
+                if (!state.activeQuiz) return;
+                state.userAnswers = {};
+                state.isGraded = false;
+                state.gradingResults = null;
+                renderExamView();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                showToast("解答をリセットしました。もう一度挑戦しましょう！", "info");
+            });
+
+            // 改名モーダル
+            document.getElementById('exam-rename-btn').addEventListener('click', () => {
+                if (state.activeQuiz) openRenameModal(state.activeQuiz.id);
+            });
+            document.getElementById('rename-cancel-btn').addEventListener('click', closeRenameModal);
+            document.getElementById('rename-save-btn').addEventListener('click', handleRenameSave);
+            document.getElementById('rename-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleRenameSave();
+                }
+            });
+
+            // 削除モーダル
+            document.getElementById('delete-cancel-btn').addEventListener('click', closeDeleteModal);
+            document.getElementById('delete-confirm-btn').addEventListener('click', handleDeleteConfirm);
+
+            // マイテスト一覧検索・並び替え・カード操作
+            document.getElementById('library-search-input').addEventListener('input', renderLibrary);
+            document.getElementById('library-sort-select').addEventListener('change', renderLibrary);
+            document.getElementById('library-grid').addEventListener('click', (e) => {
+                const btn = e.target.closest('[data-action]');
+                if (!btn) return;
+                const action = btn.getAttribute('data-action');
+                const quizId = btn.getAttribute('data-quiz-id');
+                const quiz = state.quizzes.find(q => q.id === quizId);
+                if (!quiz) return;
+
+                if (action === 'take') {
+                    openQuizForExam(quiz);
+                } else if (action === 'rename') {
+                    openRenameModal(quizId);
+                } else if (action === 'delete') {
+                    openDeleteModal(quizId);
+                }
+            });
+        }
+
+        // UIイベントと初期セクション設定を即座に実行
+        initUIEventListeners();
+        renderSectionsConfig();
+
+        // ---------------------------------------------------------
+        // 5. Firebase 初期化（安全な try/catch 付き）
+        // ---------------------------------------------------------
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'ai-quiz-maker-default';
+        let app = null;
+        let auth = null;
+        let db = null;
+
+        try {
+            const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+            if (firebaseConfig && firebaseConfig.apiKey) {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                state.firebaseReady = true;
+            } else {
+                console.warn("Firebase設定が見つからないため、オフラインモードで動作します。");
+            }
+        } catch (e) {
+            console.error("Firebase初期化エラー:", e);
+        }
+
+        // ---------------------------------------------------------
+        // 6. 認証ハンドラ & Firestore 同期処理
+        // ---------------------------------------------------------
+        async function handleLogout() {
+            if (!auth) {
+                showAuthScreen();
+                return;
+            }
+            try {
+                await signOut(auth);
+                showToast("ログアウトしました。", "info");
+            } catch (err) {
+                showToast("ログアウト処理に失敗しました。", "error");
+            }
+        }
+
+        async function handleAuthSubmit(e) {
+            e.preventDefault();
+            hideAuthError();
+
+            const rawUsername = document.getElementById('auth-username').value.trim();
+            const password = document.getElementById('auth-password').value;
+            const passwordConfirm = document.getElementById('auth-password-confirm').value;
+
+            if (!rawUsername) {
+                showAuthError("ユーザー名を入力してください。");
+                showToast("ユーザー名を入力してください。", "error");
+                return;
+            }
+            if (rawUsername.length < 2) {
+                showAuthError("ユーザー名は2文字以上で入力してください。");
+                return;
+            }
+
+            const normalizedUsername = rawUsername.toLowerCase();
+            const hexUsername = utf8ToHex(normalizedUsername);
+
+            if (hexUsername.length > 64) {
+                showAuthError("ユーザー名が長すぎます（全角15文字・半角30文字以内にしてください）。");
+                return;
+            }
+
+            if (!password || password.length < 6) {
+                showAuthError("パスワードは6文字以上で入力してください。");
+                showToast("パスワードは6文字以上で入力してください。", "error");
+                return;
+            }
+
+            if (!state.firebaseReady || !auth || !db) {
+                showAuthError("クラウド認証サービスに接続できませんでした。環境設定を確認してください。");
+                return;
+            }
+
+            const dummyEmail = `${hexUsername}@quizmaker.local`;
+            const submitBtn = document.getElementById('auth-submit-btn');
+            const submitText = document.getElementById('auth-submit-text');
+            const originalBtnText = submitText.textContent;
+
+            submitBtn.disabled = true;
+            submitText.textContent = state.authMode === 'login' ? "ログイン中..." : "アカウント登録中...";
+
+            try {
+                if (state.authMode === 'login') {
+                    await signInWithEmailAndPassword(auth, dummyEmail, password);
+                    showToast(`おかえりなさい、${rawUsername} さん！`, 'success');
+                } else {
+                    if (password !== passwordConfirm) {
+                        showAuthError("確認用パスワードが一致しません。");
+                        return;
+                    }
+
+                    state.isRegistering = true;
+
+                    if (!auth.currentUser) {
+                        await signInAnonymously(auth);
+                    }
+
+                    const usernameDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'usernames', hexUsername);
+                    const usernameSnap = await getDoc(usernameDocRef);
+
+                    if (usernameSnap.exists()) {
+                        if (auth.currentUser && auth.currentUser.isAnonymous) {
+                            await signOut(auth);
+                        }
+                        state.isRegistering = false;
+                        showAuthError("このユーザー名は既に使用されています");
+                        showToast("このユーザー名は既に使用されています", "error");
+                        return;
+                    }
+
+                    const userCred = await createUserWithEmailAndPassword(auth, dummyEmail, password);
+                    const newUser = userCred.user;
+
+                    await updateProfile(newUser, { displayName: rawUsername });
+
+                    await setDoc(usernameDocRef, {
+                        username: rawUsername,
+                        normalized: normalizedUsername,
+                        uid: newUser.uid,
+                        createdAt: serverTimestamp()
+                    });
+
+                    await setDoc(doc(db, 'artifacts', appId, 'users', newUser.uid, 'profile', 'info'), {
+                        username: rawUsername,
+                        createdAt: serverTimestamp()
+                    });
+
+                    state.isRegistering = false;
+                    state.currentUser = newUser;
+                    state.displayUsername = rawUsername;
+                    updateUserHeaderUI(rawUsername);
+                    subscribeUserQuizzes(newUser.uid);
+                    showAppScreen();
+                    showToast(`アカウント「${rawUsername}」を作成しました！`, 'success');
+                }
+            } catch (err) {
+                state.isRegistering = false;
+                console.error("認証エラー:", err);
+                const code = err?.code || '';
+                if (code === 'auth/email-already-in-use') {
+                    showAuthError("このユーザー名は既に使用されています");
+                } else if (code === 'auth/invalid-credential' || code === 'auth/user-not-found' || code === 'auth/wrong-password') {
+                    showAuthError("ユーザー名またはパスワードが正しくありません。");
+                } else if (code === 'auth/weak-password') {
+                    showAuthError("パスワードは6文字以上の英数字を設定してください。");
+                } else if (code === 'auth/too-many-requests') {
+                    showAuthError("試行回数が多すぎます。しばらく時間を置いてから再度お試しください。");
+                } else {
+                    showAuthError(`認証エラーが発生しました: ${err.message || '再度お試しください'}`);
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitText.textContent = originalBtnText;
+            }
+        }
+
+        if (state.firebaseReady && auth) {
+            onAuthStateChanged(auth, async (user) => {
+                if (state.isRegistering) return;
+
+                if (user && !user.isAnonymous) {
+                    state.currentUser = user;
+                    let resolvedName = user.displayName;
+                    if (!resolvedName && db) {
+                        try {
+                            const profSnap = await getDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'profile', 'info'));
+                            if (profSnap.exists()) {
+                                resolvedName = profSnap.data().username;
+                            }
+                        } catch (_) {}
+                    }
+                    state.displayUsername = resolvedName || '学習ユーザー';
+                    updateUserHeaderUI(state.displayUsername);
+                    subscribeUserQuizzes(user.uid);
+                    showAppScreen();
+                } else {
+                    state.currentUser = null;
+                    state.quizzes = [];
+                    if (state.unsubscribeQuizzes) {
+                        state.unsubscribeQuizzes();
+                        state.unsubscribeQuizzes = null;
+                    }
+                    showAuthScreen();
+                }
+            });
+        }
+
+        function subscribeUserQuizzes(uid) {
+            if (!uid || !db) return;
+            if (state.unsubscribeQuizzes) {
+                state.unsubscribeQuizzes();
+            }
+
+            const quizzesColRef = collection(db, 'artifacts', appId, 'users', uid, 'quizzes');
+            state.unsubscribeQuizzes = onSnapshot(
+                quizzesColRef,
+                (snapshot) => {
+                    const list = [];
+                    snapshot.forEach((docSnap) => {
+                        list.push({
+                            id: docSnap.id,
+                            ...docSnap.data()
+                        });
+                    });
+                    state.quizzes = list;
+                    document.getElementById('library-count-badge').textContent = String(list.length);
+                    renderLibrary();
+                },
+                (error) => {
+                    console.error("テスト一覧の同期エラー:", error);
+                    showToast("テスト一覧の読み込み中に通信エラーが発生しました。", "error");
+                }
+            );
+        }
+
+        async function saveQuizToFirestore(quizObj) {
+            if (!auth || !db) return null;
+            const user = auth.currentUser;
+            if (!user || user.isAnonymous) return null;
+
+            const quizRef = doc(db, 'artifacts', appId, 'users', user.uid, 'quizzes', quizObj.id);
+            await setDoc(quizRef, quizObj);
+            return quizObj.id;
+        }
+
+        async function handleRenameSave() {
+            const newTitle = document.getElementById('rename-input').value.trim();
+            if (!newTitle) {
+                showToast("テスト名を入力してください。", "error");
+                return;
+            }
+            const targetId = state.targetRenameQuizId;
+            closeRenameModal();
+
+            if (!auth || !db || !auth.currentUser || !targetId) return;
+            try {
+                const quizRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'quizzes', targetId);
+                await updateDoc(quizRef, {
+                    title: newTitle,
+                    updatedAtMs: Date.now()
+                });
+
+                if (state.activeQuiz && state.activeQuiz.id === targetId) {
+                    state.activeQuiz.title = newTitle;
+                    document.getElementById('exam-title').textContent = newTitle;
+                }
+                showToast("テスト名を変更しました。", "success");
+            } catch (err) {
+                console.error("改名エラー:", err);
+                showToast("テスト名の変更に失敗しました。", "error");
+            }
+        }
+
+        async function handleDeleteConfirm() {
+            const targetId = state.targetDeleteQuizId;
+            closeDeleteModal();
+
+            if (!auth || !db || !auth.currentUser || !targetId) return;
+            try {
+                const quizRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'quizzes', targetId);
+                await deleteDoc(quizRef);
+
+                if (state.activeQuiz && state.activeQuiz.id === targetId) {
+                    state.activeQuiz = null;
+                    switchTab('library');
+                }
+                showToast("テストを削除しました。", "info");
+            } catch (err) {
+                console.error("削除エラー:", err);
+                showToast("テストの削除に失敗しました。", "error");
+            }
+        }
+
+        // ---------------------------------------------------------
+        // 7. Gemini API 呼び出し & 練習問題テスト自動生成
         // ---------------------------------------------------------
         async function callGeminiWithRetry(payload) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
@@ -1251,15 +1544,17 @@
             }
         }
 
-        // ---------------------------------------------------------
-        // 11. AIによる練習問題テスト自動生成
-        // ---------------------------------------------------------
         async function generatePracticeTest() {
             const errorBox = document.getElementById('generate-error-box');
+            const errorText = document.getElementById('generate-error-text');
             errorBox.classList.add('hidden');
 
             if (state.uploadedImages.length === 0) {
-                showToast("先に教科書やノートの画像を1枚以上読み込んでください。", "error");
+                const msg = "先に「ステップ1：教材画像の読み込み」から教科書やノートの画像を1枚以上アップロードしてください。";
+                errorText.textContent = msg;
+                errorBox.classList.remove('hidden');
+                showToast("画像を1枚以上読み込んでください", "error");
+                document.getElementById('step1-image-section')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
 
@@ -1376,7 +1671,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                 const parsed = JSON.parse(rawJsonText);
                 const normalizedQuiz = normalizeGeneratedQuiz(parsed, customTitle);
 
-                // Firestoreに自動保存
                 await saveQuizToFirestore(normalizedQuiz);
 
                 hideLoading();
@@ -1385,13 +1679,13 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
             } catch (err) {
                 hideLoading();
                 console.error("テスト生成エラー:", err);
-                document.getElementById('generate-error-text').textContent =
-                    `テストの作成に失敗しました（${err.message || '通信エラー'}）。再試行してください。`;
+                const errMsg = `テストの作成に失敗しました（${err.message || '通信エラー'}）。再試行してください。`;
+                errorText.textContent = errMsg;
                 errorBox.classList.remove('hidden');
+                showToast("テストの作成に失敗しました", "error");
             }
         }
 
-        // AI出力の正規化（配点合計100点調整・ID付与など）
         function normalizeGeneratedQuiz(parsed, customTitle) {
             const sections = (parsed.sections || []).map((sec, sIdx) => {
                 const secNum = sIdx + 1;
@@ -1421,7 +1715,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                 };
             });
 
-            // 合計点が100点になるよう比率調整
             const allQuestions = sections.flatMap(s => s.questions);
             const rawSum = allQuestions.reduce((acc, q) => acc + q.points, 0);
             if (allQuestions.length > 0 && rawSum !== 100) {
@@ -1453,7 +1746,7 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
         }
 
         // ---------------------------------------------------------
-        // 12. テスト受験画面レンダリング & 解答管理
+        // 8. テスト受験画面レンダリング & AI採点ロジック
         // ---------------------------------------------------------
         function openQuizForExam(quiz) {
             state.activeQuiz = JSON.parse(JSON.stringify(quiz));
@@ -1525,7 +1818,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                 updateExamProgress();
             }
 
-            // 各大問・小問のレンダリング
             const sectionsContainer = document.getElementById('exam-sections-container');
             sectionsContainer.innerHTML = quiz.sections.map((sec) => {
                 const typeInfo = QUESTION_TYPES[sec.type] || QUESTION_TYPES.multiple_choice;
@@ -1559,7 +1851,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                         }
                     }
 
-                    // 解答入力UI（採点前 vs 採点後）
                     let answerAreaHtml = "";
                     if (!state.isGraded) {
                         if (sec.type === 'multiple_choice') {
@@ -1570,15 +1861,15 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                                         const isSelected = userVal === opt;
                                         return `
                                             <button type="button" data-qid="${q.id}" data-choice="${escapeHtml(opt)}"
-                                                class="choice-btn w-full text-left p-3.5 rounded-xl border transition flex items-center gap-3 ${
+                                                class="choice-btn w-full text-left p-3.5 rounded-xl border transition flex items-center gap-3 cursor-pointer ${
                                                     isSelected
                                                         ? 'border-indigo-600 bg-indigo-50/80 text-indigo-950 font-semibold ring-2 ring-indigo-200'
                                                         : 'border-slate-200 bg-white hover:border-indigo-300 hover:bg-slate-50 text-slate-800'
                                                 }">
-                                                <span class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 ${
+                                                <span class="w-7 h-7 rounded-lg text-xs font-bold flex items-center justify-center shrink-0 pointer-events-none ${
                                                     isSelected ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600'
                                                 }">${choiceLabels[oIdx] || (oIdx + 1)}</span>
-                                                <span class="text-sm leading-relaxed">${escapeHtml(opt)}</span>
+                                                <span class="text-sm leading-relaxed pointer-events-none">${escapeHtml(opt)}</span>
                                             </button>
                                         `;
                                     }).join('')}
@@ -1591,7 +1882,7 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                                         const labelText = symbol === '○' ? '○（正しい）' : '×（誤り）';
                                         return `
                                             <button type="button" data-qid="${q.id}" data-choice="${symbol}"
-                                                class="choice-btn py-3.5 px-4 rounded-xl border text-sm font-bold transition flex items-center justify-center ${
+                                                class="choice-btn py-3.5 px-4 rounded-xl border text-sm font-bold transition flex items-center justify-center cursor-pointer ${
                                                     isSelected
                                                         ? 'border-indigo-600 bg-indigo-600 text-white shadow-sm'
                                                         : 'border-slate-200 bg-white hover:border-indigo-300 text-slate-700'
@@ -1609,7 +1900,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                                         placeholder="記述式の解答を入力してください...">${escapeHtml(userVal)}</textarea>
                                 </div>`;
                         } else {
-                            // fill_in_blank or short_answer
                             answerAreaHtml = `
                                 <div class="mt-3">
                                     <input type="text" data-qid="${q.id}" value="${escapeHtml(userVal)}"
@@ -1618,7 +1908,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                                 </div>`;
                         }
                     } else {
-                        // 採点後の解答・模範解答・AIコメント・解説表示
                         answerAreaHtml = `
                             <div class="mt-4 space-y-2.5 text-sm">
                                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1684,9 +1973,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
             }).join('');
         }
 
-        // ---------------------------------------------------------
-        // 13. AI自動採点ロジック（4択・○×即時採点 + 記述/穴埋めAI採点）
-        // ---------------------------------------------------------
         async function gradeCurrentExam() {
             const quiz = state.activeQuiz;
             if (!quiz) return;
@@ -1706,7 +1992,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                             feedback: isCorrect ? '正解です！' : (userAns ? '不正解です。下の解説を確認しましょう。' : '未解答です。')
                         };
                     } else {
-                        // 穴埋め・一問一答・記述式
                         if (!userAns) {
                             questionResults[q.id] = {
                                 earnedPoints: 0,
@@ -1734,7 +2019,6 @@ ${extraPrompt ? `【追加リクエスト】\n${extraPrompt}` : ''}`;
                 });
             });
 
-            // 記述・穴埋め・一問一答でAI判定が必要な問題がある場合
             if (writtenToGrade.length > 0) {
                 showLoading(
                     "AIが記述・穴埋め問題を採点しています...",
@@ -1807,7 +2091,6 @@ ${JSON.stringify(writtenToGrade, null, 2)}`;
                     hideLoading();
                 }
 
-                // 万一AIレスポンスから漏れた問題があればフォールバック採点
                 writtenToGrade.forEach(w => {
                     if (!questionResults[w.id]) {
                         questionResults[w.id] = {
@@ -1819,7 +2102,6 @@ ${JSON.stringify(writtenToGrade, null, 2)}`;
                 });
             }
 
-            // 総合得点・大問別スコア集計
             let totalScore = 0;
             let maxScore = 0;
             const sectionScores = quiz.sections.map((sec) => {
@@ -1850,21 +2132,19 @@ ${JSON.stringify(writtenToGrade, null, 2)}`;
                 questionResults
             };
 
-            // 最高スコアの更新（Firestore）
-            try {
-                const user = auth.currentUser;
-                if (user && !user.isAnonymous) {
+            if (auth && db && auth.currentUser && !auth.currentUser.isAnonymous) {
+                try {
                     const prevBest = quiz.bestScore;
                     if (prevBest === null || prevBest === undefined || totalScore > prevBest) {
                         quiz.bestScore = totalScore;
-                        await updateDoc(doc(db, 'artifacts', appId, 'users', user.uid, 'quizzes', quiz.id), {
+                        await updateDoc(doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'quizzes', quiz.id), {
                             bestScore: totalScore,
                             updatedAtMs: Date.now()
                         });
                     }
+                } catch (e) {
+                    console.error("最高スコア保存エラー:", e);
                 }
-            } catch (e) {
-                console.error("最高スコア保存エラー:", e);
             }
 
             renderExamView();
@@ -1873,11 +2153,13 @@ ${JSON.stringify(writtenToGrade, null, 2)}`;
         }
 
         // ---------------------------------------------------------
-        // 14. マイテスト一覧のレンダリング
+        // 9. マイテスト一覧レンダリング
         // ---------------------------------------------------------
         function renderLibrary() {
             const grid = document.getElementById('library-grid');
             const emptyState = document.getElementById('library-empty-state');
+            if (!grid || !emptyState) return;
+
             const searchQuery = (document.getElementById('library-search-input').value || '').trim().toLowerCase();
             const sortBy = document.getElementById('library-sort-select').value;
 
@@ -1939,15 +2221,15 @@ ${JSON.stringify(writtenToGrade, null, 2)}`;
 
                         <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
                             <button type="button" data-action="take" data-quiz-id="${quiz.id}"
-                                class="flex-1 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm transition">
+                                class="flex-1 py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold shadow-sm transition cursor-pointer">
                                 受験する
                             </button>
                             <button type="button" data-action="rename" data-quiz-id="${quiz.id}" title="テスト名を変更"
-                                class="py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition">
+                                class="py-2.5 px-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition cursor-pointer">
                                 改名
                             </button>
                             <button type="button" data-action="delete" data-quiz-id="${quiz.id}" title="テストを削除"
-                                class="py-2.5 px-3 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 text-xs font-semibold transition">
+                                class="py-2.5 px-3 rounded-xl border border-rose-200 hover:bg-rose-50 text-rose-600 text-xs font-semibold transition cursor-pointer">
                                 削除
                             </button>
                         </div>
@@ -1955,275 +2237,6 @@ ${JSON.stringify(writtenToGrade, null, 2)}`;
                 `;
             }).join('');
         }
-
-        // ---------------------------------------------------------
-        // 15. イベントリスナー登録
-        // ---------------------------------------------------------
-        // 認証タブ・フォーム
-        document.getElementById('tab-login').addEventListener('click', () => setAuthMode('login'));
-        document.getElementById('tab-register').addEventListener('click', () => setAuthMode('register'));
-        document.getElementById('auth-form').addEventListener('submit', handleAuthSubmit);
-
-        document.getElementById('toggle-password-btn').addEventListener('click', () => {
-            const input = document.getElementById('auth-password');
-            input.type = input.type === 'password' ? 'text' : 'password';
-        });
-
-        // ナビゲーション・ログアウト
-        document.getElementById('nav-logo-btn').addEventListener('click', () => switchTab('create'));
-        document.getElementById('nav-create-btn').addEventListener('click', () => switchTab('create'));
-        document.getElementById('nav-library-btn').addEventListener('click', () => switchTab('library'));
-        document.getElementById('library-new-btn').addEventListener('click', () => switchTab('create'));
-        document.getElementById('empty-create-btn').addEventListener('click', () => switchTab('create'));
-
-        document.getElementById('logout-btn').addEventListener('click', async () => {
-            try {
-                await signOut(auth);
-                showToast("ログアウトしました。", "info");
-            } catch (err) {
-                showToast("ログアウト処理に失敗しました。", "error");
-            }
-        });
-
-        // 画像ドラッグ＆ドロップ・選択・クリア
-        const dropzone = document.getElementById('dropzone');
-        dropzone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropzone.classList.add('border-indigo-500', 'bg-indigo-50/50');
-        });
-        dropzone.addEventListener('dragleave', () => {
-            dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
-        });
-        dropzone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropzone.classList.remove('border-indigo-500', 'bg-indigo-50/50');
-            if (e.dataTransfer?.files) {
-                handleFilesSelected(e.dataTransfer.files);
-            }
-        });
-
-        document.getElementById('file-input').addEventListener('change', (e) => {
-            handleFilesSelected(e.target.files);
-            e.target.value = '';
-        });
-
-        document.getElementById('camera-input').addEventListener('change', (e) => {
-            handleFilesSelected(e.target.files);
-            e.target.value = '';
-        });
-
-        document.getElementById('clear-images-btn').addEventListener('click', () => {
-            state.uploadedImages = [];
-            renderUploadedImages();
-            showToast("選択中の画像をすべてクリアしました。", "info");
-        });
-
-        // 画像サムネイルグリッドのクリック委譲（削除・拡大）
-        document.getElementById('image-preview-grid').addEventListener('click', (e) => {
-            const removeBtn = e.target.closest('[data-remove-img]');
-            if (removeBtn) {
-                const targetId = removeBtn.getAttribute('data-remove-img');
-                state.uploadedImages = state.uploadedImages.filter(img => img.id !== targetId);
-                renderUploadedImages();
-                return;
-            }
-
-            const imgEl = e.target.closest('[data-preview-idx]');
-            if (imgEl) {
-                const idx = Number(imgEl.getAttribute('data-preview-idx'));
-                const imgObj = state.uploadedImages[idx];
-                if (imgObj) {
-                    document.getElementById('modal-preview-img').src = imgObj.dataUrl;
-                    const modal = document.getElementById('image-preview-modal');
-                    modal.classList.remove('hidden');
-                    modal.classList.add('flex');
-                }
-            }
-        });
-
-        document.getElementById('close-image-preview-btn').addEventListener('click', () => {
-            const modal = document.getElementById('image-preview-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-        });
-
-        // 大問数ボタン (2〜5問)
-        document.getElementById('section-count-selector').addEventListener('click', (e) => {
-            const btn = e.target.closest('.section-count-btn');
-            if (!btn) return;
-            const count = Number(btn.getAttribute('data-count'));
-            if (count >= 2 && count <= 5) {
-                state.sectionCount = count;
-                document.querySelectorAll('.section-count-btn').forEach(b => {
-                    const bCount = Number(b.getAttribute('data-count'));
-                    if (bCount === count) {
-                        b.className = "section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-indigo-600 bg-indigo-600 text-white shadow-sm";
-                    } else {
-                        b.className = "section-count-btn py-2.5 rounded-xl border text-sm font-bold transition border-slate-200 bg-slate-50 text-slate-700 hover:border-indigo-300";
-                    }
-                });
-                renderSectionsConfig();
-            }
-        });
-
-        // 大問ごとの個別設定変更
-        document.getElementById('sections-config-container').addEventListener('change', (e) => {
-            const sel = e.target.closest('.sec-cfg-select');
-            if (!sel) return;
-            const idx = Number(sel.getAttribute('data-sec-idx'));
-            const field = sel.getAttribute('data-field');
-            if (field === 'type') {
-                state.sectionsConfig[idx].type = sel.value;
-            } else if (field === 'count') {
-                state.sectionsConfig[idx].count = Math.max(1, Math.min(10, Number(sel.value)));
-            }
-            renderSectionsConfig();
-        });
-
-        // 補足リクエストチップ
-        document.querySelectorAll('.prompt-chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-                const input = document.getElementById('extra-prompt-input');
-                const phrase = chip.textContent.replace(/^\+\s*/, '').trim();
-                input.value = input.value.trim() ? `${input.value.trim()}、${phrase}` : phrase;
-                input.focus();
-            });
-        });
-
-        // テスト生成・再試行ボタン
-        document.getElementById('generate-test-btn').addEventListener('click', generatePracticeTest);
-        document.getElementById('retry-generate-btn').addEventListener('click', generatePracticeTest);
-
-        // 受験画面イベント
-        document.getElementById('exam-back-btn').addEventListener('click', () => switchTab('library'));
-
-        document.getElementById('exam-sections-container').addEventListener('click', (e) => {
-            if (state.isGraded) return;
-            const choiceBtn = e.target.closest('.choice-btn');
-            if (choiceBtn) {
-                const qid = choiceBtn.getAttribute('data-qid');
-                const choice = choiceBtn.getAttribute('data-choice');
-                state.userAnswers[qid] = choice;
-                renderExamView();
-            }
-        });
-
-        document.getElementById('exam-sections-container').addEventListener('input', (e) => {
-            if (state.isGraded) return;
-            const inputEl = e.target.closest('.text-answer-input');
-            if (inputEl) {
-                const qid = inputEl.getAttribute('data-qid');
-                state.userAnswers[qid] = inputEl.value;
-                updateExamProgress();
-            }
-        });
-
-        document.getElementById('grade-exam-btn').addEventListener('click', gradeCurrentExam);
-
-        document.getElementById('retake-exam-btn').addEventListener('click', () => {
-            if (!state.activeQuiz) return;
-            state.userAnswers = {};
-            state.isGraded = false;
-            state.gradingResults = null;
-            renderExamView();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-            showToast("解答をリセットしました。もう一度挑戦しましょう！", "info");
-        });
-
-        // 改名モーダル関連
-        function openRenameModal(quizId) {
-            const quiz = state.quizzes.find(q => q.id === quizId) || (state.activeQuiz?.id === quizId ? state.activeQuiz : null);
-            if (!quiz) return;
-            state.targetRenameQuizId = quizId;
-            const input = document.getElementById('rename-input');
-            input.value = quiz.title || '';
-            const modal = document.getElementById('rename-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => input.focus(), 50);
-        }
-
-        function closeRenameModal() {
-            const modal = document.getElementById('rename-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            state.targetRenameQuizId = null;
-        }
-
-        document.getElementById('exam-rename-btn').addEventListener('click', () => {
-            if (state.activeQuiz) openRenameModal(state.activeQuiz.id);
-        });
-        document.getElementById('rename-cancel-btn').addEventListener('click', closeRenameModal);
-        document.getElementById('rename-save-btn').addEventListener('click', async () => {
-            const newTitle = document.getElementById('rename-input').value.trim();
-            if (!newTitle) {
-                showToast("テスト名を入力してください。", "error");
-                return;
-            }
-            const targetId = state.targetRenameQuizId;
-            closeRenameModal();
-            try {
-                await renameQuizInFirestore(targetId, newTitle);
-                showToast("テスト名を変更しました。", "success");
-            } catch (err) {
-                showToast("テスト名の変更に失敗しました。", "error");
-            }
-        });
-
-        // 削除確認モーダル関連
-        function openDeleteModal(quizId) {
-            const quiz = state.quizzes.find(q => q.id === quizId);
-            if (!quiz) return;
-            state.targetDeleteQuizId = quizId;
-            document.getElementById('delete-modal-message').textContent =
-                `「${quiz.title}」を削除しますか？この操作は取り消せません。`;
-            const modal = document.getElementById('delete-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeDeleteModal() {
-            const modal = document.getElementById('delete-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            state.targetDeleteQuizId = null;
-        }
-
-        document.getElementById('delete-cancel-btn').addEventListener('click', closeDeleteModal);
-        document.getElementById('delete-confirm-btn').addEventListener('click', async () => {
-            const targetId = state.targetDeleteQuizId;
-            closeDeleteModal();
-            try {
-                await deleteQuizFromFirestore(targetId);
-                showToast("テストを削除しました。", "info");
-            } catch (err) {
-                showToast("テストの削除に失敗しました。", "error");
-            }
-        });
-
-        // マイテスト一覧の検索・並び替え・カードボタンクリック
-        document.getElementById('library-search-input').addEventListener('input', renderLibrary);
-        document.getElementById('library-sort-select').addEventListener('change', renderLibrary);
-
-        document.getElementById('library-grid').addEventListener('click', (e) => {
-            const btn = e.target.closest('[data-action]');
-            if (!btn) return;
-            const action = btn.getAttribute('data-action');
-            const quizId = btn.getAttribute('data-quiz-id');
-            const quiz = state.quizzes.find(q => q.id === quizId);
-            if (!quiz) return;
-
-            if (action === 'take') {
-                openQuizForExam(quiz);
-            } else if (action === 'rename') {
-                openRenameModal(quizId);
-            } else if (action === 'delete') {
-                openDeleteModal(quizId);
-            }
-        });
-
-        // 初期描画
-        renderSectionsConfig();
     </script>
 </body>
 </html>
