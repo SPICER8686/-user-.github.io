@@ -240,7 +240,7 @@
       box-shadow: none;
     }
 
-    @media (max-width: 840px) {
+    @media (max-width: 880px) {
       .desktop-nav { display: none; }
       .mobile-nav { display: flex; }
       .header-cloud-text { display: none; }
@@ -365,7 +365,7 @@
       margin-bottom: 5px;
     }
 
-    .form-input, .form-select {
+    .form-input, .form-select, .form-textarea {
       width: 100%;
       padding: 10px 13px;
       min-height: 42px;
@@ -377,7 +377,15 @@
       transition: border-color 0.15s, box-shadow 0.15s;
     }
 
-    .form-input:focus, .form-select:focus {
+    .form-textarea {
+      min-height: 92px;
+      resize: vertical;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.78rem;
+      line-height: 1.45;
+    }
+
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
       outline: none;
       border-color: var(--primary);
       box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.14);
@@ -387,7 +395,8 @@
     .auth-header-box {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 6px;
+      flex-wrap: nowrap;
     }
 
     .user-pill {
@@ -398,7 +407,7 @@
       border-radius: 999px;
       background: var(--primary-light);
       border: 1px solid var(--primary-border);
-      max-width: 170px;
+      max-width: 155px;
     }
 
     .user-avatar {
@@ -422,6 +431,10 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+
+    @media (max-width: 520px) {
+      .hide-xs { display: none !important; }
     }
 
     /* ==================== メインコンテナ & カード ==================== */
@@ -1104,6 +1117,17 @@
     .result-tag.ok { background: var(--success); }
     .result-tag.ng { background: var(--danger); }
 
+    .ai-feedback-note {
+      margin-top: 8px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.85);
+      border: 1px solid var(--primary-border);
+      font-size: 0.8rem;
+      color: #1e1b4b;
+      font-weight: 600;
+    }
+
     /* ==================== マイクイズ一覧 ==================== */
     .filter-bar {
       display: flex;
@@ -1165,7 +1189,7 @@
     .modal-card {
       background: #ffffff;
       border-radius: 22px;
-      max-width: 450px;
+      max-width: 470px;
       width: 100%;
       padding: 24px;
       box-shadow: var(--shadow-xl);
@@ -1228,12 +1252,12 @@
     }
 
     .error-alert {
-      padding: 10px 12px;
+      padding: 12px 14px;
       border-radius: var(--radius-md);
       background: var(--danger-bg);
       border: 1px solid var(--danger-border);
       color: var(--danger);
-      font-size: 0.81rem;
+      font-size: 0.82rem;
       font-weight: 700;
       line-height: 1.5;
     }
@@ -1331,9 +1355,9 @@
           <span class="brand-title">StudySnap AI</span>
         </button>
 
-        <span id="header-cloud-status" class="cloud-status-pill is-syncing" title="Firebase Firestore クラウドデータベースと同期中">
+        <span id="header-cloud-status" class="cloud-status-pill is-syncing" title="クラウド＋ローカル ハイブリッド同期ステータス">
           <span>☁️</span>
-          <span class="header-cloud-text">クラウド接続中...</span>
+          <span class="header-cloud-text">クラウド同期準備中...</span>
         </span>
       </div>
 
@@ -1382,13 +1406,16 @@
           </svg>
         </div>
         <div>
-          <div style="font-weight: 800; font-size: 0.96rem;">☁️ クラウド同期対応！PC・スマホなど別端末からも同じアカウントで引き継ぎ可能</div>
-          <div style="font-size: 0.8rem; color: #e0e7ff; margin-top: 2px;">メール不要。アカウント名（2〜20文字）とパスワードだけで、どこからでも保存済みクイズにアクセスできます。</div>
+          <div style="font-weight: 800; font-size: 0.96rem;">☁️ クラウド同期＆引継ぎコード対応！作成したクイズを保存・別端末へ引き継ぎ可能</div>
+          <div style="font-size: 0.8rem; color: #e0e7ff; margin-top: 2px;">メール不要。アカウント名とパスワードの登録、または「引継ぎコード」で別端末からもすぐ復元できます。</div>
         </div>
       </div>
       <div class="guest-banner-actions">
         <button type="button" data-action="sample-login" class="btn btn-sm btn-glass">
           サンプル「ゲスト学習者」で試す
+        </button>
+        <button type="button" data-action="open-transfer" data-tab="restore" class="btn btn-sm btn-glass">
+          引継ぎコードから復元
         </button>
         <button type="button" data-action="open-auth" data-mode="signup" class="btn btn-sm btn-white">
           アカウント作成 / ログイン
@@ -1514,7 +1541,7 @@
 
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" id="save-quiz-btn" data-action="save-current-quiz" class="btn btn-primary">
-              <span id="save-quiz-btn-text">☁️ クラウドに保存</span>
+              <span id="save-quiz-btn-text">☁️ クイズを保存する</span>
             </button>
             <button type="button" data-action="retry-full" class="btn btn-secondary">
               最初から解き直す
@@ -1597,14 +1624,19 @@
       <div class="card" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
         <div>
           <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-            <h1 style="font-size: 1.3rem; font-weight: 800;">マイクイズ一覧（クラウド保存済みテスト）</h1>
-            <span id="myquizzes-sync-badge" class="cloud-status-pill">☁️ クラウド同期有効</span>
+            <h1 style="font-size: 1.3rem; font-weight: 800;">マイクイズ一覧（保存済みテスト）</h1>
+            <span id="myquizzes-sync-badge" class="cloud-status-pill">☁️ ハイブリッド同期有効</span>
           </div>
-          <p style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;">別の端末・別ブラウザから同じアカウント名とパスワードでログインしても自動で引き継がれます。</p>
+          <p style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;">クラウド同期に加えて「引継ぎコード」を発行すれば、どの端末・ブラウザへも確実にデータを移行できます。</p>
         </div>
-        <button type="button" data-action="switch-tab" data-tab="create" class="btn btn-primary">
-          + 新しいテストを作成
-        </button>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <button type="button" data-action="open-transfer" data-tab="export" class="btn btn-secondary">
+            📲 別端末へ引継ぎコード発行 / 復元
+          </button>
+          <button type="button" data-action="switch-tab" data-tab="create" class="btn btn-primary">
+            + 新しいテストを作成
+          </button>
+        </div>
       </div>
 
       <!-- 未ログイン時案内 -->
@@ -1614,13 +1646,14 @@
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
           </svg>
         </div>
-        <h2 style="font-size: 1.15rem; font-weight: 800;">ログインすると別端末ともクイズをクラウド同期できます</h2>
-        <p style="font-size: 0.86rem; color: var(--text-sub); max-width: 480px; margin: 8px auto 20px;">
-          メールアドレス不要！お好きな「アカウント名（2〜20文字）」と「パスワード」を登録するだけで、PC・スマホなど別端末からもログインしてクイズの保存・引き継ぎ・改名・削除が行えます。
+        <h2 style="font-size: 1.15rem; font-weight: 800;">ログインするとテストの保存・改名・削除・別端末引き継ぎができます</h2>
+        <p style="font-size: 0.86rem; color: var(--text-sub); max-width: 500px; margin: 8px auto 20px;">
+          メール認証不要！お好きな「アカウント名」と「パスワード」で新規登録・ログインするか、別端末で発行した「引継ぎコード」から復元できます。
         </p>
         <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
           <button type="button" data-action="open-auth" data-mode="signup" class="btn btn-primary">新規アカウント登録</button>
-          <button type="button" data-action="open-auth" data-mode="login" class="btn btn-secondary">別端末からログイン（引き継ぎ）</button>
+          <button type="button" data-action="open-auth" data-mode="login" class="btn btn-secondary">ログイン</button>
+          <button type="button" data-action="open-transfer" data-tab="restore" class="btn btn-outline">📲 引継ぎコードから復元</button>
           <button type="button" data-action="sample-login" class="btn btn-emerald-soft">サンプル「ゲスト学習者」で試す</button>
         </div>
       </div>
@@ -1641,7 +1674,7 @@
 
         <div id="myquizzes-no-items" class="card hidden" style="text-align: center; padding: 36px 20px;">
           <div style="font-weight: 800; font-size: 1rem;">保存されたクイズはまだありません</div>
-          <p style="font-size: 0.85rem; color: var(--text-sub); margin: 6px 0 16px;">画像を読み込んでテストを作成し、「☁️ クラウドに保存」ボタンを押すとここに一覧表示されます。</p>
+          <p style="font-size: 0.85rem; color: var(--text-sub); margin: 6px 0 16px;">画像を読み込んでテストを作成し、「☁️ クイズを保存する」ボタンを押すとここに一覧表示されます。</p>
           <button type="button" data-action="switch-tab" data-tab="create" class="btn btn-primary">最初のテストを作成する</button>
         </div>
       </div>
@@ -1652,7 +1685,7 @@
   <!-- ==================== フッター ==================== -->
   <footer class="app-footer">
     <div class="footer-inner">
-      <span>© 2026 StudySnap AI - クラウド同期対応 AI練習問題メーカー</span>
+      <span>© 2026 StudySnap AI - ハイブリッドクラウド同期対応 AI練習問題メーカー</span>
       <span>Powered by Gemini Multimodal AI & Cloud Firestore</span>
     </div>
   </footer>
@@ -1675,7 +1708,7 @@
     </div>
   </div>
 
-  <!-- ==================== モーダル2: アカウント作成・ログイン（クラウド同期対応） ==================== -->
+  <!-- ==================== モーダル2: アカウント作成・ログイン ==================== -->
   <div id="auth-modal" class="modal-backdrop hidden" data-action="close-modal-backdrop" data-modal="auth-modal">
     <div class="modal-card">
       <div class="modal-header" style="margin-bottom: 10px;">
@@ -1687,8 +1720,11 @@
         </button>
       </div>
 
-      <div style="margin-bottom: 14px;">
-        <span id="modal-cloud-status" class="cloud-status-pill">☁️ クラウド同期有効（別端末からもログイン可）</span>
+      <div style="margin-bottom: 14px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+        <span id="modal-cloud-status" class="cloud-status-pill">☁️ クラウド＋ローカル同期有効</span>
+        <button type="button" data-action="open-transfer" data-tab="restore" style="font-size: 0.76rem; font-weight: 800; color: var(--primary); text-decoration: underline;">
+          引継ぎコードから復元はこちら
+        </button>
       </div>
 
       <div class="auth-mode-tabs">
@@ -1696,7 +1732,7 @@
           新規作成（アカウント登録）
         </button>
         <button type="button" id="auth-tab-login" data-action="set-auth-mode" data-mode="login" class="auth-mode-btn">
-          ログイン（他端末引き継ぎ）
+          ログイン
         </button>
       </div>
 
@@ -1705,7 +1741,7 @@
           <label for="auth-username" class="form-label">アカウント名（2〜20文字） <span style="color: var(--danger);">*</span></label>
           <input id="auth-username" type="text" required minlength="2" maxlength="20" autocomplete="username" placeholder="例：たなか / study_taro" class="form-input" />
           <div id="auth-username-hint" style="font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;">
-            ※ クラウド上で重複チェックを行います（メール認証は不要です）。
+            ※ 重複チェックを行います（メール認証は不要です）。
           </div>
         </div>
 
@@ -1725,6 +1761,7 @@
           </div>
         </div>
 
+        <!-- エラー＆1クリック「このまま新規登録する」案内ボックス -->
         <div id="auth-error-box" class="error-alert hidden"></div>
 
         <button type="submit" id="auth-submit-btn" class="btn btn-primary" style="width: 100%; min-height: 44px;">
@@ -1734,7 +1771,7 @@
 
       <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); text-align: center;">
         <div style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
-          ワンクリックで別端末同期も体験できる共有サンプルアカウント
+          ワンクリックですぐ試せる共有サンプルアカウント
         </div>
         <button type="button" data-action="sample-login" class="btn btn-emerald-soft" style="width: 100%;">
           サンプル「ゲスト学習者」（パスワード: 1234）でログイン
@@ -1743,7 +1780,70 @@
     </div>
   </div>
 
-  <!-- ==================== モーダル3: タイトル改名 ==================== -->
+  <!-- ==================== モーダル3: 別端末へ引継ぎコード発行 / 復元 ==================== -->
+  <div id="transfer-modal" class="modal-backdrop hidden" data-action="close-modal-backdrop" data-modal="transfer-modal">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 class="modal-title">📲 別端末へ引継ぎコード発行 / 復元</h3>
+        <button type="button" data-action="close-modal" data-modal="transfer-modal" class="icon-close-btn" aria-label="閉じる">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+      <div class="auth-mode-tabs">
+        <button type="button" id="transfer-tab-export" data-action="set-transfer-tab" data-tab="export" class="auth-mode-btn active">
+          引継ぎコードを発行（コピー）
+        </button>
+        <button type="button" id="transfer-tab-restore" data-action="set-transfer-tab" data-tab="restore" class="auth-mode-btn">
+          引継ぎコードから復元
+        </button>
+      </div>
+
+      <!-- 発行タブ -->
+      <div id="transfer-pane-export" style="display: flex; flex-direction: column; gap: 12px;">
+        <div id="transfer-export-logged-in" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+          <p style="font-size: 0.82rem; color: var(--text-sub);">
+            現在のアカウント「<strong id="transfer-current-user"></strong>」と保存済みクイズ（<strong id="transfer-quiz-count">0</strong>件）をまとめた引継ぎコードです。コピーして別端末の「引継ぎコードから復元」に貼り付けると、すべてのクイズが丸ごと復元されます。
+          </p>
+          <div>
+            <label for="transfer-export-code" class="form-label">引継ぎバックアップコード</label>
+            <textarea id="transfer-export-code" readonly class="form-textarea"></textarea>
+          </div>
+          <button type="button" data-action="copy-transfer-code" class="btn btn-primary" style="width: 100%;">
+            📋 引継ぎコードをコピーする
+          </button>
+        </div>
+
+        <div id="transfer-export-guest" style="text-align: center; padding: 20px 10px; background: var(--bg-page); border-radius: var(--radius-md);">
+          <p style="font-size: 0.85rem; color: var(--text-sub); margin-bottom: 12px;">
+            引継ぎコードを発行するには、先にアカウント登録またはログインしてください。
+          </p>
+          <button type="button" data-action="open-auth-from-transfer" class="btn btn-sm btn-primary">
+            アカウント登録 / ログインへ進む
+          </button>
+        </div>
+      </div>
+
+      <!-- 復元タブ -->
+      <div id="transfer-pane-restore" class="hidden" style="display: flex; flex-direction: column; gap: 12px;">
+        <p style="font-size: 0.82rem; color: var(--text-sub);">
+          別の端末・別ブラウザで発行した引継ぎコード（<code>STUDYSNAP1:...</code>）を下に貼り付けてください。アカウントと保存済みクイズが復元され、自動的にログインします。
+        </p>
+        <div>
+          <label for="transfer-import-code" class="form-label">引継ぎコードを貼り付け</label>
+          <textarea id="transfer-import-code" placeholder="ここに STUDYSNAP1:... から始まるコードを貼り付けてください" class="form-textarea"></textarea>
+        </div>
+        <div id="transfer-error-box" class="error-alert hidden"></div>
+        <button type="button" data-action="restore-transfer-code" class="btn btn-gradient" style="width: 100%;">
+          ✨ コードを復元してログインする
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== モーダル4: タイトル改名 ==================== -->
   <div id="rename-modal" class="modal-backdrop hidden" data-action="close-modal-backdrop" data-modal="rename-modal">
     <div class="modal-card">
       <div class="modal-header">
@@ -1767,7 +1867,7 @@
     </div>
   </div>
 
-  <!-- ==================== モーダル4: カスタム確認ダイアログ ==================== -->
+  <!-- ==================== モーダル5: カスタム確認ダイアログ ==================== -->
   <div id="confirm-modal" class="modal-backdrop hidden" data-action="close-modal-backdrop" data-modal="confirm-modal">
     <div class="modal-card">
       <h3 id="confirm-modal-title" class="modal-title" style="margin-bottom: 10px;">確認</h3>
@@ -1779,7 +1879,7 @@
     </div>
   </div>
 
-  <!-- ==================== モーダル5: 画像拡大プレビュー ==================== -->
+  <!-- ==================== モーダル6: 画像拡大プレビュー ==================== -->
   <div id="lightbox-modal" class="modal-backdrop hidden" data-action="close-modal-backdrop" data-modal="lightbox-modal">
     <div class="modal-card" style="max-width: 780px; padding: 16px;">
       <div class="modal-header" style="margin-bottom: 10px;">
@@ -1796,7 +1896,7 @@
     </div>
   </div>
 
-  <!-- ==================== メインJavaScript（Firebase Firestore クラウド同期 & AI作問） ==================== -->
+  <!-- ==================== メインJavaScript（ハイブリッド同期・AI作問・AI記述添削） ==================== -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -1814,9 +1914,9 @@
     } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // =========================================================================
-    // 1. Firebase 初期化設定 & クラウドコレクションパス（RULE 1 厳守）
+    // 1. Firebase Firestore 初期化設定（RULE 1 厳守: /artifacts/{appId}/public/data/...）
     // =========================================================================
-    const appId = typeof __app_id !== 'undefined' && __app_id ? __app_id : 'studysnap-ai-cloud';
+    const appId = typeof __app_id !== 'undefined' && __app_id ? __app_id : 'studysnap-ai-app';
     const firebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config
       ? JSON.parse(__firebase_config)
       : null;
@@ -1828,55 +1928,102 @@
     let isCloudReady = false;
     let quizzesUnsubscribe = null;
 
-    const getAccountsCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'studysnap_accounts');
-    const getQuizzesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'studysnap_quizzes');
-    const getAccountDocRef = (normKey) => doc(db, 'artifacts', appId, 'public', 'data', 'studysnap_accounts', 'acc_' + encodeURIComponent(normKey));
-    const getQuizDocRef = (quizId) => doc(db, 'artifacts', appId, 'public', 'data', 'studysnap_quizzes', quizId);
+    // プライマリ Firestore コレクション
+    const getAccountsCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
+    const getQuizzesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'quizzes');
+    const getAccountDocRef = (normKey) => doc(db, 'artifacts', appId, 'public', 'data', 'accounts', 'acc_' + encodeURIComponent(normKey));
+    const getQuizDocRef = (quizId) => doc(db, 'artifacts', appId, 'public', 'data', 'quizzes', quizId);
+
+    // 旧バージョンデータ後方互換用コレクション
+    const getLegacyAccountsCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'studysnap_accounts');
+    const getLegacyQuizzesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'studysnap_quizzes');
 
     // =========================================================================
-    // 2. 同一端末セッションキャッシュ（リロード時の自動ログイン維持）
+    // 2. ハイブリッドローカル永続化ストレージ（localStorage + window.name + メモリ）
     // =========================================================================
-    const SESSION_STORAGE_KEY = `studysnap_cloud_session_${appId}`;
-    const WINDOW_NAME_PREFIX = 'STUDYSNAP_CLOUD_SESSION:';
-    const memoryFallbackAccounts = [];
-    const memoryFallbackQuizzes = {};
+    const SESSION_KEY = `studysnap_session_${appId}`;
+    const LOCAL_ACCOUNTS_KEY = `studysnap_local_accounts_${appId}`;
+    const LOCAL_QUIZZES_KEY = `studysnap_local_quizzes_${appId}`;
+    const WINDOW_NAME_PREFIX = 'STUDYSNAP_STATE:';
 
-    function saveSessionCache(sessionObj) {
-      const json = JSON.stringify(sessionObj);
-      try {
-        window.name = WINDOW_NAME_PREFIX + json;
-      } catch (e) {}
-      try {
-        window.localStorage.setItem(SESSION_STORAGE_KEY, json);
-      } catch (e) {}
-    }
+    const memoryStore = {
+      session: null,
+      accounts: {}, // { [normalizedKey]: accountObj }
+      quizzes: {}   // { [quizId]: quizObj }
+    };
 
-    function loadSessionCache() {
+    function readJsonStorage(key) {
       try {
-        const ls = window.localStorage.getItem(SESSION_STORAGE_KEY);
-        if (ls) return JSON.parse(ls);
-      } catch (e) {}
-      try {
-        if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
-          return JSON.parse(window.name.slice(WINDOW_NAME_PREFIX.length));
-        }
+        const raw = window.localStorage.getItem(key);
+        if (raw) return JSON.parse(raw);
       } catch (e) {}
       return null;
     }
 
-    function clearSessionCache() {
+    function writeJsonStorage(key, value) {
       try {
-        if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
-          window.name = '';
-        }
-      } catch (e) {}
-      try {
-        window.localStorage.removeItem(SESSION_STORAGE_KEY);
+        window.localStorage.setItem(key, JSON.stringify(value));
       } catch (e) {}
     }
 
+    function syncWindowNameBackup() {
+      try {
+        const payload = {
+          session: memoryStore.session,
+          accounts: memoryStore.accounts
+        };
+        window.name = WINDOW_NAME_PREFIX + JSON.stringify(payload);
+      } catch (e) {}
+    }
+
+    function hydrateMemoryFromLocalStorage() {
+      const savedSession = readJsonStorage(SESSION_KEY);
+      if (savedSession) memoryStore.session = savedSession;
+
+      const savedAccounts = readJsonStorage(LOCAL_ACCOUNTS_KEY);
+      if (savedAccounts && typeof savedAccounts === 'object') {
+        Object.assign(memoryStore.accounts, savedAccounts);
+      }
+
+      const savedQuizzes = readJsonStorage(LOCAL_QUIZZES_KEY);
+      if (savedQuizzes && typeof savedQuizzes === 'object') {
+        Object.assign(memoryStore.quizzes, savedQuizzes);
+      }
+
+      try {
+        if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
+          const parsed = JSON.parse(window.name.slice(WINDOW_NAME_PREFIX.length));
+          if (parsed.session && !memoryStore.session) memoryStore.session = parsed.session;
+          if (parsed.accounts) Object.assign(memoryStore.accounts, parsed.accounts);
+        }
+      } catch (e) {}
+    }
+
+    function persistLocalAccounts() {
+      writeJsonStorage(LOCAL_ACCOUNTS_KEY, memoryStore.accounts);
+      syncWindowNameBackup();
+    }
+
+    function persistLocalQuizzes() {
+      writeJsonStorage(LOCAL_QUIZZES_KEY, memoryStore.quizzes);
+    }
+
+    function saveSessionCache(sessionObj) {
+      memoryStore.session = sessionObj;
+      writeJsonStorage(SESSION_KEY, sessionObj);
+      syncWindowNameBackup();
+    }
+
+    function clearSessionCache() {
+      memoryStore.session = null;
+      try {
+        window.localStorage.removeItem(SESSION_KEY);
+      } catch (e) {}
+      syncWindowNameBackup();
+    }
+
     // =========================================================================
-    // 3. 純粋JavaScript SHA-256 ハッシュ関数（全端末・全ブラウザで同一ハッシュを生成）
+    // 3. 純粋JavaScript SHA-256 ハッシュ関数
     // =========================================================================
     function sha256Hex(input) {
       function rotr(n, x) { return (x >>> n) | (x << (32 - n)); }
@@ -1933,7 +2080,7 @@
     const state = {
       user: null, // { accountId, displayName, normalizedKey } | null
       activeTab: 'create',
-      uploadedImages: [], // { id, name, dataUrl, base64, mimeType }
+      uploadedImages: [], // { id, name, topic, dataUrl, base64, mimeType }
       sectionsConfig: [
         { id: 'sec-1', questionType: 'choice', questionCount: 4, difficulty: '標準', customInstruction: '' },
         { id: 'sec-2', questionType: 'true_false', questionCount: 4, difficulty: '基礎', customInstruction: '' }
@@ -1947,6 +2094,7 @@
       quizTimerId: null,
       userAnswers: {},
       manualGrades: {},
+      aiTextFeedback: {}, // { [qid]: { isCorrect, feedback, loading } }
       savedQuizzes: [],
       authMode: 'signup',
       pendingSaveAfterAuth: false,
@@ -2024,29 +2172,33 @@
       if (status === 'ready') {
         if (headerPill) {
           headerPill.className = 'cloud-status-pill';
-          headerPill.innerHTML = '<span>☁️</span><span class="header-cloud-text">クラウド同期有効（別端末からもログイン可）</span>';
+          headerPill.innerHTML = '<span>☁️</span><span class="header-cloud-text">クラウド＋ローカル同期有効</span>';
         }
         if (modalPill) {
           modalPill.className = 'cloud-status-pill';
-          modalPill.textContent = '☁️ クラウド同期有効（別端末からもログイン可）';
+          modalPill.textContent = '☁️ クラウド＋ローカル同期有効';
         }
         if (myQuizzesPill) {
           myQuizzesPill.className = 'cloud-status-pill';
-          myQuizzesPill.textContent = '☁️ クラウド同期有効';
+          myQuizzesPill.textContent = '☁️ ハイブリッド同期有効';
         }
       } else if (status === 'syncing') {
         if (headerPill) {
           headerPill.className = 'cloud-status-pill is-syncing';
-          headerPill.innerHTML = '<span>☁️</span><span class="header-cloud-text">クラウド接続中...</span>';
+          headerPill.innerHTML = '<span>☁️</span><span class="header-cloud-text">同期接続中...</span>';
         }
       } else {
         if (headerPill) {
           headerPill.className = 'cloud-status-pill is-offline';
-          headerPill.innerHTML = '<span>⚠️</span><span class="header-cloud-text">ローカル一時モード</span>';
+          headerPill.innerHTML = '<span>💾</span><span class="header-cloud-text">ローカル保存＋引継ぎコード対応</span>';
         }
         if (modalPill) {
           modalPill.className = 'cloud-status-pill is-offline';
-          modalPill.textContent = '⚠️ ローカル一時モード（クラウド未接続）';
+          modalPill.textContent = '💾 ローカル保存＋引継ぎコード対応';
+        }
+        if (myQuizzesPill) {
+          myQuizzesPill.className = 'cloud-status-pill is-offline';
+          myQuizzesPill.textContent = '💾 ローカル＋引継ぎコード同期';
         }
       }
     }
@@ -2055,6 +2207,7 @@
     // 6. Firebase Firestore 初期化 & 共有サンプルアカウント自動セットアップ
     // =========================================================================
     async function initCloudBackend() {
+      hydrateMemoryFromLocalStorage();
       updateCloudIndicators('syncing');
 
       if (firebaseConfig) {
@@ -2064,21 +2217,21 @@
           db = getFirestore(firebaseApp);
 
           // RULE 3: 必ず先に認証を await してから Firestore 操作へ進む
-          try {
-            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-              const cred = await signInWithCustomToken(auth, __initial_auth_token);
-              firebaseUser = cred.user;
-            } else {
-              const cred = await signInAnonymously(auth);
-              firebaseUser = cred.user;
-            }
-          } catch (authErr) {
-            // 環境制限で匿名認証が拒否された場合もサイレントに続行して Firestore 読み書きを試行する
-            firebaseUser = auth.currentUser || { uid: 'anonymous-fallback' };
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            const cred = await signInWithCustomToken(auth, __initial_auth_token);
+            firebaseUser = cred.user;
+          } else {
+            const cred = await signInAnonymously(auth);
+            firebaseUser = cred.user;
           }
 
-          isCloudReady = true;
-          updateCloudIndicators('ready');
+          if (firebaseUser) {
+            isCloudReady = true;
+            updateCloudIndicators('ready');
+          } else {
+            isCloudReady = false;
+            updateCloudIndicators('offline');
+          }
         } catch (initErr) {
           isCloudReady = false;
           updateCloudIndicators('offline');
@@ -2091,12 +2244,11 @@
       // 共有サンプルアカウント「ゲスト学習者（パスワード: 1234）」を自動確認・作成
       await ensureSampleAccountExists();
 
-      // 同一端末での前回ログインセッションを復元
-      const cached = loadSessionCache();
-      if (cached && cached.accountId && cached.displayName) {
-        state.user = cached;
+      // 前回ログインセッションを復元
+      if (memoryStore.session && memoryStore.session.accountId && memoryStore.session.displayName) {
+        state.user = memoryStore.session;
         updateAuthUI();
-        subscribeUserQuizzes(cached.accountId);
+        subscribeUserQuizzes(memoryStore.session.accountId);
       } else {
         updateAuthUI();
       }
@@ -2106,39 +2258,107 @@
       const sampleName = 'ゲスト学習者';
       const sampleKey = normalizeAccountKey(sampleName);
       const sampleHash = sha256Hex('1234');
+      const sampleAccount = {
+        accountId: 'acc_sample_guest_learner',
+        displayName: sampleName,
+        normalizedKey: sampleKey,
+        passwordHash: sampleHash,
+        createdAt: 1700000000000
+      };
+
+      if (!memoryStore.accounts[sampleKey]) {
+        memoryStore.accounts[sampleKey] = sampleAccount;
+        persistLocalAccounts();
+      }
 
       if (isCloudReady && db && firebaseUser) {
         try {
           const docRef = getAccountDocRef(sampleKey);
           const snap = await getDoc(docRef);
           if (!snap.exists()) {
-            await setDoc(docRef, {
-              accountId: 'acc_sample_guest_learner',
-              displayName: sampleName,
-              normalizedKey: sampleKey,
-              passwordHash: sampleHash,
-              createdAt: Date.now()
-            });
+            await setDoc(docRef, sampleAccount);
           }
-        } catch (e) {
-          // 読み書き権限やオフライン時でもアプリを止めない
-        }
-      }
-
-      if (!memoryFallbackAccounts.some((a) => a.normalizedKey === sampleKey)) {
-        memoryFallbackAccounts.push({
-          accountId: 'acc_sample_guest_learner',
-          displayName: sampleName,
-          normalizedKey: sampleKey,
-          passwordHash: sampleHash,
-          createdAt: Date.now()
-        });
+        } catch (e) {}
       }
     }
 
     // =========================================================================
-    // 7. クラウドアカウント新規登録・ログイン（別端末引き継ぎ）・ログアウト
+    // 7. ハイブリッドアカウント検索・登録・ログイン・1クリック新規登録UX
     // =========================================================================
+    async function findAccountByNormalizedKey(normKey) {
+      // 1. ローカルメモリ / localStorage を確認
+      let localFound = memoryStore.accounts[normKey] || null;
+
+      // 2. Firestore クラウドから確認（プライマリ + 後方互換レガシー）
+      if (isCloudReady && db && firebaseUser) {
+        try {
+          const directSnap = await getDoc(getAccountDocRef(normKey));
+          if (directSnap.exists()) {
+            const data = directSnap.data();
+            memoryStore.accounts[normKey] = data;
+            persistLocalAccounts();
+            return data;
+          }
+
+          const allSnap = await getDocs(getAccountsCollection());
+          let cloudFound = null;
+          allSnap.forEach((d) => {
+            const data = d.data();
+            if (data && data.normalizedKey === normKey) {
+              cloudFound = data;
+            }
+          });
+          if (cloudFound) {
+            memoryStore.accounts[normKey] = cloudFound;
+            persistLocalAccounts();
+            return cloudFound;
+          }
+
+          // 旧コレクションからも検索（過去バージョンで登録したユーザー救済）
+          const legacySnap = await getDocs(getLegacyAccountsCollection());
+          legacySnap.forEach((d) => {
+            const data = d.data();
+            if (data && data.normalizedKey === normKey) {
+              cloudFound = data;
+            }
+          });
+          if (cloudFound) {
+            memoryStore.accounts[normKey] = cloudFound;
+            persistLocalAccounts();
+            await setDoc(getAccountDocRef(normKey), cloudFound);
+            return cloudFound;
+          }
+        } catch (e) {}
+      }
+
+      return localFound;
+    }
+
+    async function registerNewAccount(rawDisplayName, password) {
+      const normKey = normalizeAccountKey(rawDisplayName);
+      const pwHash = sha256Hex(password);
+      const newAccount = {
+        accountId: 'acc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+        displayName: rawDisplayName,
+        normalizedKey: normKey,
+        passwordHash: pwHash,
+        createdAt: Date.now()
+      };
+
+      // ローカルへ即時保存
+      memoryStore.accounts[normKey] = newAccount;
+      persistLocalAccounts();
+
+      // Firestore クラウドへ同期保存
+      if (isCloudReady && db && firebaseUser) {
+        try {
+          await setDoc(getAccountDocRef(normKey), newAccount);
+        } catch (e) {}
+      }
+
+      return newAccount;
+    }
+
     function updateAuthUI() {
       const headerArea = document.getElementById('auth-header-area');
       const guestBanner = document.getElementById('guest-banner');
@@ -2149,15 +2369,18 @@
       if (isLoggedIn()) {
         const initial = state.user.displayName.charAt(0).toUpperCase();
         headerArea.innerHTML = `
-          <div class="user-pill" title="ログイン中：${escapeHtml(state.user.displayName)}（別端末からも同じ名前でログイン可能）">
+          <div class="user-pill" title="ログイン中：${escapeHtml(state.user.displayName)}">
             <span class="user-avatar">${escapeHtml(initial)}</span>
             <span class="user-name-text">${escapeHtml(state.user.displayName)}</span>
           </div>
+          <button type="button" data-action="open-transfer" data-tab="export" class="btn btn-sm btn-secondary hide-xs" title="別端末へデータを引き継ぐコードを発行・復元">
+            📲 引継ぎコード
+          </button>
           <button type="button" data-action="logout" class="btn btn-sm btn-outline">ログアウト</button>
         `;
         guestBanner.classList.add('hidden');
         if (saveBtnText) {
-          saveBtnText.textContent = state.currentQuiz && state.currentQuiz.id ? '☁️ 変更を上書き保存' : '☁️ クラウドに保存';
+          saveBtnText.textContent = state.currentQuiz && state.currentQuiz.id ? '☁️ 変更を上書き保存' : '☁️ クイズを保存する';
         }
         guestEmpty.classList.add('hidden');
         loggedInArea.classList.remove('hidden');
@@ -2168,7 +2391,7 @@
         `;
         guestBanner.classList.remove('hidden');
         if (saveBtnText) {
-          saveBtnText.textContent = 'ログインしてクラウド保存';
+          saveBtnText.textContent = 'ログインしてクイズを保存';
         }
         guestEmpty.classList.remove('hidden');
         loggedInArea.classList.add('hidden');
@@ -2178,7 +2401,9 @@
 
     function openAuthModal(mode) {
       setAuthMode(mode || 'signup');
-      document.getElementById('auth-error-box').classList.add('hidden');
+      const errorBox = document.getElementById('auth-error-box');
+      errorBox.classList.add('hidden');
+      errorBox.innerHTML = '';
       document.getElementById('auth-modal').classList.remove('hidden');
       setTimeout(() => {
         const input = document.getElementById('auth-username');
@@ -2193,21 +2418,23 @@
       const tabLogin = document.getElementById('auth-tab-login');
       const hint = document.getElementById('auth-username-hint');
       const submitBtn = document.getElementById('auth-submit-btn');
+      const errorBox = document.getElementById('auth-error-box');
 
-      document.getElementById('auth-error-box').classList.add('hidden');
+      errorBox.classList.add('hidden');
+      errorBox.innerHTML = '';
 
       if (mode === 'signup') {
-        title.textContent = '新規アカウント登録（クラウド保存）';
+        title.textContent = '新規アカウント登録';
         tabSignup.classList.add('active');
         tabLogin.classList.remove('active');
-        hint.textContent = '※ クラウド上で重複チェックを行います（メール認証は不要です）。';
+        hint.textContent = '※ 重複チェックを行います（メール認証は不要です）。';
         submitBtn.textContent = 'このアカウント名で登録して始める';
       } else {
-        title.textContent = 'ログイン（別端末からのデータ引き継ぎ）';
+        title.textContent = 'ログイン';
         tabLogin.classList.add('active');
         tabSignup.classList.remove('active');
-        hint.textContent = '※ 他の端末で登録したアカウント名とパスワードを入力してください。';
-        submitBtn.textContent = 'クラウドにログインする';
+        hint.textContent = '※ 登録済みのアカウント名とパスワードを入力してください。';
+        submitBtn.textContent = 'ログインする';
       }
     }
 
@@ -2224,7 +2451,7 @@
 
       if (state.pendingSaveAfterAuth && state.currentQuiz) {
         state.pendingSaveAfterAuth = false;
-        saveCurrentQuizToCloud();
+        saveCurrentQuiz();
       }
     }
 
@@ -2248,6 +2475,7 @@
       const errorBox = document.getElementById('auth-error-box');
       const submitBtn = document.getElementById('auth-submit-btn');
       errorBox.classList.add('hidden');
+      errorBox.innerHTML = '';
 
       const rawDisplayName = document.getElementById('auth-username').value.trim();
       const normKey = normalizeAccountKey(rawDisplayName);
@@ -2267,101 +2495,51 @@
       const pwHash = sha256Hex(password);
       const prevBtnLabel = submitBtn.textContent;
       submitBtn.disabled = true;
-      submitBtn.textContent = 'クラウド確認中...';
+      submitBtn.textContent = '確認中...';
 
       try {
-        if (isCloudReady && db && firebaseUser) {
-          // RULE 2 準拠：シンプルな collection 全件取得 + docRef 直接参照で正規化キー重複/存在を確実に判定
-          const docRef = getAccountDocRef(normKey);
-          const directSnap = await getDoc(docRef);
-          const allSnap = await getDocs(getAccountsCollection());
+        const existingAccount = await findAccountByNormalizedKey(normKey);
 
-          let existingAccount = directSnap.exists() ? directSnap.data() : null;
-          if (!existingAccount) {
-            allSnap.forEach((d) => {
-              const data = d.data();
-              if (data && data.normalizedKey === normKey) {
-                existingAccount = data;
-              }
-            });
+        if (state.authMode === 'signup') {
+          if (existingAccount) {
+            errorBox.textContent = 'このアカウント名は既に使用されています';
+            errorBox.classList.remove('hidden');
+            return;
           }
 
-          if (state.authMode === 'signup') {
-            if (existingAccount) {
-              errorBox.textContent = 'このアカウント名は既に登録されています。別の名前を選ぶか、ログインしてください';
-              errorBox.classList.remove('hidden');
-              return;
-            }
-
-            const newAccount = {
-              accountId: 'acc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
-              displayName: rawDisplayName,
-              normalizedKey: normKey,
-              passwordHash: pwHash,
-              createdAt: Date.now()
-            };
-            await setDoc(docRef, newAccount);
-            completeUserLogin(newAccount);
-            document.getElementById('auth-form').reset();
-            closeModal('auth-modal');
-            showToast(`アカウント「${newAccount.displayName}」をクラウドに登録しました！`, 'success');
-          } else {
-            if (!existingAccount) {
-              errorBox.textContent = 'このアカウント名は登録されていません。新規作成タブから登録してください';
-              errorBox.classList.remove('hidden');
-              return;
-            }
-            if (existingAccount.passwordHash !== pwHash) {
-              errorBox.textContent = 'パスワードが正しくありません（大文字・小文字や全角/半角をご確認ください）';
-              errorBox.classList.remove('hidden');
-              return;
-            }
-
-            completeUserLogin(existingAccount);
-            document.getElementById('auth-form').reset();
-            closeModal('auth-modal');
-            showToast(`「${existingAccount.displayName}」としてログインしました！クラウドデータを同期中...`, 'success');
-          }
+          const newAccount = await registerNewAccount(rawDisplayName, password);
+          completeUserLogin(newAccount);
+          document.getElementById('auth-form').reset();
+          closeModal('auth-modal');
+          showToast(`アカウント「${newAccount.displayName}」を作成しました！`, 'success');
         } else {
-          // クラウド未接続時のメモリフォールバック
-          const existing = memoryFallbackAccounts.find((a) => a.normalizedKey === normKey);
-          if (state.authMode === 'signup') {
-            if (existing) {
-              errorBox.textContent = 'このアカウント名は既に登録されています。別の名前を選ぶか、ログインしてください';
-              errorBox.classList.remove('hidden');
-              return;
-            }
-            const newAcc = {
-              accountId: 'acc_' + Date.now(),
-              displayName: rawDisplayName,
-              normalizedKey: normKey,
-              passwordHash: pwHash,
-              createdAt: Date.now()
-            };
-            memoryFallbackAccounts.push(newAcc);
-            completeUserLogin(newAcc);
-            document.getElementById('auth-form').reset();
-            closeModal('auth-modal');
-            showToast(`アカウント「${newAcc.displayName}」を作成しました`, 'success');
-          } else {
-            if (!existing) {
-              errorBox.textContent = 'このアカウント名は登録されていません。新規作成タブから登録してください';
-              errorBox.classList.remove('hidden');
-              return;
-            }
-            if (existing.passwordHash !== pwHash) {
-              errorBox.textContent = 'パスワードが正しくありません（大文字・小文字や全角/半角をご確認ください）';
-              errorBox.classList.remove('hidden');
-              return;
-            }
-            completeUserLogin(existing);
-            document.getElementById('auth-form').reset();
-            closeModal('auth-modal');
-            showToast(`「${existing.displayName}」としてログインしました！`, 'success');
+          if (!existingAccount) {
+            // UX改善: 入力中のアカウント名・パスワードのまま1クリックで新規登録できるボタンを表示
+            errorBox.innerHTML = `
+              <div>このアカウントはまだ作成されていません。</div>
+              <div style="font-size: 0.76rem; font-weight: 600; color: #7f1d1d; margin-top: 3px;">
+                入力中の「${escapeHtml(rawDisplayName)}」とパスワードをそのまま使って新規登録できます。
+              </div>
+              <button type="button" data-action="quick-signup-from-login" class="btn btn-sm btn-primary" style="margin-top: 8px; width: 100%;">
+                このまま新規登録する
+              </button>
+            `;
+            errorBox.classList.remove('hidden');
+            return;
           }
+          if (existingAccount.passwordHash !== pwHash) {
+            errorBox.textContent = 'パスワードが正しくありません（大文字・小文字や全角/半角をご確認ください）';
+            errorBox.classList.remove('hidden');
+            return;
+          }
+
+          completeUserLogin(existingAccount);
+          document.getElementById('auth-form').reset();
+          closeModal('auth-modal');
+          showToast(`「${existingAccount.displayName}」としてログインしました！`, 'success');
         }
       } catch (err) {
-        errorBox.textContent = 'クラウド通信中にエラーが発生しました。ネットワーク接続を確認して再度お試しください。';
+        errorBox.textContent = '通信中にエラーが発生しました。再度お試しください。';
         errorBox.classList.remove('hidden');
       } finally {
         submitBtn.disabled = false;
@@ -2369,51 +2547,255 @@
       }
     }
 
+    // ログイン画面の「このまま新規登録する」1クリック登録ハンドラ
+    async function quickSignupFromLoginInputs() {
+      const errorBox = document.getElementById('auth-error-box');
+      const rawDisplayName = document.getElementById('auth-username').value.trim();
+      const normKey = normalizeAccountKey(rawDisplayName);
+      const password = document.getElementById('auth-password').value.trim();
+
+      if (rawDisplayName.length < 2 || rawDisplayName.length > 20 || password.length < 4) {
+        errorBox.textContent = 'アカウント名（2〜20文字）とパスワード（4文字以上）を確認してください。';
+        return;
+      }
+
+      const existing = await findAccountByNormalizedKey(normKey);
+      if (existing) {
+        errorBox.textContent = 'このアカウント名は既に使用されています';
+        return;
+      }
+
+      const newAccount = await registerNewAccount(rawDisplayName, password);
+      completeUserLogin(newAccount);
+      document.getElementById('auth-form').reset();
+      errorBox.classList.add('hidden');
+      errorBox.innerHTML = '';
+      closeModal('auth-modal');
+      showToast(`「${newAccount.displayName}」を新規登録してログインしました！`, 'success');
+    }
+
     async function loginWithSampleAccount() {
       await ensureSampleAccountExists();
       const sampleKey = normalizeAccountKey('ゲスト学習者');
-      let sampleAcc = {
-        accountId: 'acc_sample_guest_learner',
-        displayName: 'ゲスト学習者',
-        normalizedKey: sampleKey
-      };
-
-      if (isCloudReady && db && firebaseUser) {
-        try {
-          const snap = await getDoc(getAccountDocRef(sampleKey));
-          if (snap.exists()) {
-            sampleAcc = snap.data();
-          }
-        } catch (e) {}
-      }
-
+      const sampleAcc = (await findAccountByNormalizedKey(sampleKey)) || memoryStore.accounts[sampleKey];
       completeUserLogin(sampleAcc);
       closeModal('auth-modal');
       showToast('共有サンプルアカウント「ゲスト学習者」でログインしました！', 'success');
     }
 
     // =========================================================================
-    // 8. Firestore リアルタイムクイズ同期・保存・改名・削除
+    // 8. 別端末へ引継ぎコード発行 / 復元バックアップ機能（Base64 / JSON）
     // =========================================================================
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let binary = '';
+      for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+      }
+      return btoa(binary);
+    }
+
+    function base64ToUtf8(b64) {
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+      }
+      return new TextDecoder().decode(bytes);
+    }
+
+    function generateTransferCodeString() {
+      if (!isLoggedIn()) return '';
+      const normKey = state.user.normalizedKey;
+      const accountObj = memoryStore.accounts[normKey] || {
+        accountId: state.user.accountId,
+        displayName: state.user.displayName,
+        normalizedKey: normKey,
+        passwordHash: sha256Hex('1234'),
+        createdAt: Date.now()
+      };
+
+      const quizzesPayload = state.savedQuizzes.map((q) => ({
+        id: q.id,
+        title: q.title,
+        createdAt: q.createdAt,
+        updatedAt: q.updatedAt,
+        sectionCount: q.sectionCount,
+        totalQuestions: q.totalQuestions,
+        bestScore: q.bestScore,
+        sections: q.sections
+      }));
+
+      const bundle = {
+        v: 1,
+        acc: accountObj,
+        quizzes: quizzesPayload
+      };
+
+      return 'STUDYSNAP1:' + utf8ToBase64(JSON.stringify(bundle));
+    }
+
+    function openTransferModal(tab) {
+      setTransferTab(tab || (isLoggedIn() ? 'export' : 'restore'));
+      document.getElementById('transfer-error-box').classList.add('hidden');
+      document.getElementById('transfer-modal').classList.remove('hidden');
+    }
+
+    function setTransferTab(tab) {
+      const exportTab = document.getElementById('transfer-tab-export');
+      const restoreTab = document.getElementById('transfer-tab-restore');
+      const exportPane = document.getElementById('transfer-pane-export');
+      const restorePane = document.getElementById('transfer-pane-restore');
+
+      if (tab === 'export') {
+        exportTab.classList.add('active');
+        restoreTab.classList.remove('active');
+        exportPane.classList.remove('hidden');
+        restorePane.classList.add('hidden');
+
+        const loggedInBox = document.getElementById('transfer-export-logged-in');
+        const guestBox = document.getElementById('transfer-export-guest');
+        if (isLoggedIn()) {
+          loggedInBox.classList.remove('hidden');
+          guestBox.classList.add('hidden');
+          document.getElementById('transfer-current-user').textContent = state.user.displayName;
+          document.getElementById('transfer-quiz-count').textContent = state.savedQuizzes.length;
+          document.getElementById('transfer-export-code').value = generateTransferCodeString();
+        } else {
+          loggedInBox.classList.add('hidden');
+          guestBox.classList.remove('hidden');
+        }
+      } else {
+        restoreTab.classList.add('active');
+        exportTab.classList.remove('active');
+        restorePane.classList.remove('hidden');
+        exportPane.classList.add('hidden');
+      }
+    }
+
+    function copyTransferCodeToClipboard() {
+      const textarea = document.getElementById('transfer-export-code');
+      if (!textarea || !textarea.value) return;
+      textarea.focus();
+      textarea.select();
+      textarea.setSelectionRange(0, textarea.value.length);
+      try {
+        document.execCommand('copy');
+        showToast('引継ぎコードをクリップボードにコピーしました！', 'success');
+      } catch (e) {
+        showToast('コードを選択しました。Ctrl+C（長押しコピー）でコピーしてください', 'info');
+      }
+    }
+
+    async function restoreFromTransferCode() {
+      const rawInput = (document.getElementById('transfer-import-code')?.value || '').trim();
+      const errorBox = document.getElementById('transfer-error-box');
+      errorBox.classList.add('hidden');
+
+      if (!rawInput || !rawInput.startsWith('STUDYSNAP1:')) {
+        errorBox.textContent = '有効な引継ぎコード（STUDYSNAP1:... で始まる文字列）を貼り付けてください。';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const b64Part = rawInput.slice('STUDYSNAP1:'.length).trim();
+        const jsonStr = base64ToUtf8(b64Part);
+        const bundle = JSON.parse(jsonStr);
+
+        if (!bundle || !bundle.acc || !bundle.acc.accountId || !bundle.acc.displayName) {
+          throw new Error('Invalid bundle structure');
+        }
+
+        const acc = bundle.acc;
+        const normKey = normalizeAccountKey(acc.normalizedKey || acc.displayName);
+        acc.normalizedKey = normKey;
+
+        // アカウントをローカル＆Firestoreへ復元
+        memoryStore.accounts[normKey] = acc;
+        persistLocalAccounts();
+
+        if (isCloudReady && db && firebaseUser) {
+          try {
+            await setDoc(getAccountDocRef(normKey), acc);
+          } catch (e) {}
+        }
+
+        // クイズ一式をローカル＆Firestoreへ復元
+        const importedQuizzes = Array.isArray(bundle.quizzes) ? bundle.quizzes : [];
+        for (const q of importedQuizzes) {
+          const quizId = q.id || 'quiz_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+          const normalizedQuiz = {
+            id: quizId,
+            accountId: acc.accountId,
+            ownerName: acc.displayName,
+            title: q.title || '復元されたテスト',
+            createdAt: q.createdAt || Date.now(),
+            updatedAt: Date.now(),
+            sectionCount: q.sectionCount || (q.sections ? q.sections.length : 0),
+            totalQuestions: q.totalQuestions || 0,
+            bestScore: typeof q.bestScore === 'number' ? q.bestScore : null,
+            sections: Array.isArray(q.sections) ? q.sections : []
+          };
+
+          memoryStore.quizzes[quizId] = normalizedQuiz;
+
+          if (isCloudReady && db && firebaseUser) {
+            try {
+              await setDoc(getQuizDocRef(quizId), {
+                accountId: normalizedQuiz.accountId,
+                ownerName: normalizedQuiz.ownerName,
+                title: normalizedQuiz.title,
+                createdAt: normalizedQuiz.createdAt,
+                updatedAt: normalizedQuiz.updatedAt,
+                sectionCount: normalizedQuiz.sectionCount,
+                totalQuestions: normalizedQuiz.totalQuestions,
+                bestScore: normalizedQuiz.bestScore,
+                sectionsJson: JSON.stringify(normalizedQuiz.sections)
+              });
+            } catch (e) {}
+          }
+        }
+        persistLocalQuizzes();
+
+        document.getElementById('transfer-import-code').value = '';
+        closeModal('transfer-modal');
+        completeUserLogin(acc);
+        switchTab('myquizzes');
+        showToast(`「${acc.displayName}」と保存済みクイズ（${importedQuizzes.length}件）を復元しました！`, 'success');
+      } catch (err) {
+        errorBox.textContent = '引継ぎコードの解析に失敗しました。コードが途中で切れていないか確認してください。';
+        errorBox.classList.remove('hidden');
+      }
+    }
+
+    // =========================================================================
+    // 9. ハイブリッドクイズ同期・保存・改名・削除
+    // =========================================================================
+    function refreshQuizzesFromMemory(accountId) {
+      const items = Object.values(memoryStore.quizzes).filter((q) => q && q.accountId === accountId);
+      state.savedQuizzes = items;
+      updateSavedBadges();
+      renderSavedQuizzes();
+    }
+
     function subscribeUserQuizzes(accountId) {
       if (quizzesUnsubscribe) {
         quizzesUnsubscribe();
         quizzesUnsubscribe = null;
       }
 
+      // まずローカルから即時描画
+      refreshQuizzesFromMemory(accountId);
+
       if (!isCloudReady || !db || !firebaseUser) {
-        state.savedQuizzes = memoryFallbackQuizzes[accountId] || [];
-        updateSavedBadges();
-        renderSavedQuizzes();
         return;
       }
 
-      // RULE 2 準拠：シンプルな collection() クエリで取得し、JSメモリ上で accountId フィルタ＆ソートを実行
-      // Error Callback 必須実装
+      // RULE 2 準拠：シンプルな collection() クエリ + Error Callback 必須実装
       quizzesUnsubscribe = onSnapshot(
         getQuizzesCollection(),
         (snapshot) => {
-          const userItems = [];
           snapshot.forEach((docSnap) => {
             const data = docSnap.data();
             if (data && data.accountId === accountId) {
@@ -2423,7 +2805,7 @@
               } catch (e) {
                 parsedSections = [];
               }
-              userItems.push({
+              memoryStore.quizzes[docSnap.id] = {
                 id: docSnap.id,
                 accountId: data.accountId,
                 title: data.title || 'AI練習問題テスト',
@@ -2433,17 +2815,48 @@
                 totalQuestions: data.totalQuestions || 0,
                 bestScore: typeof data.bestScore === 'number' ? data.bestScore : null,
                 sections: parsedSections
-              });
+              };
             }
           });
-          state.savedQuizzes = userItems;
-          updateSavedBadges();
-          renderSavedQuizzes();
+          persistLocalQuizzes();
+          refreshQuizzesFromMemory(accountId);
         },
         (error) => {
-          showToast('クラウドクイズ一覧の同期中に通信エラーが発生しました', 'warning');
+          // クラウドエラー時もローカルデータで動作継続
         }
       );
+
+      // 旧コレクションからのデータも1回マージ
+      getDocs(getLegacyQuizzesCollection())
+        .then((snap) => {
+          let changed = false;
+          snap.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data && data.accountId === accountId && !memoryStore.quizzes[docSnap.id]) {
+              let parsedSections = [];
+              try {
+                parsedSections = data.sectionsJson ? JSON.parse(data.sectionsJson) : (data.sections || []);
+              } catch (e) {}
+              memoryStore.quizzes[docSnap.id] = {
+                id: docSnap.id,
+                accountId: data.accountId,
+                title: data.title || 'AI練習問題テスト',
+                createdAt: data.createdAt || Date.now(),
+                updatedAt: data.updatedAt || data.createdAt || Date.now(),
+                sectionCount: data.sectionCount || parsedSections.length,
+                totalQuestions: data.totalQuestions || 0,
+                bestScore: typeof data.bestScore === 'number' ? data.bestScore : null,
+                sections: parsedSections
+              };
+              changed = true;
+            }
+          });
+          if (changed) {
+            persistLocalQuizzes();
+            refreshQuizzesFromMemory(accountId);
+          }
+        })
+        .catch(() => {});
     }
 
     function updateSavedBadges() {
@@ -2460,12 +2873,12 @@
       });
     }
 
-    async function saveCurrentQuizToCloud() {
+    async function saveCurrentQuiz() {
       if (!state.currentQuiz) return;
       if (!isLoggedIn()) {
         state.pendingSaveAfterAuth = true;
         openAuthModal('signup');
-        showToast('クラウドに保存するにはアカウント登録またはログインしてください', 'info');
+        showToast('テストを保存するにはアカウント登録またはログインしてください', 'info');
         return;
       }
 
@@ -2487,69 +2900,69 @@
           scoreNow = all.length > 0 ? Math.round((cor / all.length) * 100) : 0;
         }
 
-        // Firestore ネスト配列制限を回避するため JSON.stringify でシリアライズして保存
+        const existing = baseQuiz.id ? memoryStore.quizzes[baseQuiz.id] : null;
+        const prevBest = existing && typeof existing.bestScore === 'number' ? existing.bestScore : null;
+        const nextBest = scoreNow !== null ? (prevBest !== null ? Math.max(prevBest, scoreNow) : scoreNow) : prevBest;
         const serializedSections = JSON.stringify(baseQuiz.sections);
 
-        if (isCloudReady && db && firebaseUser) {
-          if (baseQuiz.id) {
-            const existing = state.savedQuizzes.find((q) => q.id === baseQuiz.id);
-            const prevBest = existing && typeof existing.bestScore === 'number' ? existing.bestScore : null;
-            const nextBest = scoreNow !== null ? (prevBest !== null ? Math.max(prevBest, scoreNow) : scoreNow) : prevBest;
-
-            await updateDoc(getQuizDocRef(baseQuiz.id), {
-              title: state.currentQuiz.title || 'AI練習問題テスト',
-              sectionCount: baseQuiz.sections.length,
-              totalQuestions,
-              bestScore: nextBest,
-              sectionsJson: serializedSections,
-              updatedAt: now
-            });
-            showToast('クラウド上のテストを上書き保存しました！', 'success');
+        let quizId = baseQuiz.id;
+        if (!quizId) {
+          if (isCloudReady && db && firebaseUser) {
+            try {
+              const docRef = await addDoc(getQuizzesCollection(), {
+                accountId,
+                ownerName: state.user.displayName,
+                title: state.currentQuiz.title || 'AI練習問題テスト',
+                createdAt: now,
+                updatedAt: now,
+                sectionCount: baseQuiz.sections.length,
+                totalQuestions,
+                bestScore: nextBest,
+                sectionsJson: serializedSections
+              });
+              quizId = docRef.id;
+            } catch (e) {
+              quizId = 'quiz_' + now + '_' + Math.random().toString(36).slice(2, 6);
+            }
           } else {
-            const docRef = await addDoc(getQuizzesCollection(), {
+            quizId = 'quiz_' + now + '_' + Math.random().toString(36).slice(2, 6);
+          }
+        } else if (isCloudReady && db && firebaseUser) {
+          try {
+            await setDoc(getQuizDocRef(quizId), {
               accountId,
               ownerName: state.user.displayName,
               title: state.currentQuiz.title || 'AI練習問題テスト',
-              createdAt: now,
+              createdAt: existing ? existing.createdAt : now,
               updatedAt: now,
               sectionCount: baseQuiz.sections.length,
               totalQuestions,
-              bestScore: scoreNow,
+              bestScore: nextBest,
               sectionsJson: serializedSections
             });
-            state.currentQuiz.id = docRef.id;
-            if (state.fullQuizBackup) state.fullQuizBackup.id = docRef.id;
-            showToast('クラウドに保存しました！別端末からもログインして解けます', 'success');
-          }
-        } else {
-          // メモリフォールバック
-          if (!memoryFallbackQuizzes[accountId]) memoryFallbackQuizzes[accountId] = [];
-          const newId = baseQuiz.id || 'local_quiz_' + now;
-          state.currentQuiz.id = newId;
-          if (state.fullQuizBackup) state.fullQuizBackup.id = newId;
-
-          const idx = memoryFallbackQuizzes[accountId].findIndex((q) => q.id === newId);
-          const item = {
-            id: newId,
-            accountId,
-            title: state.currentQuiz.title || 'AI練習問題テスト',
-            createdAt: now,
-            updatedAt: now,
-            sectionCount: baseQuiz.sections.length,
-            totalQuestions,
-            bestScore: scoreNow,
-            sections: JSON.parse(serializedSections)
-          };
-          if (idx >= 0) memoryFallbackQuizzes[accountId][idx] = item;
-          else memoryFallbackQuizzes[accountId].unshift(item);
-
-          state.savedQuizzes = [...memoryFallbackQuizzes[accountId]];
-          updateSavedBadges();
-          renderSavedQuizzes();
-          showToast('テストを保存しました', 'success');
+          } catch (e) {}
         }
+
+        state.currentQuiz.id = quizId;
+        if (state.fullQuizBackup) state.fullQuizBackup.id = quizId;
+
+        memoryStore.quizzes[quizId] = {
+          id: quizId,
+          accountId,
+          title: state.currentQuiz.title || 'AI練習問題テスト',
+          createdAt: existing ? existing.createdAt : now,
+          updatedAt: now,
+          sectionCount: baseQuiz.sections.length,
+          totalQuestions,
+          bestScore: nextBest,
+          sections: JSON.parse(serializedSections)
+        };
+        persistLocalQuizzes();
+        refreshQuizzesFromMemory(accountId);
+
+        showToast(existing ? 'テストを上書き保存しました！' : 'マイクイズに保存しました！', 'success');
       } catch (err) {
-        showToast('テストの保存に失敗しました。通信状況をご確認ください。', 'error');
+        showToast('テストの保存に失敗しました', 'error');
       } finally {
         if (saveBtn) saveBtn.disabled = false;
         updateAuthUI();
@@ -2665,27 +3078,27 @@
       }
 
       if (targetQuizId && isLoggedIn()) {
-        try {
-          if (isCloudReady && db && firebaseUser) {
+        if (memoryStore.quizzes[targetQuizId]) {
+          memoryStore.quizzes[targetQuizId].title = newTitle;
+          memoryStore.quizzes[targetQuizId].updatedAt = Date.now();
+          persistLocalQuizzes();
+          refreshQuizzesFromMemory(state.user.accountId);
+        }
+
+        if (isCloudReady && db && firebaseUser) {
+          try {
             await updateDoc(getQuizDocRef(targetQuizId), {
               title: newTitle,
               updatedAt: Date.now()
             });
-          } else {
-            const list = memoryFallbackQuizzes[state.user.accountId] || [];
-            const item = list.find((q) => q.id === targetQuizId);
-            if (item) item.title = newTitle;
-            state.savedQuizzes = [...list];
-            renderSavedQuizzes();
-          }
-          if (state.currentQuiz && state.currentQuiz.id === targetQuizId) {
-            state.currentQuiz.title = newTitle;
-            document.getElementById('quiz-display-title').textContent = newTitle;
-          }
-          showToast('クラウド上のタイトルを改名しました！', 'success');
-        } catch (err) {
-          showToast('改名の保存に失敗しました', 'error');
+          } catch (err) {}
         }
+
+        if (state.currentQuiz && state.currentQuiz.id === targetQuizId) {
+          state.currentQuiz.title = newTitle;
+          document.getElementById('quiz-display-title').textContent = newTitle;
+        }
+        showToast('タイトルを改名しました！', 'success');
       } else {
         showToast('タイトルを変更しました', 'success');
       }
@@ -2694,7 +3107,7 @@
     }
 
     // =========================================================================
-    // 9. タブ切り替え・モーダル制御
+    // 10. タブ切り替え・モーダル制御
     // =========================================================================
     function switchTab(tabName) {
       state.activeTab = tabName;
@@ -2733,7 +3146,7 @@
     }
 
     // =========================================================================
-    // 10. 画像アップロード・貼り付け・サンプルノート生成
+    // 11. 画像アップロード・貼り付け・サンプルノート生成
     // =========================================================================
     function setupImageDropAndPaste() {
       const dropZone = document.getElementById('drop-zone');
@@ -2998,7 +3411,7 @@
     }
 
     // =========================================================================
-    // 11. 大問構成カスタマイズ（2〜5問）
+    // 12. 大問構成カスタマイズ（2〜5問）
     // =========================================================================
     function setSectionCount(targetCount) {
       const count = Math.max(2, Math.min(5, Number(targetCount) || 2));
@@ -3108,35 +3521,30 @@
     }
 
     // =========================================================================
-    // 12. Gemini API 連携 & デモ問題生成フォールバック
+    // 13. Gemini API 連携（テスト作問 & 記述回答AI判定）＋デモ問題フォールバック
     // =========================================================================
     async function callGeminiAPI(payload, maxRetries = 3) {
       const apiKey = "";
-      const models = ['gemini-2.5-flash', 'gemini-3-flash-preview'];
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+      let delay = 1000;
       let lastError = null;
 
-      for (const model of models) {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        let delay = 1000;
-
-        for (let attempt = 0; attempt <= maxRetries; attempt++) {
-          try {
-            const res = await fetch(url, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-            if (!res.ok) {
-              if (res.status === 404) throw new Error('MODEL_404');
-              throw new Error(`HTTP_${res.status}`);
-            }
-            return await res.json();
-          } catch (err) {
-            lastError = err;
-            if (err.message === 'MODEL_404' || attempt === maxRetries) break;
-            await new Promise((r) => setTimeout(r, delay));
-            delay *= 2;
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (!res.ok) {
+            throw new Error(`HTTP_${res.status}`);
           }
+          return await res.json();
+        } catch (err) {
+          lastError = err;
+          if (attempt === maxRetries) break;
+          await new Promise((r) => setTimeout(r, delay));
+          delay *= 2;
         }
       }
       throw lastError || new Error('Gemini API Error');
@@ -3291,7 +3699,73 @@
       }
     }
 
-    // APIキー未設定や通信制限時でも体験を止めないデモ問題生成フォールバック
+    // 記述回答をAIに意味判定してもらう機能
+    async function evaluateTextAnswerWithAI(qid) {
+      const q = getAllQuestions().find((item) => item.id === qid);
+      if (!q) return;
+      const userAns = (state.userAnswers[qid] || '').trim();
+      if (!userAns) {
+        showToast('記述回答が未入力のためAI判定できません', 'warning');
+        return;
+      }
+
+      state.aiTextFeedback[qid] = { loading: true };
+      renderQuizSections();
+
+      try {
+        const prompt = `以下の記述・穴埋め問題について、学習者の回答が意味的に正解とみなせるか判定し、短い添削コメントを返してください。
+【問題文】${q.questionText}
+【模範解答】${q.correctAnswer}
+【学習者の回答】${userAns}`;
+
+        const payload = {
+          contents: [{ role: 'user', parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                isCorrect: { type: 'BOOLEAN' },
+                feedback: { type: 'STRING' }
+              },
+              required: ['isCorrect', 'feedback']
+            }
+          }
+        };
+
+        const result = await callGeminiAPI(payload, 1);
+        const text = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        const parsed = JSON.parse(text);
+
+        const isCorrect = Boolean(parsed.isCorrect);
+        state.manualGrades[qid] = isCorrect;
+        state.aiTextFeedback[qid] = {
+          loading: false,
+          isCorrect,
+          feedback: parsed.feedback || (isCorrect ? '模範解答と意味が一致しています。' : '模範解答の重要語句が不足しています。')
+        };
+        renderGradingSummary();
+        renderQuizSections();
+        showToast(isCorrect ? 'AI判定：正解と判定されました！' : 'AI判定：不正解（添削コメントを確認してください）', isCorrect ? 'success' : 'info');
+      } catch (err) {
+        // API未接続時の柔軟照合フォールバック
+        const normU = normalizeAnswerStr(userAns);
+        const normC = normalizeAnswerStr(q.correctAnswer);
+        const isSimilar = normU === normC || (normC.length >= 2 && normU.includes(normC));
+        state.manualGrades[qid] = isSimilar;
+        state.aiTextFeedback[qid] = {
+          loading: false,
+          isCorrect: isSimilar,
+          feedback: isSimilar
+            ? '模範解答のキーワードが含まれており正解と判定しました。'
+            : `模範解答「${q.correctAnswer}」と一致しませんでした（必要に応じて自己採点ボタンで調整できます）。`
+        };
+        renderGradingSummary();
+        renderQuizSections();
+        showToast('記述回答の自動判定が完了しました', 'info');
+      }
+    }
+
     function generateDemoTestFromConfig() {
       document.getElementById('ai-fallback-card').classList.add('hidden');
 
@@ -3416,7 +3890,7 @@
     }
 
     // =========================================================================
-    // 13. テスト受験・採点・復習ロジック
+    // 14. テスト受験・採点・復習ロジック
     // =========================================================================
     function startTimer() {
       stopTimer();
@@ -3444,6 +3918,7 @@
       state.quizMode = 'solving';
       state.userAnswers = {};
       state.manualGrades = {};
+      state.aiTextFeedback = {};
 
       updateAuthUI();
       startTimer();
@@ -3460,6 +3935,7 @@
       state.quizMode = 'solving';
       state.userAnswers = {};
       state.manualGrades = {};
+      state.aiTextFeedback = {};
       startTimer();
       renderQuizView();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3487,6 +3963,7 @@
       state.quizMode = 'solving';
       state.userAnswers = {};
       state.manualGrades = {};
+      state.aiTextFeedback = {};
       startTimer();
       renderQuizView();
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -3553,14 +4030,20 @@
       stopTimer();
       state.quizMode = 'graded';
 
-      // 保存済みテストであれば最高スコアをクラウドへ自動反映
       if (!state.isWrongOnlyMode && state.currentQuiz && state.currentQuiz.id && isLoggedIn()) {
         const all = getAllQuestions();
         const correct = all.filter((q) => evaluateQuestion(q)).length;
         const score100 = all.length > 0 ? Math.round((correct / all.length) * 100) : 0;
-        const existing = state.savedQuizzes.find((item) => item.id === state.currentQuiz.id);
+        const existing = memoryStore.quizzes[state.currentQuiz.id];
         const prevBest = existing && typeof existing.bestScore === 'number' ? existing.bestScore : 0;
         const nextBest = Math.max(prevBest, score100);
+
+        if (existing) {
+          existing.bestScore = nextBest;
+          existing.updatedAt = Date.now();
+          persistLocalQuizzes();
+          refreshQuizzesFromMemory(state.user.accountId);
+        }
 
         if (isCloudReady && db && firebaseUser) {
           try {
@@ -3694,6 +4177,7 @@
                 .map((q, qIdx) => {
                   const userAns = state.userAnswers[q.id] || '';
                   const isCorrect = isGraded ? evaluateQuestion(q) : false;
+                  const aiFb = state.aiTextFeedback[q.id];
 
                   let answerHtml = '';
                   if (q.type === 'choice') {
@@ -3755,6 +4239,23 @@
 
                   let reviewHtml = '';
                   if (isGraded) {
+                    const textActions =
+                      q.type === 'text'
+                        ? `<div style="display: flex; gap: 6px; flex-wrap: wrap;">
+                            <button type="button" ${aiFb && aiFb.loading ? 'disabled' : ''} data-action="ai-grade-text" data-qid="${q.id}" class="btn btn-sm btn-primary">
+                              ${aiFb && aiFb.loading ? '✨ AI判定中...' : '✨ AIに記述回答を判定してもらう'}
+                            </button>
+                            <button type="button" data-action="toggle-manual-grade" data-qid="${q.id}" data-grade="${!isCorrect}" class="btn btn-sm btn-outline">
+                              ${isCorrect ? '不正解にする' : '正解にする（自己採点）'}
+                            </button>
+                          </div>`
+                        : '';
+
+                    const aiFeedbackHtml =
+                      aiFb && !aiFb.loading && aiFb.feedback
+                        ? `<div class="ai-feedback-note">🤖 AI判定フィードバック：${escapeHtml(aiFb.feedback)}</div>`
+                        : '';
+
                     reviewHtml = `
                       <div class="review-box ${isCorrect ? 'is-correct' : 'is-wrong'}">
                         <div class="review-header">
@@ -3764,17 +4265,12 @@
                               正解（模範解答）：<span style="color: var(--primary);">${escapeHtml(q.correctAnswer)}</span>
                             </span>
                           </div>
-                          ${
-                            q.type === 'text'
-                              ? `<button type="button" data-action="toggle-manual-grade" data-qid="${q.id}" data-grade="${!isCorrect}" class="btn btn-sm btn-outline">
-                                  ${isCorrect ? '不正解に変更' : '正解にする（自己採点）'}
-                                </button>`
-                              : ''
-                          }
+                          ${textActions}
                         </div>
                         <div style="font-size: 0.84rem; color: var(--text-main); line-height: 1.6;">
                           <strong>解説：</strong>${escapeHtml(q.explanation)}
                         </div>
+                        ${aiFeedbackHtml}
                       </div>
                     `;
                   }
@@ -3804,7 +4300,7 @@
     }
 
     // =========================================================================
-    // 14. イベント委譲ハンドラ（全UIの確実な応答性を保証）
+    // 15. イベント委譲ハンドラ（全UIの確実な応答性を保証）
     // =========================================================================
     function bindGlobalEvents() {
       document.addEventListener('click', (e) => {
@@ -3826,12 +4322,37 @@
             setAuthMode(target.getAttribute('data-mode') || 'signup');
             break;
 
+          case 'quick-signup-from-login':
+            quickSignupFromLoginInputs();
+            break;
+
           case 'sample-login':
             loginWithSampleAccount();
             break;
 
           case 'logout':
             logoutUser();
+            break;
+
+          case 'open-transfer':
+            openTransferModal(target.getAttribute('data-tab') || 'export');
+            break;
+
+          case 'set-transfer-tab':
+            setTransferTab(target.getAttribute('data-tab') || 'export');
+            break;
+
+          case 'copy-transfer-code':
+            copyTransferCodeToClipboard();
+            break;
+
+          case 'restore-transfer-code':
+            restoreFromTransferCode();
+            break;
+
+          case 'open-auth-from-transfer':
+            closeModal('transfer-modal');
+            openAuthModal('signup');
             break;
 
           case 'toggle-pw': {
@@ -3944,6 +4465,12 @@
             break;
           }
 
+          case 'ai-grade-text': {
+            const qid = target.getAttribute('data-qid');
+            evaluateTextAnswerWithAI(qid);
+            break;
+          }
+
           case 'submit-quiz':
             requestSubmitQuiz();
             break;
@@ -3957,7 +4484,7 @@
             break;
 
           case 'save-current-quiz':
-            saveCurrentQuizToCloud();
+            saveCurrentQuiz();
             break;
 
           case 'open-rename-current':
@@ -3980,28 +4507,25 @@
             const found = state.savedQuizzes.find((q) => q.id === qid);
             if (!found) return;
             openConfirmModal(
-              'クイズのクラウド削除確認',
-              `「${found.title}」をクラウドから削除しますか？別端末からも消去され、元に戻せません。`,
+              'クイズの削除確認',
+              `「${found.title}」を削除しますか？この操作は元に戻せません。`,
               async () => {
                 if (!isLoggedIn()) return;
-                try {
-                  if (isCloudReady && db && firebaseUser) {
+                delete memoryStore.quizzes[qid];
+                persistLocalQuizzes();
+                refreshQuizzesFromMemory(state.user.accountId);
+
+                if (isCloudReady && db && firebaseUser) {
+                  try {
                     await deleteDoc(getQuizDocRef(qid));
-                  } else {
-                    const list = memoryFallbackQuizzes[state.user.accountId] || [];
-                    memoryFallbackQuizzes[state.user.accountId] = list.filter((q) => q.id !== qid);
-                    state.savedQuizzes = [...memoryFallbackQuizzes[state.user.accountId]];
-                    updateSavedBadges();
-                    renderSavedQuizzes();
-                  }
-                  if (state.currentQuiz && state.currentQuiz.id === qid) {
-                    delete state.currentQuiz.id;
-                    updateAuthUI();
-                  }
-                  showToast('クイズをクラウドから削除しました', 'info');
-                } catch (err) {
-                  showToast('削除中にエラーが発生しました', 'error');
+                  } catch (err) {}
                 }
+
+                if (state.currentQuiz && state.currentQuiz.id === qid) {
+                  delete state.currentQuiz.id;
+                  updateAuthUI();
+                }
+                showToast('クイズを削除しました', 'info');
               },
               true
             );
@@ -4055,7 +4579,7 @@
     }
 
     // =========================================================================
-    // 15. アプリケーション起動
+    // 16. アプリケーション起動
     // =========================================================================
     async function bootstrap() {
       bindGlobalEvents();
