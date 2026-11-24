@@ -93,11 +93,6 @@
       to { transform: rotate(360deg); }
     }
 
-    @keyframes pulseRing {
-      0%, 100% { transform: scale(0.95); opacity: 0.7; }
-      50% { transform: scale(1.1); opacity: 0.3; }
-    }
-
     .animate-fade {
       animation: fadeIn 0.22s ease-out forwards;
     }
@@ -118,14 +113,14 @@
     }
 
     .header-inner {
-      max-width: 1120px;
+      max-width: 1140px;
       margin: 0 auto;
       padding: 0 16px;
       height: 64px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      gap: 12px;
+      gap: 10px;
     }
 
     .brand-btn {
@@ -139,12 +134,12 @@
       width: 38px;
       height: 38px;
       border-radius: 11px;
-      background: linear-gradient(135deg, #4f46e5, #2563eb);
+      background: linear-gradient(135deg, #4f46e5, #059669);
       color: #ffffff;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.28);
+      box-shadow: 0 4px 10px rgba(79, 70, 229, 0.26);
       flex-shrink: 0;
     }
 
@@ -152,22 +147,35 @@
       font-size: 1.15rem;
       font-weight: 800;
       letter-spacing: -0.02em;
-      background: linear-gradient(90deg, #3730a3, #2563eb);
+      background: linear-gradient(90deg, #3730a3, #059669);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
 
-    .brand-badge {
-      display: inline-block;
-      margin-left: 6px;
-      padding: 2px 8px;
-      font-size: 0.7rem;
-      font-weight: 700;
+    .cloud-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
       border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: var(--success-bg);
+      color: #065f46;
+      border: 1px solid var(--success-border);
+      white-space: nowrap;
+    }
+
+    .cloud-status-pill.is-syncing {
       background: var(--primary-light);
       color: var(--primary);
-      border: 1px solid var(--primary-border);
-      vertical-align: middle;
+      border-color: var(--primary-border);
+    }
+
+    .cloud-status-pill.is-offline {
+      background: var(--warning-bg);
+      color: #92400e;
+      border-color: #fde68a;
     }
 
     .desktop-nav {
@@ -232,10 +240,10 @@
       box-shadow: none;
     }
 
-    @media (max-width: 768px) {
+    @media (max-width: 840px) {
       .desktop-nav { display: none; }
       .mobile-nav { display: flex; }
-      .brand-badge { display: none; }
+      .header-cloud-text { display: none; }
     }
 
     /* ==================== 汎用ボタン・入力フォーム ==================== */
@@ -279,9 +287,9 @@
     }
 
     .btn-gradient {
-      background: linear-gradient(135deg, #4f46e5, #2563eb);
+      background: linear-gradient(135deg, #4f46e5, #059669);
       color: #ffffff;
-      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.32);
+      box-shadow: 0 4px 14px rgba(79, 70, 229, 0.28);
     }
 
     .btn-gradient:hover:not(:disabled) {
@@ -390,14 +398,14 @@
       border-radius: 999px;
       background: var(--primary-light);
       border: 1px solid var(--primary-border);
-      max-width: 180px;
+      max-width: 170px;
     }
 
     .user-avatar {
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: linear-gradient(135deg, #4f46e5, #2563eb);
+      background: linear-gradient(135deg, #4f46e5, #059669);
       color: #ffffff;
       font-size: 0.78rem;
       font-weight: 800;
@@ -447,7 +455,7 @@
     }
 
     .guest-banner {
-      background: linear-gradient(135deg, #4f46e5, #3730a3 55%, #1d4ed8);
+      background: linear-gradient(135deg, #4f46e5, #3730a3 55%, #047857);
       color: #ffffff;
       border-radius: var(--radius-xl);
       padding: 18px 22px;
@@ -741,9 +749,9 @@
       .col-5, .col-3, .col-4 { grid-column: span 12; }
     }
 
-    /* ==================== 生成CTAパネル ==================== */
+    /* ==================== 生成CTAパネル & AIフォールバックバナー ==================== */
     .cta-panel {
-      background: linear-gradient(135deg, #0f172a, #1e1b4b 55%, #0f172a);
+      background: linear-gradient(135deg, #0f172a, #1e1b4b 55%, #064e3b);
       color: #ffffff;
       border-radius: var(--radius-xl);
       padding: 22px 24px;
@@ -753,6 +761,18 @@
       gap: 16px;
       flex-wrap: wrap;
       box-shadow: var(--shadow-md);
+    }
+
+    .fallback-alert-card {
+      background: #fffbeb;
+      border: 1.5px solid #fcd34d;
+      border-radius: var(--radius-xl);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
     }
 
     /* ==================== テスト受験・採点画面 ==================== */
@@ -814,14 +834,14 @@
 
     .progress-fill {
       height: 100%;
-      background: linear-gradient(90deg, #4f46e5, #2563eb);
+      background: linear-gradient(90deg, #4f46e5, #059669);
       border-radius: 999px;
       transition: width 0.25s ease;
     }
 
     /* 採点サマリーカード */
     .summary-card {
-      background: linear-gradient(135deg, #4f46e5, #3730a3 55%, #1d4ed8);
+      background: linear-gradient(135deg, #4f46e5, #3730a3 55%, #047857);
       color: #ffffff;
       border-radius: var(--radius-xl);
       padding: 24px;
@@ -1145,7 +1165,7 @@
     .modal-card {
       background: #ffffff;
       border-radius: 22px;
-      max-width: 440px;
+      max-width: 450px;
       width: 100%;
       padding: 24px;
       box-shadow: var(--shadow-xl);
@@ -1158,7 +1178,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
     .modal-title {
@@ -1189,13 +1209,13 @@
       background: var(--bg-subtle);
       padding: 4px;
       border-radius: var(--radius-md);
-      margin-bottom: 18px;
+      margin-bottom: 16px;
     }
 
     .auth-mode-btn {
       padding: 8px;
       border-radius: 9px;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       font-weight: 700;
       color: var(--text-sub);
       transition: all 0.15s;
@@ -1213,9 +1233,8 @@
       background: var(--danger-bg);
       border: 1px solid var(--danger-border);
       color: var(--danger);
-      font-size: 0.8rem;
+      font-size: 0.81rem;
       font-weight: 700;
-      margin-bottom: 14px;
       line-height: 1.5;
     }
 
@@ -1253,7 +1272,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      max-width: 360px;
+      max-width: 380px;
       width: calc(100% - 32px);
       pointer-events: none;
     }
@@ -1282,7 +1301,7 @@
     }
 
     .footer-inner {
-      max-width: 1120px;
+      max-width: 1140px;
       margin: 0 auto;
       display: flex;
       justify-content: space-between;
@@ -1302,17 +1321,21 @@
   <!-- ==================== ヘッダー ==================== -->
   <header class="app-header">
     <div class="header-inner">
-      <button type="button" data-action="switch-tab" data-tab="create" class="brand-btn">
-        <span class="brand-icon">
-          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5" />
-          </svg>
-        </span>
-        <span>
+      <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+        <button type="button" data-action="switch-tab" data-tab="create" class="brand-btn">
+          <span class="brand-icon">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5" />
+            </svg>
+          </span>
           <span class="brand-title">StudySnap AI</span>
-          <span class="brand-badge">AI問題作成</span>
+        </button>
+
+        <span id="header-cloud-status" class="cloud-status-pill is-syncing" title="Firebase Firestore クラウドデータベースと同期中">
+          <span>☁️</span>
+          <span class="header-cloud-text">クラウド接続中...</span>
         </span>
-      </button>
+      </div>
 
       <!-- デスクトップナビゲーション -->
       <nav class="desktop-nav" aria-label="メインメニュー">
@@ -1355,17 +1378,17 @@
       <div class="guest-banner-left">
         <div class="guest-banner-icon">
           <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
           </svg>
         </div>
         <div>
-          <div style="font-weight: 800; font-size: 0.96rem;">メール不要！アカウント名とパスワードだけでデータ保存・引き継ぎ可能</div>
-          <div style="font-size: 0.8rem; color: #e0e7ff; margin-top: 2px;">アカウント登録またはサンプルアカウントログインで、作成したテストの保存・改名・削除が使えます。</div>
+          <div style="font-weight: 800; font-size: 0.96rem;">☁️ クラウド同期対応！PC・スマホなど別端末からも同じアカウントで引き継ぎ可能</div>
+          <div style="font-size: 0.8rem; color: #e0e7ff; margin-top: 2px;">メール不要。アカウント名（2〜20文字）とパスワードだけで、どこからでも保存済みクイズにアクセスできます。</div>
         </div>
       </div>
       <div class="guest-banner-actions">
         <button type="button" data-action="sample-login" class="btn btn-sm btn-glass">
-          サンプルアカウントで試す
+          サンプル「ゲスト学習者」で試す
         </button>
         <button type="button" data-action="open-auth" data-mode="signup" class="btn btn-sm btn-white">
           アカウント作成 / ログイン
@@ -1375,7 +1398,6 @@
 
     <!-- ==================== 1. テスト作成ビュー ==================== -->
     <section id="view-create" class="stack-lg animate-fade">
-      <!-- イントロ -->
       <div class="card">
         <h1 style="font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em;">画像からAI練習問題テストを作成</h1>
         <p style="font-size: 0.88rem; color: var(--text-sub); margin-top: 4px;">
@@ -1428,7 +1450,6 @@
           </div>
         </div>
 
-        <!-- 大問数クイック切替バー -->
         <div class="section-count-bar">
           <div class="count-selector-group">
             <span style="font-size: 0.8rem; font-weight: 800; color: var(--text-sub); margin-right: 4px;">大問数を選択：</span>
@@ -1442,8 +1463,20 @@
           </button>
         </div>
 
-        <!-- 各大問カード一覧 -->
         <div id="sections-config-list"></div>
+      </div>
+
+      <!-- AIエラー時のデモ問題フォールバックカード（エラー時表示） -->
+      <div id="ai-fallback-card" class="fallback-alert-card hidden animate-fade">
+        <div style="flex: 1; min-width: 240px;">
+          <div style="font-weight: 800; font-size: 0.95rem; color: #92400e;">AIサーバーとの通信中にエラーが発生しました</div>
+          <div id="ai-fallback-reason" style="font-size: 0.8rem; color: #b45309; margin-top: 2px;">
+            APIキー未設定またはネットワーク接続制限のため、自動生成を完了できませんでした。代わりに設定した大問構成に合わせたデモ問題を生成できます。
+          </div>
+        </div>
+        <button type="button" data-action="generate-demo-test" class="btn btn-amber">
+          デモ問題としてテストを生成する
+        </button>
       </div>
 
       <!-- ステップ3: AI生成実行ボタン -->
@@ -1463,7 +1496,6 @@
 
     <!-- ==================== 2. テスト受験・採点ビュー ==================== -->
     <section id="view-quiz" class="stack-lg hidden animate-fade">
-      <!-- テストヘッダー -->
       <div class="card">
         <div class="quiz-top-row">
           <div style="flex: 1; min-width: 220px;">
@@ -1482,7 +1514,7 @@
 
           <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button type="button" id="save-quiz-btn" data-action="save-current-quiz" class="btn btn-primary">
-              <span id="save-quiz-btn-text">マイクイズに保存</span>
+              <span id="save-quiz-btn-text">☁️ クラウドに保存</span>
             </button>
             <button type="button" data-action="retry-full" class="btn btn-secondary">
               最初から解き直す
@@ -1564,8 +1596,11 @@
     <section id="view-myquizzes" class="stack-lg hidden animate-fade">
       <div class="card" style="display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;">
         <div>
-          <h1 style="font-size: 1.3rem; font-weight: 800;">マイクイズ一覧（保存済みテスト）</h1>
-          <p style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;">アカウントに保存したテストの再挑戦・タイトル改名・削除が行えます。</p>
+          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <h1 style="font-size: 1.3rem; font-weight: 800;">マイクイズ一覧（クラウド保存済みテスト）</h1>
+            <span id="myquizzes-sync-badge" class="cloud-status-pill">☁️ クラウド同期有効</span>
+          </div>
+          <p style="font-size: 0.85rem; color: var(--text-sub); margin-top: 2px;">別の端末・別ブラウザから同じアカウント名とパスワードでログインしても自動で引き継がれます。</p>
         </div>
         <button type="button" data-action="switch-tab" data-tab="create" class="btn btn-primary">
           + 新しいテストを作成
@@ -1576,17 +1611,17 @@
       <div id="myquizzes-guest-empty" class="card" style="text-align: center; padding: 42px 20px;">
         <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px;">
           <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15a4.5 4.5 0 004.5 4.5H18a3.75 3.75 0 001.332-7.257 3 3 0 00-3.758-3.848 5.25 5.25 0 00-10.233 2.33A4.502 4.502 0 002.25 15z" />
           </svg>
         </div>
-        <h2 style="font-size: 1.15rem; font-weight: 800;">ログインすると保存したクイズを管理できます</h2>
-        <p style="font-size: 0.86rem; color: var(--text-sub); max-width: 460px; margin: 8px auto 20px;">
-          メールアドレス不要！お好きな「アカウント名」と「パスワード」を登録するだけで、作成したテストの保存・引き継ぎ・改名・削除が利用できます。
+        <h2 style="font-size: 1.15rem; font-weight: 800;">ログインすると別端末ともクイズをクラウド同期できます</h2>
+        <p style="font-size: 0.86rem; color: var(--text-sub); max-width: 480px; margin: 8px auto 20px;">
+          メールアドレス不要！お好きな「アカウント名（2〜20文字）」と「パスワード」を登録するだけで、PC・スマホなど別端末からもログインしてクイズの保存・引き継ぎ・改名・削除が行えます。
         </p>
         <div style="display: flex; justify-content: center; gap: 10px; flex-wrap: wrap;">
           <button type="button" data-action="open-auth" data-mode="signup" class="btn btn-primary">新規アカウント登録</button>
-          <button type="button" data-action="open-auth" data-mode="login" class="btn btn-secondary">ログイン（引き継ぎ）</button>
-          <button type="button" data-action="sample-login" class="btn btn-emerald-soft">サンプルアカウントで試す</button>
+          <button type="button" data-action="open-auth" data-mode="login" class="btn btn-secondary">別端末からログイン（引き継ぎ）</button>
+          <button type="button" data-action="sample-login" class="btn btn-emerald-soft">サンプル「ゲスト学習者」で試す</button>
         </div>
       </div>
 
@@ -1598,6 +1633,7 @@
             <option value="newest">作成日時が新しい順</option>
             <option value="oldest">作成日時が古い順</option>
             <option value="questions">問題数が多い順</option>
+            <option value="score">最高スコアが高い順</option>
           </select>
         </div>
 
@@ -1605,7 +1641,7 @@
 
         <div id="myquizzes-no-items" class="card hidden" style="text-align: center; padding: 36px 20px;">
           <div style="font-weight: 800; font-size: 1rem;">保存されたクイズはまだありません</div>
-          <p style="font-size: 0.85rem; color: var(--text-sub); margin: 6px 0 16px;">画像を読み込んでテストを作成し、「マイクイズに保存」ボタンを押すとここに一覧表示されます。</p>
+          <p style="font-size: 0.85rem; color: var(--text-sub); margin: 6px 0 16px;">画像を読み込んでテストを作成し、「☁️ クラウドに保存」ボタンを押すとここに一覧表示されます。</p>
           <button type="button" data-action="switch-tab" data-tab="create" class="btn btn-primary">最初のテストを作成する</button>
         </div>
       </div>
@@ -1616,15 +1652,15 @@
   <!-- ==================== フッター ==================== -->
   <footer class="app-footer">
     <div class="footer-inner">
-      <span>© 2026 StudySnap AI - 画像から練習問題テスト自動作成</span>
-      <span>Powered by Gemini Multimodal AI</span>
+      <span>© 2026 StudySnap AI - クラウド同期対応 AI練習問題メーカー</span>
+      <span>Powered by Gemini Multimodal AI & Cloud Firestore</span>
     </div>
   </footer>
 
   <!-- ==================== モーダル1: AI生成中ローディング ==================== -->
   <div id="loading-overlay" class="modal-backdrop hidden">
     <div class="modal-card" style="text-align: center; padding: 32px 24px;">
-      <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #4f46e5, #2563eb); color: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+      <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, #4f46e5, #059669); color: #ffffff; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
         <svg class="spin" width="28" height="28" fill="none" viewBox="0 0 24 24">
           <circle style="opacity: 0.25;" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path style="opacity: 0.85;" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
@@ -1639,10 +1675,10 @@
     </div>
   </div>
 
-  <!-- ==================== モーダル2: アカウント作成・ログイン（アカウント名＋パスワードのみ） ==================== -->
+  <!-- ==================== モーダル2: アカウント作成・ログイン（クラウド同期対応） ==================== -->
   <div id="auth-modal" class="modal-backdrop hidden" data-action="close-modal-backdrop" data-modal="auth-modal">
     <div class="modal-card">
-      <div class="modal-header">
+      <div class="modal-header" style="margin-bottom: 10px;">
         <h3 id="auth-modal-title" class="modal-title">新規アカウント登録</h3>
         <button type="button" data-action="close-modal" data-modal="auth-modal" class="icon-close-btn" aria-label="閉じる">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" viewBox="0 0 24 24">
@@ -1651,21 +1687,25 @@
         </button>
       </div>
 
+      <div style="margin-bottom: 14px;">
+        <span id="modal-cloud-status" class="cloud-status-pill">☁️ クラウド同期有効（別端末からもログイン可）</span>
+      </div>
+
       <div class="auth-mode-tabs">
         <button type="button" id="auth-tab-signup" data-action="set-auth-mode" data-mode="signup" class="auth-mode-btn active">
-          新規登録（アカウント作成）
+          新規作成（アカウント登録）
         </button>
         <button type="button" id="auth-tab-login" data-action="set-auth-mode" data-mode="login" class="auth-mode-btn">
-          ログイン（引き継ぎ）
+          ログイン（他端末引き継ぎ）
         </button>
       </div>
 
       <form id="auth-form" style="display: flex; flex-direction: column; gap: 14px;">
         <div>
-          <label for="auth-username" class="form-label">アカウント名 <span style="color: var(--danger);">*</span></label>
-          <input id="auth-username" type="text" required maxlength="30" autocomplete="username" placeholder="例：たなか / study_taro" class="form-input" />
+          <label for="auth-username" class="form-label">アカウント名（2〜20文字） <span style="color: var(--danger);">*</span></label>
+          <input id="auth-username" type="text" required minlength="2" maxlength="20" autocomplete="username" placeholder="例：たなか / study_taro" class="form-input" />
           <div id="auth-username-hint" style="font-size: 0.73rem; color: var(--text-muted); margin-top: 4px;">
-            ※ 他のユーザーと重複しないお好きなアカウント名を入力してください（メール不要）。
+            ※ クラウド上で重複チェックを行います（メール認証は不要です）。
           </div>
         </div>
 
@@ -1673,10 +1713,13 @@
           <label for="auth-password" class="form-label">パスワード（4文字以上） <span style="color: var(--danger);">*</span></label>
           <div class="password-wrap">
             <input id="auth-password" type="password" required minlength="4" autocomplete="current-password" placeholder="4文字以上で入力" class="form-input" />
-            <button type="button" data-action="toggle-pw" class="pw-toggle-btn" title="パスワード表示切替">
-              <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <button type="button" id="pw-toggle-btn" data-action="toggle-pw" class="pw-toggle-btn" title="パスワードを表示/非表示">
+              <svg id="pw-eye-open" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
                 <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              <svg id="pw-eye-closed" class="hidden" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
               </svg>
             </button>
           </div>
@@ -1691,10 +1734,10 @@
 
       <div style="margin-top: 18px; padding-top: 14px; border-top: 1px solid var(--border); text-align: center;">
         <div style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px;">
-          入力不要で今すぐ機能を試したい方はこちら
+          ワンクリックで別端末同期も体験できる共有サンプルアカウント
         </div>
         <button type="button" data-action="sample-login" class="btn btn-emerald-soft" style="width: 100%;">
-          サンプルアカウント「ゲスト学習者」(PW: 1234) でログイン
+          サンプル「ゲスト学習者」（パスワード: 1234）でログイン
         </button>
       </div>
     </div>
@@ -1753,1539 +1796,688 @@
     </div>
   </div>
 
-  <!-- ==================== メインJavaScript（外部CDNゼロ・堅牢設計） ==================== -->
-  <script>
-    (function() {
-      'use strict';
+  <!-- ==================== メインJavaScript（Firebase Firestore クラウド同期 & AI作問） ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      addDoc,
+      updateDoc,
+      deleteDoc,
+      collection,
+      getDocs,
+      onSnapshot
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-      // =========================================================================
-      // 1. 4層ハイブリッド永続化ストレージ（メモリ + localStorage + window.name + IndexedDB）
-      // =========================================================================
-      const memoryCache = {};
-      const IDB_NAME = 'StudySnapAI_V4_DB';
-      const IDB_STORE = 'kv_store';
-      const WINDOW_NAME_PREFIX = 'STUDYSNAP_STATE_V4:';
+    // =========================================================================
+    // 1. Firebase 初期化設定 & クラウドコレクションパス（RULE 1 厳守）
+    // =========================================================================
+    const appId = typeof __app_id !== 'undefined' && __app_id ? __app_id : 'studysnap-ai-cloud';
+    const firebaseConfig = typeof __firebase_config !== 'undefined' && __firebase_config
+      ? JSON.parse(__firebase_config)
+      : null;
 
-      // window.name からの初期復元（サンドボックス環境でのリロード耐性向上）
-      function loadFromWindowName() {
-        try {
-          if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
-            const parsed = JSON.parse(window.name.slice(WINDOW_NAME_PREFIX.length));
-            if (parsed && typeof parsed === 'object') {
-              Object.keys(parsed).forEach((k) => {
-                memoryCache[k] = parsed[k];
-              });
-            }
+    let firebaseApp = null;
+    let auth = null;
+    let db = null;
+    let firebaseUser = null;
+    let isCloudReady = false;
+    let quizzesUnsubscribe = null;
+
+    const getAccountsCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'studysnap_accounts');
+    const getQuizzesCollection = () => collection(db, 'artifacts', appId, 'public', 'data', 'studysnap_quizzes');
+    const getAccountDocRef = (normKey) => doc(db, 'artifacts', appId, 'public', 'data', 'studysnap_accounts', 'acc_' + encodeURIComponent(normKey));
+    const getQuizDocRef = (quizId) => doc(db, 'artifacts', appId, 'public', 'data', 'studysnap_quizzes', quizId);
+
+    // =========================================================================
+    // 2. 同一端末セッションキャッシュ（リロード時の自動ログイン維持）
+    // =========================================================================
+    const SESSION_STORAGE_KEY = `studysnap_cloud_session_${appId}`;
+    const WINDOW_NAME_PREFIX = 'STUDYSNAP_CLOUD_SESSION:';
+    const memoryFallbackAccounts = [];
+    const memoryFallbackQuizzes = {};
+
+    function saveSessionCache(sessionObj) {
+      const json = JSON.stringify(sessionObj);
+      try {
+        window.name = WINDOW_NAME_PREFIX + json;
+      } catch (e) {}
+      try {
+        window.localStorage.setItem(SESSION_STORAGE_KEY, json);
+      } catch (e) {}
+    }
+
+    function loadSessionCache() {
+      try {
+        const ls = window.localStorage.getItem(SESSION_STORAGE_KEY);
+        if (ls) return JSON.parse(ls);
+      } catch (e) {}
+      try {
+        if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
+          return JSON.parse(window.name.slice(WINDOW_NAME_PREFIX.length));
+        }
+      } catch (e) {}
+      return null;
+    }
+
+    function clearSessionCache() {
+      try {
+        if (typeof window.name === 'string' && window.name.startsWith(WINDOW_NAME_PREFIX)) {
+          window.name = '';
+        }
+      } catch (e) {}
+      try {
+        window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      } catch (e) {}
+    }
+
+    // =========================================================================
+    // 3. 純粋JavaScript SHA-256 ハッシュ関数（全端末・全ブラウザで同一ハッシュを生成）
+    // =========================================================================
+    function sha256Hex(input) {
+      function rotr(n, x) { return (x >>> n) | (x << (32 - n)); }
+      const utf8 = unescape(encodeURIComponent(String(input)));
+      const bitLen = utf8.length * 8;
+      const words = [];
+      for (let i = 0; i < utf8.length; i++) {
+        words[i >> 2] |= utf8.charCodeAt(i) << (24 - (i % 4) * 8);
+      }
+      words[bitLen >> 5] |= 0x80 << (24 - (bitLen % 32));
+      words[(((bitLen + 64) >> 9) << 4) + 15] = bitLen;
+
+      const K = [
+        0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+        0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+        0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+        0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+        0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+        0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+        0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+        0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+      ];
+      const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
+      const W = new Array(64);
+
+      for (let i = 0; i < words.length; i += 16) {
+        let [a, b, c, d, e, f, g, h] = H;
+        for (let t = 0; t < 64; t++) {
+          if (t < 16) {
+            W[t] = words[i + t] | 0;
+          } else {
+            const s0 = rotr(7, W[t - 15]) ^ rotr(18, W[t - 15]) ^ (W[t - 15] >>> 3);
+            const s1 = rotr(17, W[t - 2]) ^ rotr(19, W[t - 2]) ^ (W[t - 2] >>> 10);
+            W[t] = (W[t - 16] + s0 + W[t - 7] + s1) | 0;
           }
-        } catch (e) {}
+          const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
+          const ch = (e & f) ^ (~e & g);
+          const temp1 = (h + S1 + ch + K[t] + W[t]) | 0;
+          const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
+          const maj = (a & b) ^ (a & c) ^ (b & c);
+          const temp2 = (S0 + maj) | 0;
+          h = g; g = f; f = e; e = (d + temp1) | 0;
+          d = c; c = b; b = a; a = (temp1 + temp2) | 0;
+        }
+        H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
+        H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
       }
+      return H.map((v) => (v >>> 0).toString(16).padStart(8, '0')).join('');
+    }
 
-      function syncToWindowName() {
+    // =========================================================================
+    // 4. アプリケーション状態管理
+    // =========================================================================
+    const state = {
+      user: null, // { accountId, displayName, normalizedKey } | null
+      activeTab: 'create',
+      uploadedImages: [], // { id, name, dataUrl, base64, mimeType }
+      sectionsConfig: [
+        { id: 'sec-1', questionType: 'choice', questionCount: 4, difficulty: '標準', customInstruction: '' },
+        { id: 'sec-2', questionType: 'true_false', questionCount: 4, difficulty: '基礎', customInstruction: '' }
+      ],
+      currentQuiz: null,
+      fullQuizBackup: null,
+      isWrongOnlyMode: false,
+      quizMode: 'solving', // 'solving' | 'graded'
+      quizStartTime: null,
+      quizElapsedSeconds: 0,
+      quizTimerId: null,
+      userAnswers: {},
+      manualGrades: {},
+      savedQuizzes: [],
+      authMode: 'signup',
+      pendingSaveAfterAuth: false,
+      renameTarget: null,
+      confirmCallback: null
+    };
+
+    // =========================================================================
+    // 5. ユーティリティ関数
+    // =========================================================================
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const el = document.createElement('div');
+      el.className = `toast-item toast-${type}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => el.remove(), 260);
+      }, 3400);
+    }
+
+    function formatDate(ts) {
+      if (!ts) return '日時不明';
+      const d = new Date(ts);
+      const pad = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
+
+    function formatMMSS(sec) {
+      const s = Math.max(0, Math.floor(sec));
+      return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+    }
+
+    function getQuestionTypeLabel(type) {
+      const map = {
+        choice: '4択問題',
+        true_false: '〇×問題',
+        text: '記述・穴埋め問題',
+        mixed: 'ミックス（おまかせ）'
+      };
+      return map[type] || '4択問題';
+    }
+
+    function isLoggedIn() {
+      return Boolean(state.user && state.user.accountId);
+    }
+
+    // アカウント名の正規化キー（前後空白除去・全角英数半角化・小文字統一）
+    function normalizeAccountKey(name) {
+      return String(name || '')
+        .trim()
+        .replace(/\s+/g, ' ')
+        .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+        .toLowerCase();
+    }
+
+    function updateCloudIndicators(status) {
+      const headerPill = document.getElementById('header-cloud-status');
+      const modalPill = document.getElementById('modal-cloud-status');
+      const myQuizzesPill = document.getElementById('myquizzes-sync-badge');
+
+      if (status === 'ready') {
+        if (headerPill) {
+          headerPill.className = 'cloud-status-pill';
+          headerPill.innerHTML = '<span>☁️</span><span class="header-cloud-text">クラウド同期有効（別端末からもログイン可）</span>';
+        }
+        if (modalPill) {
+          modalPill.className = 'cloud-status-pill';
+          modalPill.textContent = '☁️ クラウド同期有効（別端末からもログイン可）';
+        }
+        if (myQuizzesPill) {
+          myQuizzesPill.className = 'cloud-status-pill';
+          myQuizzesPill.textContent = '☁️ クラウド同期有効';
+        }
+      } else if (status === 'syncing') {
+        if (headerPill) {
+          headerPill.className = 'cloud-status-pill is-syncing';
+          headerPill.innerHTML = '<span>☁️</span><span class="header-cloud-text">クラウド接続中...</span>';
+        }
+      } else {
+        if (headerPill) {
+          headerPill.className = 'cloud-status-pill is-offline';
+          headerPill.innerHTML = '<span>⚠️</span><span class="header-cloud-text">ローカル一時モード</span>';
+        }
+        if (modalPill) {
+          modalPill.className = 'cloud-status-pill is-offline';
+          modalPill.textContent = '⚠️ ローカル一時モード（クラウド未接続）';
+        }
+      }
+    }
+
+    // =========================================================================
+    // 6. Firebase Firestore 初期化 & 共有サンプルアカウント自動セットアップ
+    // =========================================================================
+    async function initCloudBackend() {
+      updateCloudIndicators('syncing');
+
+      if (firebaseConfig) {
         try {
-          window.name = WINDOW_NAME_PREFIX + JSON.stringify(memoryCache);
-        } catch (e) {}
+          firebaseApp = initializeApp(firebaseConfig);
+          auth = getAuth(firebaseApp);
+          db = getFirestore(firebaseApp);
+
+          // RULE 3: 必ず先に認証を await してから Firestore 操作へ進む
+          try {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+              const cred = await signInWithCustomToken(auth, __initial_auth_token);
+              firebaseUser = cred.user;
+            } else {
+              const cred = await signInAnonymously(auth);
+              firebaseUser = cred.user;
+            }
+          } catch (authErr) {
+            // 環境制限で匿名認証が拒否された場合もサイレントに続行して Firestore 読み書きを試行する
+            firebaseUser = auth.currentUser || { uid: 'anonymous-fallback' };
+          }
+
+          isCloudReady = true;
+          updateCloudIndicators('ready');
+        } catch (initErr) {
+          isCloudReady = false;
+          updateCloudIndicators('offline');
+        }
+      } else {
+        isCloudReady = false;
+        updateCloudIndicators('offline');
       }
 
-      function openIDB() {
-        return new Promise((resolve) => {
-          try {
-            if (!window.indexedDB) {
-              resolve(null);
+      // 共有サンプルアカウント「ゲスト学習者（パスワード: 1234）」を自動確認・作成
+      await ensureSampleAccountExists();
+
+      // 同一端末での前回ログインセッションを復元
+      const cached = loadSessionCache();
+      if (cached && cached.accountId && cached.displayName) {
+        state.user = cached;
+        updateAuthUI();
+        subscribeUserQuizzes(cached.accountId);
+      } else {
+        updateAuthUI();
+      }
+    }
+
+    async function ensureSampleAccountExists() {
+      const sampleName = 'ゲスト学習者';
+      const sampleKey = normalizeAccountKey(sampleName);
+      const sampleHash = sha256Hex('1234');
+
+      if (isCloudReady && db && firebaseUser) {
+        try {
+          const docRef = getAccountDocRef(sampleKey);
+          const snap = await getDoc(docRef);
+          if (!snap.exists()) {
+            await setDoc(docRef, {
+              accountId: 'acc_sample_guest_learner',
+              displayName: sampleName,
+              normalizedKey: sampleKey,
+              passwordHash: sampleHash,
+              createdAt: Date.now()
+            });
+          }
+        } catch (e) {
+          // 読み書き権限やオフライン時でもアプリを止めない
+        }
+      }
+
+      if (!memoryFallbackAccounts.some((a) => a.normalizedKey === sampleKey)) {
+        memoryFallbackAccounts.push({
+          accountId: 'acc_sample_guest_learner',
+          displayName: sampleName,
+          normalizedKey: sampleKey,
+          passwordHash: sampleHash,
+          createdAt: Date.now()
+        });
+      }
+    }
+
+    // =========================================================================
+    // 7. クラウドアカウント新規登録・ログイン（別端末引き継ぎ）・ログアウト
+    // =========================================================================
+    function updateAuthUI() {
+      const headerArea = document.getElementById('auth-header-area');
+      const guestBanner = document.getElementById('guest-banner');
+      const saveBtnText = document.getElementById('save-quiz-btn-text');
+      const guestEmpty = document.getElementById('myquizzes-guest-empty');
+      const loggedInArea = document.getElementById('myquizzes-logged-in-area');
+
+      if (isLoggedIn()) {
+        const initial = state.user.displayName.charAt(0).toUpperCase();
+        headerArea.innerHTML = `
+          <div class="user-pill" title="ログイン中：${escapeHtml(state.user.displayName)}（別端末からも同じ名前でログイン可能）">
+            <span class="user-avatar">${escapeHtml(initial)}</span>
+            <span class="user-name-text">${escapeHtml(state.user.displayName)}</span>
+          </div>
+          <button type="button" data-action="logout" class="btn btn-sm btn-outline">ログアウト</button>
+        `;
+        guestBanner.classList.add('hidden');
+        if (saveBtnText) {
+          saveBtnText.textContent = state.currentQuiz && state.currentQuiz.id ? '☁️ 変更を上書き保存' : '☁️ クラウドに保存';
+        }
+        guestEmpty.classList.add('hidden');
+        loggedInArea.classList.remove('hidden');
+      } else {
+        headerArea.innerHTML = `
+          <button type="button" data-action="open-auth" data-mode="login" class="btn btn-sm btn-outline">ログイン</button>
+          <button type="button" data-action="open-auth" data-mode="signup" class="btn btn-sm btn-primary">新規登録</button>
+        `;
+        guestBanner.classList.remove('hidden');
+        if (saveBtnText) {
+          saveBtnText.textContent = 'ログインしてクラウド保存';
+        }
+        guestEmpty.classList.remove('hidden');
+        loggedInArea.classList.add('hidden');
+      }
+      updateSavedBadges();
+    }
+
+    function openAuthModal(mode) {
+      setAuthMode(mode || 'signup');
+      document.getElementById('auth-error-box').classList.add('hidden');
+      document.getElementById('auth-modal').classList.remove('hidden');
+      setTimeout(() => {
+        const input = document.getElementById('auth-username');
+        if (input) input.focus();
+      }, 40);
+    }
+
+    function setAuthMode(mode) {
+      state.authMode = mode;
+      const title = document.getElementById('auth-modal-title');
+      const tabSignup = document.getElementById('auth-tab-signup');
+      const tabLogin = document.getElementById('auth-tab-login');
+      const hint = document.getElementById('auth-username-hint');
+      const submitBtn = document.getElementById('auth-submit-btn');
+
+      document.getElementById('auth-error-box').classList.add('hidden');
+
+      if (mode === 'signup') {
+        title.textContent = '新規アカウント登録（クラウド保存）';
+        tabSignup.classList.add('active');
+        tabLogin.classList.remove('active');
+        hint.textContent = '※ クラウド上で重複チェックを行います（メール認証は不要です）。';
+        submitBtn.textContent = 'このアカウント名で登録して始める';
+      } else {
+        title.textContent = 'ログイン（別端末からのデータ引き継ぎ）';
+        tabLogin.classList.add('active');
+        tabSignup.classList.remove('active');
+        hint.textContent = '※ 他の端末で登録したアカウント名とパスワードを入力してください。';
+        submitBtn.textContent = 'クラウドにログインする';
+      }
+    }
+
+    function completeUserLogin(accountObj) {
+      const session = {
+        accountId: accountObj.accountId,
+        displayName: accountObj.displayName,
+        normalizedKey: accountObj.normalizedKey
+      };
+      state.user = session;
+      saveSessionCache(session);
+      updateAuthUI();
+      subscribeUserQuizzes(session.accountId);
+
+      if (state.pendingSaveAfterAuth && state.currentQuiz) {
+        state.pendingSaveAfterAuth = false;
+        saveCurrentQuizToCloud();
+      }
+    }
+
+    function logoutUser() {
+      if (quizzesUnsubscribe) {
+        quizzesUnsubscribe();
+        quizzesUnsubscribe = null;
+      }
+      clearSessionCache();
+      state.user = null;
+      state.savedQuizzes = [];
+      if (state.currentQuiz) delete state.currentQuiz.id;
+      if (state.fullQuizBackup) delete state.fullQuizBackup.id;
+      updateAuthUI();
+      renderSavedQuizzes();
+      showToast('ログアウトしました', 'info');
+    }
+
+    async function handleAuthFormSubmit(e) {
+      e.preventDefault();
+      const errorBox = document.getElementById('auth-error-box');
+      const submitBtn = document.getElementById('auth-submit-btn');
+      errorBox.classList.add('hidden');
+
+      const rawDisplayName = document.getElementById('auth-username').value.trim();
+      const normKey = normalizeAccountKey(rawDisplayName);
+      const password = document.getElementById('auth-password').value.trim();
+
+      if (rawDisplayName.length < 2 || rawDisplayName.length > 20) {
+        errorBox.textContent = 'アカウント名は2〜20文字で入力してください。';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+      if (password.length < 4) {
+        errorBox.textContent = 'パスワードは4文字以上で入力してください。';
+        errorBox.classList.remove('hidden');
+        return;
+      }
+
+      const pwHash = sha256Hex(password);
+      const prevBtnLabel = submitBtn.textContent;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'クラウド確認中...';
+
+      try {
+        if (isCloudReady && db && firebaseUser) {
+          // RULE 2 準拠：シンプルな collection 全件取得 + docRef 直接参照で正規化キー重複/存在を確実に判定
+          const docRef = getAccountDocRef(normKey);
+          const directSnap = await getDoc(docRef);
+          const allSnap = await getDocs(getAccountsCollection());
+
+          let existingAccount = directSnap.exists() ? directSnap.data() : null;
+          if (!existingAccount) {
+            allSnap.forEach((d) => {
+              const data = d.data();
+              if (data && data.normalizedKey === normKey) {
+                existingAccount = data;
+              }
+            });
+          }
+
+          if (state.authMode === 'signup') {
+            if (existingAccount) {
+              errorBox.textContent = 'このアカウント名は既に登録されています。別の名前を選ぶか、ログインしてください';
+              errorBox.classList.remove('hidden');
               return;
             }
-            const req = window.indexedDB.open(IDB_NAME, 1);
-            req.onupgradeneeded = (e) => {
-              const db = e.target.result;
-              if (!db.objectStoreNames.contains(IDB_STORE)) {
-                db.createObjectStore(IDB_STORE);
-              }
+
+            const newAccount = {
+              accountId: 'acc_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+              displayName: rawDisplayName,
+              normalizedKey: normKey,
+              passwordHash: pwHash,
+              createdAt: Date.now()
             };
-            req.onsuccess = (e) => resolve(e.target.result);
-            req.onerror = () => resolve(null);
-          } catch (e) {
-            resolve(null);
-          }
-        });
-      }
-
-      async function idbPut(key, val) {
-        const db = await openIDB();
-        if (!db) return;
-        try {
-          const tx = db.transaction(IDB_STORE, 'readwrite');
-          tx.objectStore(IDB_STORE).put(val, key);
-        } catch (e) {}
-      }
-
-      async function idbDelete(key) {
-        const db = await openIDB();
-        if (!db) return;
-        try {
-          const tx = db.transaction(IDB_STORE, 'readwrite');
-          tx.objectStore(IDB_STORE).delete(key);
-        } catch (e) {}
-      }
-
-      function hydrateFromIDB() {
-        return new Promise(async (resolve) => {
-          const db = await openIDB();
-          if (!db) {
-            resolve();
-            return;
-          }
-          try {
-            const tx = db.transaction(IDB_STORE, 'readonly');
-            const store = tx.objectStore(IDB_STORE);
-            const keysReq = store.getAllKeys();
-            const valsReq = store.getAll();
-            tx.oncomplete = () => {
-              const keys = keysReq.result || [];
-              const vals = valsReq.result || [];
-              keys.forEach((k, idx) => {
-                if (vals[idx] !== undefined && vals[idx] !== null) {
-                  memoryCache[k] = vals[idx];
-                  try {
-                    if (window.localStorage.getItem(k) === null) {
-                      window.localStorage.setItem(k, vals[idx]);
-                    }
-                  } catch (e) {}
-                }
-              });
-              syncToWindowName();
-              resolve();
-            };
-            tx.onerror = () => resolve();
-          } catch (e) {
-            resolve();
-          }
-        });
-      }
-
-      loadFromWindowName();
-
-      const SafeStorage = {
-        getItem(key) {
-          try {
-            const lsVal = window.localStorage.getItem(key);
-            if (lsVal !== null) {
-              memoryCache[key] = lsVal;
-              return lsVal;
-            }
-          } catch (e) {}
-          return Object.prototype.hasOwnProperty.call(memoryCache, key) ? memoryCache[key] : null;
-        },
-        setItem(key, value) {
-          memoryCache[key] = value;
-          try {
-            window.localStorage.setItem(key, value);
-          } catch (e) {}
-          syncToWindowName();
-          idbPut(key, value);
-        },
-        removeItem(key) {
-          delete memoryCache[key];
-          try {
-            window.localStorage.removeItem(key);
-          } catch (e) {}
-          syncToWindowName();
-          idbDelete(key);
-        }
-      };
-
-      // =========================================================================
-      // 2. 純粋JavaScript SHA-256 ハッシュ計算（HTTPS制限なし）
-      // =========================================================================
-      function sha256Hex(input) {
-        function rotr(n, x) { return (x >>> n) | (x << (32 - n)); }
-        const utf8 = unescape(encodeURIComponent(String(input)));
-        const bitLen = utf8.length * 8;
-        const words = [];
-        for (let i = 0; i < utf8.length; i++) {
-          words[i >> 2] |= utf8.charCodeAt(i) << (24 - (i % 4) * 8);
-        }
-        words[bitLen >> 5] |= 0x80 << (24 - (bitLen % 32));
-        words[(((bitLen + 64) >> 9) << 4) + 15] = bitLen;
-
-        const K = [
-          0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-          0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-          0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-          0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-          0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-          0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-          0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-          0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
-        ];
-        const H = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19];
-        const W = new Array(64);
-
-        for (let i = 0; i < words.length; i += 16) {
-          let [a, b, c, d, e, f, g, h] = H;
-          for (let t = 0; t < 64; t++) {
-            if (t < 16) {
-              W[t] = words[i + t] | 0;
-            } else {
-              const s0 = rotr(7, W[t - 15]) ^ rotr(18, W[t - 15]) ^ (W[t - 15] >>> 3);
-              const s1 = rotr(17, W[t - 2]) ^ rotr(19, W[t - 2]) ^ (W[t - 2] >>> 10);
-              W[t] = (W[t - 16] + s0 + W[t - 7] + s1) | 0;
-            }
-            const S1 = rotr(6, e) ^ rotr(11, e) ^ rotr(25, e);
-            const ch = (e & f) ^ (~e & g);
-            const temp1 = (h + S1 + ch + K[t] + W[t]) | 0;
-            const S0 = rotr(2, a) ^ rotr(13, a) ^ rotr(22, a);
-            const maj = (a & b) ^ (a & c) ^ (b & c);
-            const temp2 = (S0 + maj) | 0;
-            h = g; g = f; f = e; e = (d + temp1) | 0;
-            d = c; c = b; b = a; a = (temp1 + temp2) | 0;
-          }
-          H[0] = (H[0] + a) | 0; H[1] = (H[1] + b) | 0; H[2] = (H[2] + c) | 0; H[3] = (H[3] + d) | 0;
-          H[4] = (H[4] + e) | 0; H[5] = (H[5] + f) | 0; H[6] = (H[6] + g) | 0; H[7] = (H[7] + h) | 0;
-        }
-        return H.map((v) => (v >>> 0).toString(16).padStart(8, '0')).join('');
-      }
-
-      // =========================================================================
-      // 3. ストレージキー & アプリケーション状態管理
-      // =========================================================================
-      const APP_ID = typeof __app_id !== 'undefined' && __app_id ? __app_id : 'studysnap-v4';
-      const USERS_KEY = `studysnap_users_${APP_ID}`;
-      const SESSION_KEY = `studysnap_session_${APP_ID}`;
-      const getUserQuizzesKey = (uid) => `studysnap_quizzes_${APP_ID}_${uid}`;
-
-      const state = {
-        user: null, // { uid, username } | null
-        activeTab: 'create',
-        uploadedImages: [], // { id, name, dataUrl, base64, mimeType }
-        sectionsConfig: [
-          { id: 'sec-1', questionType: 'choice', questionCount: 4, difficulty: '標準', customInstruction: '' },
-          { id: 'sec-2', questionType: 'true_false', questionCount: 4, difficulty: '基礎', customInstruction: '' }
-        ],
-        currentQuiz: null,
-        fullQuizBackup: null,
-        isWrongOnlyMode: false,
-        quizMode: 'solving', // 'solving' | 'graded'
-        quizStartTime: null,
-        quizElapsedSeconds: 0,
-        quizTimerId: null,
-        userAnswers: {},
-        manualGrades: {},
-        aiGradingLoading: {},
-        aiGradingFeedback: {},
-        savedQuizzes: [],
-        authMode: 'signup',
-        pendingSaveAfterAuth: false,
-        renameTarget: null,
-        confirmCallback: null
-      };
-
-      // =========================================================================
-      // 4. ユーティリティ関数
-      // =========================================================================
-      function escapeHtml(str) {
-        if (str === null || str === undefined) return '';
-        return String(str)
-          .replace(/&/g, '&amp;')
-          .replace(/</g, '&lt;')
-          .replace(/>/g, '&gt;')
-          .replace(/"/g, '&quot;')
-          .replace(/'/g, '&#39;');
-      }
-
-      function showToast(message, type = 'info') {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-        const el = document.createElement('div');
-        el.className = `toast-item toast-${type}`;
-        el.textContent = message;
-        container.appendChild(el);
-        setTimeout(() => {
-          el.style.opacity = '0';
-          el.style.transition = 'opacity 0.25s ease';
-          setTimeout(() => el.remove(), 260);
-        }, 3200);
-      }
-
-      function formatDate(ts) {
-        if (!ts) return '日時不明';
-        const d = new Date(ts);
-        const pad = (n) => String(n).padStart(2, '0');
-        return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
-      }
-
-      function formatMMSS(sec) {
-        const s = Math.max(0, Math.floor(sec));
-        return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
-      }
-
-      function getQuestionTypeLabel(type) {
-        const map = {
-          choice: '4択問題',
-          true_false: '〇×問題',
-          text: '記述・穴埋め問題',
-          mixed: 'ミックス（おまかせ）'
-        };
-        return map[type] || '4択問題';
-      }
-
-      function isLoggedIn() {
-        return Boolean(state.user && state.user.uid);
-      }
-
-      // =========================================================================
-      // 5. アカウント作成・ログイン・引き継ぎ（アカウント名＋パスワードのみ）
-      // =========================================================================
-      function getStoredUsers() {
-        try {
-          const raw = SafeStorage.getItem(USERS_KEY);
-          return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-          return [];
-        }
-      }
-
-      function saveStoredUsers(users) {
-        SafeStorage.setItem(USERS_KEY, JSON.stringify(users));
-      }
-
-      function normalizeUsername(name) {
-        return String(name || '').trim();
-      }
-
-      async function initAuth() {
-        await hydrateFromIDB();
-
-        // 初期サンプルアカウント「ゲスト学習者」(PW: 1234) を自動登録しておく
-        const users = getStoredUsers();
-        if (!users.some((u) => normalizeUsername(u.username) === 'ゲスト学習者')) {
-          users.push({
-            uid: 'sample-user-guest-learner',
-            username: 'ゲスト学習者',
-            passwordHash: sha256Hex('1234'),
-            createdAt: Date.now()
-          });
-          saveStoredUsers(users);
-        }
-
-        // セッション復元
-        try {
-          const rawSession = SafeStorage.getItem(SESSION_KEY);
-          if (rawSession) {
-            const parsed = JSON.parse(rawSession);
-            if (parsed && parsed.uid && parsed.username) {
-              state.user = parsed;
-              loadUserQuizzes(parsed.uid);
-            }
-          }
-        } catch (e) {
-          state.user = null;
-        }
-        updateAuthUI();
-      }
-
-      function setLoggedInSession(userObj) {
-        const session = { uid: userObj.uid, username: userObj.username };
-        SafeStorage.setItem(SESSION_KEY, JSON.stringify(session));
-        state.user = session;
-        loadUserQuizzes(session.uid);
-        updateAuthUI();
-
-        if (state.pendingSaveAfterAuth && state.currentQuiz) {
-          state.pendingSaveAfterAuth = false;
-          saveCurrentQuizToStorage();
-        }
-      }
-
-      function logoutUser() {
-        SafeStorage.removeItem(SESSION_KEY);
-        state.user = null;
-        state.savedQuizzes = [];
-        if (state.currentQuiz) {
-          delete state.currentQuiz.id;
-        }
-        if (state.fullQuizBackup) {
-          delete state.fullQuizBackup.id;
-        }
-        updateAuthUI();
-        renderSavedQuizzes();
-        showToast('ログアウトしました', 'info');
-      }
-
-      function updateAuthUI() {
-        const headerArea = document.getElementById('auth-header-area');
-        const guestBanner = document.getElementById('guest-banner');
-        const saveBtnText = document.getElementById('save-quiz-btn-text');
-        const guestEmpty = document.getElementById('myquizzes-guest-empty');
-        const loggedInArea = document.getElementById('myquizzes-logged-in-area');
-
-        if (isLoggedIn()) {
-          const initial = state.user.username.charAt(0).toUpperCase();
-          headerArea.innerHTML = `
-            <div class="user-pill" title="ログイン中のアカウント：${escapeHtml(state.user.username)}">
-              <span class="user-avatar">${escapeHtml(initial)}</span>
-              <span class="user-name-text">${escapeHtml(state.user.username)}</span>
-            </div>
-            <button type="button" data-action="logout" class="btn btn-sm btn-outline">ログアウト</button>
-          `;
-          guestBanner.classList.add('hidden');
-          if (saveBtnText) {
-            saveBtnText.textContent = state.currentQuiz && state.currentQuiz.id ? '変更を上書き保存' : 'マイクイズに保存';
-          }
-          guestEmpty.classList.add('hidden');
-          loggedInArea.classList.remove('hidden');
-        } else {
-          headerArea.innerHTML = `
-            <button type="button" data-action="open-auth" data-mode="login" class="btn btn-sm btn-outline">ログイン</button>
-            <button type="button" data-action="open-auth" data-mode="signup" class="btn btn-sm btn-primary">新規登録</button>
-          `;
-          guestBanner.classList.remove('hidden');
-          if (saveBtnText) {
-            saveBtnText.textContent = 'ログインして保存';
-          }
-          guestEmpty.classList.remove('hidden');
-          loggedInArea.classList.add('hidden');
-        }
-        updateSavedBadges();
-      }
-
-      function openAuthModal(mode) {
-        setAuthMode(mode || 'signup');
-        document.getElementById('auth-error-box').classList.add('hidden');
-        document.getElementById('auth-modal').classList.remove('hidden');
-        setTimeout(() => {
-          const input = document.getElementById('auth-username');
-          if (input) input.focus();
-        }, 40);
-      }
-
-      function setAuthMode(mode) {
-        state.authMode = mode;
-        const title = document.getElementById('auth-modal-title');
-        const tabSignup = document.getElementById('auth-tab-signup');
-        const tabLogin = document.getElementById('auth-tab-login');
-        const hint = document.getElementById('auth-username-hint');
-        const submitBtn = document.getElementById('auth-submit-btn');
-
-        document.getElementById('auth-error-box').classList.add('hidden');
-
-        if (mode === 'signup') {
-          title.textContent = '新規アカウント登録';
-          tabSignup.classList.add('active');
-          tabLogin.classList.remove('active');
-          hint.textContent = '※ 他のユーザーと重複しないお好きなアカウント名を入力してください（メール不要）。';
-          submitBtn.textContent = 'このアカウント名で登録して始める';
-        } else {
-          title.textContent = 'ログイン（アカウント引き継ぎ）';
-          tabLogin.classList.add('active');
-          tabSignup.classList.remove('active');
-          hint.textContent = '※ 登録済みのアカウント名とパスワードを入力すると保存済みクイズを引き継げます。';
-          submitBtn.textContent = 'ログインする';
-        }
-      }
-
-      function handleAuthFormSubmit(e) {
-        e.preventDefault();
-        const errorBox = document.getElementById('auth-error-box');
-        errorBox.classList.add('hidden');
-
-        const username = normalizeUsername(document.getElementById('auth-username').value);
-        const password = document.getElementById('auth-password').value.trim();
-
-        if (!username) {
-          errorBox.textContent = 'アカウント名を入力してください。';
-          errorBox.classList.remove('hidden');
-          return;
-        }
-        if (password.length < 4) {
-          errorBox.textContent = 'パスワードは4文字以上で入力してください。';
-          errorBox.classList.remove('hidden');
-          return;
-        }
-
-        const users = getStoredUsers();
-        const pwHash = sha256Hex(password);
-
-        if (state.authMode === 'signup') {
-          // アカウント名の重複チェック
-          const exists = users.some((u) => normalizeUsername(u.username) === username);
-          if (exists) {
-            errorBox.textContent = 'このアカウント名は既に使用されています。別のアカウント名を入力してください';
-            errorBox.classList.remove('hidden');
-            return;
-          }
-
-          const newUser = {
-            uid: 'acc-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
-            username,
-            passwordHash: pwHash,
-            createdAt: Date.now()
-          };
-          users.push(newUser);
-          saveStoredUsers(users);
-          setLoggedInSession(newUser);
-          document.getElementById('auth-form').reset();
-          closeModal('auth-modal');
-          showToast(`アカウント「${newUser.username}」を作成しました！`, 'success');
-        } else {
-          const matched = users.find(
-            (u) => normalizeUsername(u.username) === username && u.passwordHash === pwHash
-          );
-          if (!matched) {
-            errorBox.textContent = 'アカウント名またはパスワードが正しくありません。';
-            errorBox.classList.remove('hidden');
-            return;
-          }
-
-          setLoggedInSession(matched);
-          document.getElementById('auth-form').reset();
-          closeModal('auth-modal');
-          showToast(`「${matched.username}」としてログインしました！`, 'success');
-        }
-      }
-
-      function loginWithSampleAccount() {
-        const users = getStoredUsers();
-        let sampleUser = users.find((u) => normalizeUsername(u.username) === 'ゲスト学習者');
-        if (!sampleUser) {
-          sampleUser = {
-            uid: 'sample-user-guest-learner',
-            username: 'ゲスト学習者',
-            passwordHash: sha256Hex('1234'),
-            createdAt: Date.now()
-          };
-          users.push(sampleUser);
-          saveStoredUsers(users);
-        }
-        setLoggedInSession(sampleUser);
-        closeModal('auth-modal');
-        showToast('サンプルアカウント「ゲスト学習者」でログインしました！', 'success');
-      }
-
-      // =========================================================================
-      // 6. タブ切り替え・モーダル制御
-      // =========================================================================
-      function switchTab(tabName) {
-        state.activeTab = tabName;
-        ['create', 'quiz', 'myquizzes'].forEach((t) => {
-          const view = document.getElementById(`view-${t}`);
-          const dBtn = document.getElementById(`nav-${t}`);
-          const mBtn = document.getElementById(`m-nav-${t}`);
-
-          if (view) view.classList.toggle('hidden', t !== tabName);
-          if (dBtn) {
-            dBtn.classList.toggle('active', t === tabName);
-            if (t === 'quiz') dBtn.classList.toggle('hidden', !state.currentQuiz);
-          }
-          if (mBtn) {
-            mBtn.classList.toggle('active', t === tabName);
-            if (t === 'quiz') mBtn.classList.toggle('hidden', !state.currentQuiz);
-          }
-        });
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      function closeModal(modalId) {
-        const el = document.getElementById(modalId);
-        if (el) el.classList.add('hidden');
-        if (modalId === 'confirm-modal') state.confirmCallback = null;
-        if (modalId === 'rename-modal') state.renameTarget = null;
-      }
-
-      function openConfirmModal(title, message, onOk, isDanger) {
-        document.getElementById('confirm-modal-title').textContent = title;
-        document.getElementById('confirm-modal-message').textContent = message;
-        const okBtn = document.getElementById('confirm-modal-ok-btn');
-        okBtn.className = isDanger ? 'btn btn-danger' : 'btn btn-primary';
-        state.confirmCallback = onOk;
-        document.getElementById('confirm-modal').classList.remove('hidden');
-      }
-
-      // =========================================================================
-      // 7. 画像アップロード・貼り付け・サンプルノート生成
-      // =========================================================================
-      function setupImageDropAndPaste() {
-        const dropZone = document.getElementById('drop-zone');
-        const fileInput = document.getElementById('file-input');
-
-        if (dropZone) {
-          dropZone.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            dropZone.classList.add('drag-over');
-          });
-          dropZone.addEventListener('dragleave', () => {
-            dropZone.classList.remove('drag-over');
-          });
-          dropZone.addEventListener('drop', (e) => {
-            e.preventDefault();
-            dropZone.classList.remove('drag-over');
-            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
-              processSelectedFiles(e.dataTransfer.files);
-            }
-          });
-        }
-
-        if (fileInput) {
-          fileInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files.length) {
-              processSelectedFiles(e.target.files);
-              fileInput.value = '';
-            }
-          });
-        }
-
-        document.addEventListener('paste', (e) => {
-          if (state.activeTab !== 'create') return;
-          const tag = document.activeElement ? document.activeElement.tagName : '';
-          if (tag === 'INPUT' || tag === 'TEXTAREA') return;
-
-          const items = e.clipboardData ? e.clipboardData.items : null;
-          if (!items) return;
-          const files = [];
-          for (let i = 0; i < items.length; i++) {
-            if (items[i].type.startsWith('image/')) {
-              const f = items[i].getAsFile();
-              if (f) files.push(f);
-            }
-          }
-          if (files.length > 0) {
-            e.preventDefault();
-            processSelectedFiles(files);
-            showToast('クリップボードから画像を貼り付けました', 'success');
-          }
-        });
-      }
-
-      async function processSelectedFiles(fileList) {
-        const files = Array.from(fileList).filter((f) => f.type.startsWith('image/'));
-        if (files.length === 0) {
-          showToast('画像ファイル（JPG・PNGなど）を選択してください', 'warning');
-          return;
-        }
-        const slots = 6 - state.uploadedImages.length;
-        if (slots <= 0) {
-          showToast('画像は最大6枚まで読み込み可能です', 'warning');
-          return;
-        }
-
-        for (const file of files.slice(0, slots)) {
-          try {
-            const compressed = await compressImageToJpeg(file, 1280, 0.85);
-            state.uploadedImages.push({
-              id: 'img-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-              name: file.name || '学習画像.jpg',
-              dataUrl: compressed.dataUrl,
-              base64: compressed.base64,
-              mimeType: 'image/jpeg'
-            });
-          } catch (err) {
-            showToast('画像の読み込みに失敗しました', 'error');
-          }
-        }
-        renderUploadedImages();
-      }
-
-      function compressImageToJpeg(file, maxEdge, quality) {
-        return new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = (ev) => {
-            const img = new Image();
-            img.onload = () => {
-              let w = img.width;
-              let h = img.height;
-              if (w > maxEdge || h > maxEdge) {
-                if (w > h) {
-                  h = Math.round((h * maxEdge) / w);
-                  w = maxEdge;
-                } else {
-                  w = Math.round((w * maxEdge) / h);
-                  h = maxEdge;
-                }
-              }
-              const canvas = document.createElement('canvas');
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              ctx.fillStyle = '#ffffff';
-              ctx.fillRect(0, 0, w, h);
-              ctx.drawImage(img, 0, 0, w, h);
-              const dataUrl = canvas.toDataURL('image/jpeg', quality);
-              resolve({ dataUrl, base64: dataUrl.split(',')[1] });
-            };
-            img.onerror = reject;
-            img.src = ev.target.result;
-          };
-          reader.onerror = reject;
-          reader.readAsDataURL(file);
-        });
-      }
-
-      function createSampleNote(topic) {
-        if (state.uploadedImages.length >= 6) {
-          showToast('画像は最大6枚まで追加できます', 'warning');
-          return;
-        }
-        const canvas = document.createElement('canvas');
-        canvas.width = 1020;
-        canvas.height = 760;
-        const ctx = canvas.getContext('2d');
-
-        // ノート紙面背景
-        ctx.fillStyle = '#fffef9';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // 罫線
-        ctx.strokeStyle = '#cbd5e1';
-        ctx.lineWidth = 1;
-        for (let y = 90; y < 730; y += 36) {
-          ctx.beginPath();
-          ctx.moveTo(60, y);
-          ctx.lineTo(980, y);
-          ctx.stroke();
-        }
-        // 赤縦線
-        ctx.strokeStyle = '#fda4af';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(90, 25);
-        ctx.lineTo(90, 730);
-        ctx.stroke();
-
-        const presets = {
-          history: {
-            name: 'サンプル日本史ノート.jpg',
-            highlight: '#fef08a',
-            title: '【日本史まとめ】織豊政権と江戸幕府の成立',
-            lines: [
-              '1. 織田信長の統一事業（1560〜1582年）',
-              ' ・1560年 桶狭間の戦い：今川義元を破り尾張を統一。',
-              ' ・1573年 室町幕府滅亡：15代将軍・足利義昭を京都から追放。',
-              ' ・1575年 長篠の戦い：鉄砲の三段撃ちで武田勝頼の騎馬隊を破る。',
-              ' ・経済政策：楽市・楽座（座の特権廃止・自由商業の促進）、関所撤廃。',
-              ' ・1582年 本能寺の変：明智光秀の謀反により自害。',
-              '2. 豊臣秀吉の全国統一と検地・刀狩（1582〜1598年）',
-              ' ・1582年〜 太閤検地：全国の土地の面積・収穫高（石高）を統一基準で調査。',
-              ' ・1588年 刀狩令：農民から武器を没収し、一揆の防止と兵農分離を推進。',
-              ' ・1590年 小田原攻め：北条氏を滅ぼし全国統一を達成。',
-              '3. 江戸幕府の成立（1600〜1603年）',
-              ' ・1600年 関ヶ原の戦い：徳川家康（東軍）が石田三成（西軍）に勝利。',
-              ' ・1603年 徳川家康が征夷大将軍に就任し、江戸に幕府を開く。'
-            ]
-          },
-          english: {
-            name: 'サンプル英文法ノート.jpg',
-            highlight: '#bae6fd',
-            title: '【英文法まとめ】関係代名詞 & 仮定法の重要ポイント',
-            lines: [
-              '1. 関係代名詞（先行詞を後ろから修飾する形容詞節）',
-              ' ・先行詞が「人」：主格 who / 所有格 whose / 目的格 whom (who, that)',
-              '   例：I have a friend who lives in London.（ロンドンに住む友達がいる）',
-              ' ・先行詞が「物・動物」：主格 which / 所有格 whose / 目的格 which (that)',
-              '   例：This is the book which I bought yesterday.（昨日買った本です）',
-              ' ・関係代名詞 what：「〜すること（もの）」= the thing(s) which',
-              '   例：What he said is true.（彼が言ったことは本当だ）',
-              '2. 仮定法（事実に反する仮定・願望を表す表現）',
-              ' ・仮定法過去：If + S + 過去形, S + would / could / might + 動詞の原形',
-              '   ※ be動詞は主語に関わらず were を使うのが原則。',
-              '   例：If I were a bird, I could fly to you.（もし鳥なら飛んでいけるのに）',
-              ' ・仮定法過去完了：If + S + had + 過去分詞, S + would have + 過去分詞',
-              ' ・I wish + 仮定法：「〜だったらよいのに」'
-            ]
-          },
-          biology: {
-            name: 'サンプル生物ノート.jpg',
-            highlight: '#bbf7d0',
-            title: '【高校生物まとめ】細胞小器官のはたらきと光合成・呼吸',
-            lines: [
-              '1. 真核細胞の主な細胞小器官',
-              ' ・核：遺伝情報（DNA）を含み、細胞の生命活動を制御する。',
-              ' ・ミトコンドリア：好気呼吸の場。有機物を分解してATPを合成する。',
-              ' ・葉緑体：植物細胞に存在し、光エネルギーを用いて光合成を行う。',
-              ' ・リボソーム：mRNAの情報をもとにタンパク質を合成（膜をもたない）。',
-              ' ・ゴルジ体：小胞体で合成されたタンパク質を修飾・濃縮し細胞外へ分泌。',
-              ' ・液胞：細胞液を含み、浸透圧の調節や老廃物の貯蔵を担う。',
-              '2. 代謝（同化・異化）とATP',
-              ' ・ATP（アデノシン三リン酸）：高エネルギーリン酸結合でエネルギーを仲介。',
-              ' ・光合成（同化）：6CO2 + 12H2O + 光エネルギー → C6H12O6 + 6O2 + 6H2O',
-              '   ※ チラコイドで光化学反応、ストロマでカルビン回路が進行する。',
-              ' ・呼吸（異化）：C6H12O6 + 6O2 + 6H2O → 6CO2 + 12H2O + 最大38ATP'
-            ]
-          }
-        };
-
-        const item = presets[topic] || presets.history;
-        ctx.fillStyle = item.highlight;
-        ctx.fillRect(108, 40, 660, 32);
-        ctx.font = 'bold 25px sans-serif';
-        ctx.fillStyle = '#0f172a';
-        ctx.fillText(item.title, 114, 66);
-
-        ctx.font = '19px sans-serif';
-        item.lines.forEach((line, i) => {
-          ctx.fillStyle = /^[1-9]\./.test(line) ? '#3730a3' : '#1e293b';
-          ctx.fillText(line, 114, 118 + i * 36);
-        });
-
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-        state.uploadedImages.push({
-          id: 'sample-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
-          name: item.name,
-          dataUrl,
-          base64: dataUrl.split(',')[1],
-          mimeType: 'image/jpeg'
-        });
-        renderUploadedImages();
-        showToast(`${item.name} を読み込みました！`, 'success');
-      }
-
-      function renderUploadedImages() {
-        const grid = document.getElementById('image-preview-grid');
-        const label = document.getElementById('image-count-label');
-        label.textContent = `${state.uploadedImages.length} / 6枚`;
-
-        if (state.uploadedImages.length === 0) {
-          grid.classList.add('hidden');
-          grid.innerHTML = '';
-          return;
-        }
-
-        grid.classList.remove('hidden');
-        grid.innerHTML = state.uploadedImages
-          .map(
-            (img, idx) => `
-            <div class="image-thumb-card">
-              <img src="${img.dataUrl}" alt="${escapeHtml(img.name)}" data-action="lightbox-image" data-id="${img.id}" />
-              <div class="image-thumb-caption">${idx + 1}. ${escapeHtml(img.name)}</div>
-              <button type="button" data-action="remove-image" data-id="${img.id}" class="image-remove-btn" title="削除">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-          `
-          )
-          .join('');
-      }
-
-      // =========================================================================
-      // 8. 大問構成カスタマイズ（2〜5問）
-      // =========================================================================
-      function setSectionCount(targetCount) {
-        const count = Math.max(2, Math.min(5, Number(targetCount) || 2));
-        const defaultTypes = ['choice', 'true_false', 'text', 'mixed', 'choice'];
-        while (state.sectionsConfig.length < count) {
-          const idx = state.sectionsConfig.length;
-          state.sectionsConfig.push({
-            id: 'sec-' + Date.now() + '-' + idx,
-            questionType: defaultTypes[idx % defaultTypes.length],
-            questionCount: 3,
-            difficulty: '標準',
-            customInstruction: ''
-          });
-        }
-        if (state.sectionsConfig.length > count) {
-          state.sectionsConfig = state.sectionsConfig.slice(0, count);
-        }
-        renderSectionsConfig();
-      }
-
-      function addSection() {
-        if (state.sectionsConfig.length >= 5) {
-          showToast('大問は最大5問まで設定できます', 'warning');
-          return;
-        }
-        setSectionCount(state.sectionsConfig.length + 1);
-      }
-
-      function removeSection(id) {
-        if (state.sectionsConfig.length <= 2) {
-          showToast('大問は最低2問必要です', 'warning');
-          return;
-        }
-        state.sectionsConfig = state.sectionsConfig.filter((s) => s.id !== id);
-        renderSectionsConfig();
-      }
-
-      function renderSectionsConfig() {
-        const container = document.getElementById('sections-config-list');
-        const addBtn = document.getElementById('add-section-btn');
-        const totalEl = document.getElementById('total-questions-display');
-
-        const currentCount = state.sectionsConfig.length;
-        [2, 3, 4, 5].forEach((n) => {
-          const pill = document.getElementById(`count-pill-${n}`);
-          if (pill) pill.classList.toggle('active', n === currentCount);
-        });
-        if (addBtn) addBtn.disabled = currentCount >= 5;
-
-        const canRemove = currentCount > 2;
-        container.innerHTML = state.sectionsConfig
-          .map(
-            (sec, idx) => `
-            <div class="section-config-card">
-              <div class="section-config-top">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <span class="section-badge">大問 ${idx + 1}</span>
-                  <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">${getQuestionTypeLabel(sec.questionType)} ・ ${sec.questionCount}問</span>
-                </div>
-                ${
-                  canRemove
-                    ? `<button type="button" data-action="remove-section" data-id="${sec.id}" class="btn btn-sm btn-danger-soft">削除</button>`
-                    : `<span style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700;">必須大問</span>`
-                }
-              </div>
-
-              <div class="config-grid">
-                <div class="col-5">
-                  <label class="form-label">出題形式</label>
-                  <select data-sec-id="${sec.id}" data-sec-field="questionType" class="form-select sec-field-input">
-                    <option value="choice" ${sec.questionType === 'choice' ? 'selected' : ''}>4択問題（選択式）</option>
-                    <option value="true_false" ${sec.questionType === 'true_false' ? 'selected' : ''}>〇×問題（正誤判定）</option>
-                    <option value="text" ${sec.questionType === 'text' ? 'selected' : ''}>記述・穴埋め問題</option>
-                    <option value="mixed" ${sec.questionType === 'mixed' ? 'selected' : ''}>ミックス（おまかせ）</option>
-                  </select>
-                </div>
-
-                <div class="col-3">
-                  <label class="form-label">小問数</label>
-                  <select data-sec-id="${sec.id}" data-sec-field="questionCount" class="form-select sec-field-input">
-                    ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-                      .map((n) => `<option value="${n}" ${sec.questionCount === n ? 'selected' : ''}>${n} 問</option>`)
-                      .join('')}
-                  </select>
-                </div>
-
-                <div class="col-4">
-                  <label class="form-label">難易度レベル</label>
-                  <select data-sec-id="${sec.id}" data-sec-field="difficulty" class="form-select sec-field-input">
-                    <option value="基礎" ${sec.difficulty === '基礎' ? 'selected' : ''}>基礎（基本確認）</option>
-                    <option value="標準" ${sec.difficulty === '標準' ? 'selected' : ''}>標準（テスト頻出）</option>
-                    <option value="応用" ${sec.difficulty === '応用' ? 'selected' : ''}>応用（発展・思考）</option>
-                  </select>
-                </div>
-
-                <div class="col-12">
-                  <input type="text" data-sec-id="${sec.id}" data-sec-field="customInstruction" value="${escapeHtml(sec.customInstruction)}" placeholder="補足指示（任意）：例「重要語句中心」「年号と人物を問う」など" class="form-input sec-field-input" style="font-size: 0.84rem;" />
-                </div>
-              </div>
-            </div>
-          `
-          )
-          .join('');
-
-        const totalQ = state.sectionsConfig.reduce((acc, s) => acc + s.questionCount, 0);
-        if (totalEl) totalEl.textContent = totalQ;
-      }
-
-      // =========================================================================
-      // 9. Gemini API 連携（テスト自動生成）
-      // =========================================================================
-      async function callGeminiAPI(payload, maxRetries = 3) {
-        const apiKey = "";
-        const models = ['gemini-2.5-flash', 'gemini-3-flash-preview'];
-        let lastError = null;
-
-        for (const model of models) {
-          const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-          let delay = 1000;
-
-          for (let attempt = 0; attempt <= maxRetries; attempt++) {
-            try {
-              const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              });
-              if (!res.ok) {
-                if (res.status === 404) throw new Error('MODEL_404');
-                throw new Error(`HTTP_${res.status}`);
-              }
-              return await res.json();
-            } catch (err) {
-              lastError = err;
-              if (err.message === 'MODEL_404' || attempt === maxRetries) break;
-              await new Promise((r) => setTimeout(r, delay));
-              delay *= 2;
-            }
-          }
-        }
-        throw lastError || new Error('Gemini API Error');
-      }
-
-      async function generateTestWithAI() {
-        if (state.uploadedImages.length === 0) {
-          showToast('先にノートや教科書の画像を1枚以上読み込んでください', 'warning');
-          return;
-        }
-
-        const overlay = document.getElementById('loading-overlay');
-        const stepText = document.getElementById('loading-step-text');
-        const bar = document.getElementById('loading-progress-bar');
-
-        overlay.classList.remove('hidden');
-        stepText.textContent = 'アップロードされた画像をAIに送信しています...';
-        bar.style.width = '30%';
-
-        const t1 = setTimeout(() => {
-          stepText.textContent = '画像内の文字・図表を解析して作問しています...';
-          bar.style.width = '68%';
-        }, 2400);
-
-        const t2 = setTimeout(() => {
-          stepText.textContent = '解答とわかりやすい解説を仕上げています...';
-          bar.style.width = '90%';
-        }, 5800);
-
-        try {
-          const specs = state.sectionsConfig
-            .map((sec, idx) => {
-              let fmtRule = '';
-              if (sec.questionType === 'choice') {
-                fmtRule = '4択問題（questionType="choice"、optionsに4つの選択肢、correctAnswerはoptionsの正解と完全一致する文字列）';
-              } else if (sec.questionType === 'true_false') {
-                fmtRule = '〇×問題（questionType="true_false"、options=["〇","×"]、correctAnswerは"〇"または"×"）';
-              } else if (sec.questionType === 'text') {
-                fmtRule = '記述・穴埋め問題（questionType="text"、options=[]、correctAnswerに簡潔な模範解答）';
-              } else {
-                fmtRule = 'ミックス（各小問で"choice"、"true_false"、"text"をバランスよく出題）';
-              }
-              return `・大問${idx + 1}: 出題形式=${fmtRule} / 小問数=${sec.questionCount}問 / 難易度=${sec.difficulty}${sec.customInstruction ? ` / 補足指示=${sec.customInstruction}` : ''}`;
-            })
-            .join('\n');
-
-          const systemInstruction = `あなたは日本の優れた教育者・テスト作問スペシャリストです。
-添付された学習資料画像の内容を正確に読み取り、指定された大問構成・出題形式・小問数に厳密に従って練習問題テストを日本語で作成してください。
-- choice の場合: options は4要素の文字列配列（記号不要）、correctAnswer は options 内の正解と完全一致させてください。
-- true_false の場合: options は ["〇", "×"]、correctAnswer は "〇" または "×" にしてください。
-- text の場合: options は []、一意に答えやすい穴埋めまたは簡潔な記述問題にし、correctAnswer に簡潔な模範解答を入れてください。
-- explanation には初学者にもわかりやすい丁寧な解説を書いてください。`;
-
-          const parts = [{ text: `以下の構成で練習問題テストを作成してください。\n\n${specs}` }];
-          state.uploadedImages.forEach((img) => {
-            parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } });
-          });
-
-          const payload = {
-            contents: [{ role: 'user', parts }],
-            systemInstruction: { parts: [{ text: systemInstruction }] },
-            generationConfig: {
-              responseMimeType: 'application/json',
-              responseSchema: {
-                type: 'OBJECT',
-                properties: {
-                  quizTitle: { type: 'STRING' },
-                  sections: {
-                    type: 'ARRAY',
-                    items: {
-                      type: 'OBJECT',
-                      properties: {
-                        sectionTitle: { type: 'STRING' },
-                        instruction: { type: 'STRING' },
-                        questions: {
-                          type: 'ARRAY',
-                          items: {
-                            type: 'OBJECT',
-                            properties: {
-                              questionType: { type: 'STRING' },
-                              questionText: { type: 'STRING' },
-                              options: { type: 'ARRAY', items: { type: 'STRING' } },
-                              correctAnswer: { type: 'STRING' },
-                              explanation: { type: 'STRING' }
-                            },
-                            required: ['questionType', 'questionText', 'options', 'correctAnswer', 'explanation']
-                          }
-                        }
-                      },
-                      required: ['sectionTitle', 'instruction', 'questions']
-                    }
-                  }
-                },
-                required: ['quizTitle', 'sections']
-              }
-            }
-          };
-
-          const result = await callGeminiAPI(payload);
-          const rawText = result && result.candidates && result.candidates[0] && result.candidates[0].content && result.candidates[0].content.parts && result.candidates[0].content.parts[0] ? result.candidates[0].content.parts[0].text : '';
-          if (!rawText) throw new Error('Empty AI response');
-
-          const parsed = JSON.parse(rawText);
-          const normalizedSections = (parsed.sections || []).map((sec, sIdx) => {
-            const cfg = state.sectionsConfig[sIdx] || {};
-            const secType = cfg.questionType || 'choice';
-            const questions = (sec.questions || []).map((q, qIdx) => {
-              let qType = ['choice', 'true_false', 'text'].includes(q.questionType) ? q.questionType : 'choice';
-              if (secType !== 'mixed') qType = secType;
-              let opts = Array.isArray(q.options) ? q.options : [];
-              if (qType === 'true_false') opts = ['〇', '×'];
-              if (qType === 'text') opts = [];
-
-              return {
-                id: `q-${sIdx + 1}-${qIdx + 1}-${Math.random().toString(36).slice(2, 6)}`,
-                type: qType,
-                questionText: q.questionText || '',
-                options: opts,
-                correctAnswer: q.correctAnswer || '',
-                explanation: q.explanation || '解説はありません。'
-              };
-            });
-
-            return {
-              sectionNumber: sIdx + 1,
-              sectionTitle: sec.sectionTitle || `大問 ${sIdx + 1}`,
-              questionType: secType,
-              instruction: sec.instruction || '次の問いに答えなさい。',
-              questions
-            };
-          });
-
-          bar.style.width = '100%';
-          startQuizSession({
-            title: parsed.quizTitle || 'AI練習問題テスト',
-            sections: normalizedSections
-          });
-          showToast('AIによるテスト作成が完了しました！', 'success');
-        } catch (err) {
-          showToast('テストの生成に失敗しました。画像やネットワークを確認して再度お試しください。', 'error');
-        } finally {
-          clearTimeout(t1);
-          clearTimeout(t2);
-          overlay.classList.add('hidden');
-          bar.style.width = '30%';
-        }
-      }
-
-      // =========================================================================
-      // 10. テスト受験・採点・復習ロジック
-      // =========================================================================
-      function startTimer() {
-        stopTimer();
-        state.quizStartTime = Date.now();
-        state.quizElapsedSeconds = 0;
-        document.getElementById('quiz-timer-display').textContent = '00:00';
-        state.quizTimerId = setInterval(() => {
-          if (state.quizMode !== 'solving') return;
-          state.quizElapsedSeconds = Math.floor((Date.now() - state.quizStartTime) / 1000);
-          document.getElementById('quiz-timer-display').textContent = formatMMSS(state.quizElapsedSeconds);
-        }, 1000);
-      }
-
-      function stopTimer() {
-        if (state.quizTimerId) {
-          clearInterval(state.quizTimerId);
-          state.quizTimerId = null;
-        }
-      }
-
-      function startQuizSession(quizData) {
-        state.currentQuiz = JSON.parse(JSON.stringify(quizData));
-        state.fullQuizBackup = JSON.parse(JSON.stringify(quizData));
-        state.isWrongOnlyMode = false;
-        state.quizMode = 'solving';
-        state.userAnswers = {};
-        state.manualGrades = {};
-        state.aiGradingLoading = {};
-        state.aiGradingFeedback = {};
-
-        updateAuthUI();
-        startTimer();
-        renderQuizView();
-        switchTab('quiz');
-      }
-
-      function retryFullQuiz() {
-        if (!state.currentQuiz) return;
-        if (state.isWrongOnlyMode && state.fullQuizBackup) {
-          state.currentQuiz = JSON.parse(JSON.stringify(state.fullQuizBackup));
-          state.isWrongOnlyMode = false;
-        }
-        state.quizMode = 'solving';
-        state.userAnswers = {};
-        state.manualGrades = {};
-        state.aiGradingFeedback = {};
-        startTimer();
-        renderQuizView();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        showToast('回答をリセットしました。最初から再挑戦しましょう！', 'info');
-      }
-
-      function retryWrongQuestionsOnly() {
-        if (!state.currentQuiz) return;
-        const wrongSections = state.currentQuiz.sections
-          .map((sec) => ({
-            ...sec,
-            questions: (sec.questions || []).filter((q) => !evaluateQuestion(q))
-          }))
-          .filter((sec) => sec.questions.length > 0);
-
-        if (wrongSections.length === 0) {
-          showToast('間違えた問題はありません！', 'success');
-          return;
-        }
-        if (!state.isWrongOnlyMode) {
-          state.fullQuizBackup = JSON.parse(JSON.stringify(state.currentQuiz));
-        }
-        state.isWrongOnlyMode = true;
-        state.currentQuiz = { ...state.currentQuiz, sections: wrongSections };
-        state.quizMode = 'solving';
-        state.userAnswers = {};
-        state.manualGrades = {};
-        state.aiGradingFeedback = {};
-        startTimer();
-        renderQuizView();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        showToast('間違えた問題だけを抽出しました！', 'info');
-      }
-
-      function getAllQuestions() {
-        if (!state.currentQuiz) return [];
-        return state.currentQuiz.sections.flatMap((s) => s.questions || []);
-      }
-
-      function updateProgressUI() {
-        const all = getAllQuestions();
-        const total = all.length;
-        const answered = all.filter((q) => {
-          const val = state.userAnswers[q.id];
-          return val !== undefined && String(val).trim() !== '';
-        }).length;
-        document.getElementById('quiz-progress-text').textContent = `${answered} / ${total} 問回答済み`;
-        const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
-        document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
-      }
-
-      function normalizeAnswerStr(str) {
-        return String(str || '')
-          .trim()
-          .toLowerCase()
-          .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
-          .replace(/[\s　・、。,.()（）「」『』]/g, '');
-      }
-
-      function evaluateQuestion(q) {
-        if (Object.prototype.hasOwnProperty.call(state.manualGrades, q.id)) {
-          return state.manualGrades[q.id];
-        }
-        const ans = state.userAnswers[q.id];
-        if (!ans || String(ans).trim() === '') return false;
-
-        if (q.type === 'choice') {
-          return ans === q.correctAnswer || normalizeAnswerStr(ans) === normalizeAnswerStr(q.correctAnswer);
-        }
-        if (q.type === 'true_false') {
-          return ans.replace('○', '〇') === q.correctAnswer.replace('○', '〇');
-        }
-        return normalizeAnswerStr(ans) === normalizeAnswerStr(q.correctAnswer);
-      }
-
-      function requestSubmitQuiz() {
-        const all = getAllQuestions();
-        const unanswered = all.filter((q) => !state.userAnswers[q.id] || String(state.userAnswers[q.id]).trim() === '').length;
-        if (unanswered > 0) {
-          openConfirmModal(
-            '未回答の問題があります',
-            `未回答の問題が ${unanswered} 問あります。このまま採点に進みますか？`,
-            () => performGrading(),
-            false
-          );
-        } else {
-          performGrading();
-        }
-      }
-
-      function performGrading() {
-        stopTimer();
-        state.quizMode = 'graded';
-
-        if (!state.isWrongOnlyMode && state.currentQuiz && state.currentQuiz.id && isLoggedIn()) {
-          const all = getAllQuestions();
-          const correct = all.filter((q) => evaluateQuestion(q)).length;
-          const score100 = all.length > 0 ? Math.round((correct / all.length) * 100) : 0;
-          const updated = state.savedQuizzes.map((item) => {
-            if (item.id !== state.currentQuiz.id) return item;
-            const prevBest = typeof item.bestScore === 'number' ? item.bestScore : 0;
-            return { ...item, bestScore: Math.max(prevBest, score100), updatedAt: Date.now() };
-          });
-          persistUserQuizzes(state.user.uid, updated);
-        }
-
-        renderQuizView();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        showToast('採点が完了しました！', 'success');
-      }
-
-      function renderQuizView() {
-        if (!state.currentQuiz) return;
-        const totalQ = getAllQuestions().length;
-        document.getElementById('quiz-display-title').textContent = state.currentQuiz.title;
-        document.getElementById('quiz-meta-info').textContent = `大問${state.currentQuiz.sections.length}・全${totalQ}問`;
-
-        const pill = document.getElementById('quiz-status-pill');
-        const progressWrap = document.getElementById('quiz-progress-container');
-        const summaryCard = document.getElementById('grading-summary-card');
-        const submitFooter = document.getElementById('quiz-submit-footer');
-
-        if (state.quizMode === 'solving') {
-          pill.textContent = '受験中';
-          pill.className = 'status-pill status-solving';
-          progressWrap.classList.remove('hidden');
-          summaryCard.classList.add('hidden');
-          submitFooter.classList.remove('hidden');
-          updateProgressUI();
-        } else {
-          pill.textContent = '採点完了';
-          pill.className = 'status-pill status-graded';
-          progressWrap.classList.add('hidden');
-          summaryCard.classList.remove('hidden');
-          submitFooter.classList.add('hidden');
-          renderGradingSummary();
-        }
-
-        renderQuizSections();
-      }
-
-      function renderGradingSummary() {
-        const all = getAllQuestions();
-        const total = all.length;
-        const correct = all.filter((q) => evaluateQuestion(q)).length;
-        const score100 = total > 0 ? Math.round((correct / total) * 100) : 0;
-
-        document.getElementById('score-100-point').textContent = score100;
-        document.getElementById('score-correct-count').textContent = correct;
-        document.getElementById('score-total-count').textContent = total;
-        document.getElementById('score-elapsed-time').textContent = `所要時間 ${formatMMSS(state.quizElapsedSeconds)}`;
-
-        let rank = 'C';
-        let headline = '解説を確認して復習しましょう！';
-        if (score100 === 100) {
-          rank = 'S+';
-          headline = 'パーフェクト達成！100点満点です！';
-        } else if (score100 >= 85) {
-          rank = 'S';
-          headline = '素晴らしい成績です！非常によく理解できています！';
-        } else if (score100 >= 70) {
-          rank = 'A';
-          headline = '合格ライン突破！あと少しで完璧です！';
-        } else if (score100 >= 50) {
-          rank = 'B';
-          headline = '基礎は身についています！間違えた問題を復習しましょう。';
-        }
-        document.getElementById('score-rank').textContent = rank;
-        document.getElementById('score-headline').textContent = headline;
-
-        const wrongCount = total - correct;
-        const retryWrongBtn = document.getElementById('retry-wrong-only-btn');
-        const retryWrongLabel = document.getElementById('retry-wrong-only-label');
-        if (wrongCount > 0) {
-          retryWrongBtn.classList.remove('hidden');
-          retryWrongLabel.textContent = `間違えた問題だけ再挑戦（${wrongCount}問）`;
-        } else {
-          retryWrongBtn.classList.add('hidden');
-        }
-
-        const breakdown = document.getElementById('section-breakdown-grid');
-        breakdown.innerHTML = (state.currentQuiz.sections || [])
-          .map((sec, idx) => {
-            const sTot = sec.questions.length;
-            const sCor = sec.questions.filter((q) => evaluateQuestion(q)).length;
-            const sPct = sTot > 0 ? Math.round((sCor / sTot) * 100) : 0;
-            return `
-              <div class="breakdown-item">
-                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700;">
-                  <span>大問 ${idx + 1}：${escapeHtml(sec.sectionTitle)}</span>
-                  <span style="color: #fde047;">${sCor}/${sTot} (${sPct}%)</span>
-                </div>
-                <div class="progress-track" style="height: 6px; background: rgba(255,255,255,0.18); margin-top: 6px;">
-                  <div class="progress-fill" style="width: ${sPct}%; background: #6ee7b7;"></div>
-                </div>
-              </div>
-            `;
-          })
-          .join('');
-      }
-
-      function renderQuizSections() {
-        const container = document.getElementById('quiz-sections-container');
-        if (!state.currentQuiz) return;
-
-        const isGraded = state.quizMode === 'graded';
-        const letters = ['ア', 'イ', 'ウ', 'エ', 'オ'];
-
-        container.innerHTML = state.currentQuiz.sections
-          .map(
-            (sec, sIdx) => `
-            <div class="quiz-section-box">
-              <div class="quiz-section-header">
-                <div>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="step-num" style="width: auto; padding: 0 10px; font-size: 0.76rem;">大問 ${sIdx + 1}</span>
-                    <h2 style="font-size: 1.05rem; font-weight: 800;">${escapeHtml(sec.sectionTitle)}</h2>
-                  </div>
-                  <p style="font-size: 0.82rem; color: var(--text-sub); margin-top: 4px;">${escapeHtml(sec.instruction)}</p>
-                </div>
-                <span class="pill-muted">${getQuestionTypeLabel(sec.questionType)}（${sec.questions.length}問）</span>
-              </div>
-
-              <div>
-                ${sec.questions
-                  .map((q, qIdx) => {
-                    const userAns = state.userAnswers[q.id] || '';
-                    const isCorrect = isGraded ? evaluateQuestion(q) : false;
-
-                    let answerHtml = '';
-                    if (q.type === 'choice') {
-                      answerHtml = `
-                        <div class="options-grid">
-                          ${q.options
-                            .map((opt, oIdx) => {
-                              const selected = userAns === opt;
-                              const actualCorrect = opt === q.correctAnswer;
-                              let cls = 'option-btn';
-                              if (!isGraded) {
-                                if (selected) cls += ' selected';
-                              } else {
-                                if (actualCorrect) cls += ' correct';
-                                else if (selected) cls += ' wrong';
-                                else cls += ' dimmed';
-                              }
-                              return `
-                                <button type="button" ${isGraded ? 'disabled' : ''} data-action="select-option" data-qid="${q.id}" data-opt-index="${oIdx}" class="${cls}">
-                                  <span class="opt-letter">${letters[oIdx] || oIdx + 1}</span>
-                                  <span style="font-size: 0.88rem; line-height: 1.4;">${escapeHtml(opt)}</span>
-                                </button>
-                              `;
-                            })
-                            .join('')}
-                        </div>
-                      `;
-                    } else if (q.type === 'true_false') {
-                      answerHtml = `
-                        <div class="tf-grid">
-                          ${['〇', '×']
-                            .map((sym) => {
-                              const selected = userAns === sym;
-                              const actualCorrect = q.correctAnswer.replace('○', '〇') === sym;
-                              let cls = 'tf-btn';
-                              if (!isGraded) {
-                                if (selected) cls += ' selected';
-                              } else {
-                                if (actualCorrect) cls += ' correct';
-                                else if (selected) cls += ' wrong';
-                              }
-                              return `
-                                <button type="button" ${isGraded ? 'disabled' : ''} data-action="select-tf" data-qid="${q.id}" data-val="${sym}" class="${cls}">
-                                  <span>${sym}</span>
-                                  <span style="font-size: 0.78rem;">${sym === '〇' ? '正しい' : '誤り'}</span>
-                                </button>
-                              `;
-                            })
-                            .join('')}
-                        </div>
-                      `;
-                    } else {
-                      answerHtml = `
-                        <div style="margin-top: 12px; max-width: 520px;">
-                          <input type="text" data-qid="${q.id}" value="${escapeHtml(userAns)}" ${isGraded ? 'disabled' : ''} placeholder="ここに解答を入力してください..." class="form-input text-answer-input" />
-                        </div>
-                      `;
-                    }
-
-                    let reviewHtml = '';
-                    if (isGraded) {
-                      reviewHtml = `
-                        <div class="review-box ${isCorrect ? 'is-correct' : 'is-wrong'}">
-                          <div class="review-header">
-                            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-                              <span class="result-tag ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '✓ 正解' : '✕ 不正解'}</span>
-                              <span style="font-size: 0.85rem; font-weight: 800;">
-                                正解（模範解答）：<span style="color: var(--primary);">${escapeHtml(q.correctAnswer)}</span>
-                              </span>
-                            </div>
-                            ${
-                              q.type === 'text'
-                                ? `<button type="button" data-action="toggle-manual-grade" data-qid="${q.id}" data-grade="${!isCorrect}" class="btn btn-sm btn-outline">
-                                    ${isCorrect ? '不正解に変更' : '正解にする（自己採点）'}
-                                  </button>`
-                                : ''
-                            }
-                          </div>
-                          <div style="font-size: 0.84rem; color: var(--text-main); line-height: 1.6;">
-                            <strong>解説：</strong>${escapeHtml(q.explanation)}
-                          </div>
-                        </div>
-                      `;
-                    }
-
-                    return `
-                      <div class="question-item">
-                        <div class="question-row">
-                          <span class="q-num-badge">問${qIdx + 1}</span>
-                          <div style="flex: 1; min-width: 0;">
-                            <div style="margin-bottom: 4px;">
-                              <span class="pill-muted" style="font-size: 0.7rem;">${getQuestionTypeLabel(q.type)}</span>
-                            </div>
-                            <div style="font-size: 0.96rem; font-weight: 700; line-height: 1.55;">${escapeHtml(q.questionText)}</div>
-                            ${answerHtml}
-                            ${reviewHtml}
-                          </div>
-                        </div>
-                      </div>
-                    `;
-                  })
-                  .join('')}
-              </div>
-            </div>
-          `
-          )
-          .join('');
-      }
-
-      // =========================================================================
-      // 11. マイクイズ保存・改名・削除・再挑戦管理
-      // =========================================================================
-      function loadUserQuizzes(uid) {
-        try {
-          const raw = SafeStorage.getItem(getUserQuizzesKey(uid));
-          state.savedQuizzes = raw ? JSON.parse(raw) : [];
-        } catch (e) {
-          state.savedQuizzes = [];
-        }
-        updateSavedBadges();
-        renderSavedQuizzes();
-      }
-
-      function persistUserQuizzes(uid, list) {
-        SafeStorage.setItem(getUserQuizzesKey(uid), JSON.stringify(list));
-        state.savedQuizzes = list;
-        updateSavedBadges();
-        renderSavedQuizzes();
-      }
-
-      function updateSavedBadges() {
-        const count = state.savedQuizzes.length;
-        ['saved-count-badge', 'm-saved-count-badge'].forEach((id) => {
-          const el = document.getElementById(id);
-          if (!el) return;
-          if (isLoggedIn() && count > 0) {
-            el.textContent = count;
-            el.classList.remove('hidden');
+            await setDoc(docRef, newAccount);
+            completeUserLogin(newAccount);
+            document.getElementById('auth-form').reset();
+            closeModal('auth-modal');
+            showToast(`アカウント「${newAccount.displayName}」をクラウドに登録しました！`, 'success');
           } else {
-            el.classList.add('hidden');
+            if (!existingAccount) {
+              errorBox.textContent = 'このアカウント名は登録されていません。新規作成タブから登録してください';
+              errorBox.classList.remove('hidden');
+              return;
+            }
+            if (existingAccount.passwordHash !== pwHash) {
+              errorBox.textContent = 'パスワードが正しくありません（大文字・小文字や全角/半角をご確認ください）';
+              errorBox.classList.remove('hidden');
+              return;
+            }
+
+            completeUserLogin(existingAccount);
+            document.getElementById('auth-form').reset();
+            closeModal('auth-modal');
+            showToast(`「${existingAccount.displayName}」としてログインしました！クラウドデータを同期中...`, 'success');
           }
-        });
+        } else {
+          // クラウド未接続時のメモリフォールバック
+          const existing = memoryFallbackAccounts.find((a) => a.normalizedKey === normKey);
+          if (state.authMode === 'signup') {
+            if (existing) {
+              errorBox.textContent = 'このアカウント名は既に登録されています。別の名前を選ぶか、ログインしてください';
+              errorBox.classList.remove('hidden');
+              return;
+            }
+            const newAcc = {
+              accountId: 'acc_' + Date.now(),
+              displayName: rawDisplayName,
+              normalizedKey: normKey,
+              passwordHash: pwHash,
+              createdAt: Date.now()
+            };
+            memoryFallbackAccounts.push(newAcc);
+            completeUserLogin(newAcc);
+            document.getElementById('auth-form').reset();
+            closeModal('auth-modal');
+            showToast(`アカウント「${newAcc.displayName}」を作成しました`, 'success');
+          } else {
+            if (!existing) {
+              errorBox.textContent = 'このアカウント名は登録されていません。新規作成タブから登録してください';
+              errorBox.classList.remove('hidden');
+              return;
+            }
+            if (existing.passwordHash !== pwHash) {
+              errorBox.textContent = 'パスワードが正しくありません（大文字・小文字や全角/半角をご確認ください）';
+              errorBox.classList.remove('hidden');
+              return;
+            }
+            completeUserLogin(existing);
+            document.getElementById('auth-form').reset();
+            closeModal('auth-modal');
+            showToast(`「${existing.displayName}」としてログインしました！`, 'success');
+          }
+        }
+      } catch (err) {
+        errorBox.textContent = 'クラウド通信中にエラーが発生しました。ネットワーク接続を確認して再度お試しください。';
+        errorBox.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = prevBtnLabel;
+      }
+    }
+
+    async function loginWithSampleAccount() {
+      await ensureSampleAccountExists();
+      const sampleKey = normalizeAccountKey('ゲスト学習者');
+      let sampleAcc = {
+        accountId: 'acc_sample_guest_learner',
+        displayName: 'ゲスト学習者',
+        normalizedKey: sampleKey
+      };
+
+      if (isCloudReady && db && firebaseUser) {
+        try {
+          const snap = await getDoc(getAccountDocRef(sampleKey));
+          if (snap.exists()) {
+            sampleAcc = snap.data();
+          }
+        } catch (e) {}
       }
 
-      function saveCurrentQuizToStorage() {
-        if (!state.currentQuiz) return;
-        if (!isLoggedIn()) {
-          state.pendingSaveAfterAuth = true;
-          openAuthModal('signup');
-          showToast('テストを保存するにはアカウント登録またはログインしてください', 'info');
-          return;
-        }
+      completeUserLogin(sampleAcc);
+      closeModal('auth-modal');
+      showToast('共有サンプルアカウント「ゲスト学習者」でログインしました！', 'success');
+    }
 
+    // =========================================================================
+    // 8. Firestore リアルタイムクイズ同期・保存・改名・削除
+    // =========================================================================
+    function subscribeUserQuizzes(accountId) {
+      if (quizzesUnsubscribe) {
+        quizzesUnsubscribe();
+        quizzesUnsubscribe = null;
+      }
+
+      if (!isCloudReady || !db || !firebaseUser) {
+        state.savedQuizzes = memoryFallbackQuizzes[accountId] || [];
+        updateSavedBadges();
+        renderSavedQuizzes();
+        return;
+      }
+
+      // RULE 2 準拠：シンプルな collection() クエリで取得し、JSメモリ上で accountId フィルタ＆ソートを実行
+      // Error Callback 必須実装
+      quizzesUnsubscribe = onSnapshot(
+        getQuizzesCollection(),
+        (snapshot) => {
+          const userItems = [];
+          snapshot.forEach((docSnap) => {
+            const data = docSnap.data();
+            if (data && data.accountId === accountId) {
+              let parsedSections = [];
+              try {
+                parsedSections = data.sectionsJson ? JSON.parse(data.sectionsJson) : (data.sections || []);
+              } catch (e) {
+                parsedSections = [];
+              }
+              userItems.push({
+                id: docSnap.id,
+                accountId: data.accountId,
+                title: data.title || 'AI練習問題テスト',
+                createdAt: data.createdAt || Date.now(),
+                updatedAt: data.updatedAt || data.createdAt || Date.now(),
+                sectionCount: data.sectionCount || parsedSections.length,
+                totalQuestions: data.totalQuestions || 0,
+                bestScore: typeof data.bestScore === 'number' ? data.bestScore : null,
+                sections: parsedSections
+              });
+            }
+          });
+          state.savedQuizzes = userItems;
+          updateSavedBadges();
+          renderSavedQuizzes();
+        },
+        (error) => {
+          showToast('クラウドクイズ一覧の同期中に通信エラーが発生しました', 'warning');
+        }
+      );
+    }
+
+    function updateSavedBadges() {
+      const count = state.savedQuizzes.length;
+      ['saved-count-badge', 'm-saved-count-badge'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (isLoggedIn() && count > 0) {
+          el.textContent = count;
+          el.classList.remove('hidden');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
+    async function saveCurrentQuizToCloud() {
+      if (!state.currentQuiz) return;
+      if (!isLoggedIn()) {
+        state.pendingSaveAfterAuth = true;
+        openAuthModal('signup');
+        showToast('クラウドに保存するにはアカウント登録またはログインしてください', 'info');
+        return;
+      }
+
+      const saveBtn = document.getElementById('save-quiz-btn');
+      const saveBtnText = document.getElementById('save-quiz-btn-text');
+      if (saveBtn) saveBtn.disabled = true;
+      if (saveBtnText) saveBtnText.textContent = '☁️ 保存中...';
+
+      try {
         const baseQuiz = state.isWrongOnlyMode && state.fullQuizBackup ? state.fullQuizBackup : state.currentQuiz;
-        const uid = state.user.uid;
+        const accountId = state.user.accountId;
         const totalQuestions = baseQuiz.sections.reduce((sum, s) => sum + (s.questions ? s.questions.length : 0), 0);
-        const list = [...state.savedQuizzes];
         const now = Date.now();
 
         let scoreNow = null;
@@ -3295,419 +2487,1588 @@
           scoreNow = all.length > 0 ? Math.round((cor / all.length) * 100) : 0;
         }
 
-        if (baseQuiz.id) {
-          const idx = list.findIndex((q) => q.id === baseQuiz.id);
-          if (idx !== -1) {
-            const prevBest = typeof list[idx].bestScore === 'number' ? list[idx].bestScore : null;
+        // Firestore ネスト配列制限を回避するため JSON.stringify でシリアライズして保存
+        const serializedSections = JSON.stringify(baseQuiz.sections);
+
+        if (isCloudReady && db && firebaseUser) {
+          if (baseQuiz.id) {
+            const existing = state.savedQuizzes.find((q) => q.id === baseQuiz.id);
+            const prevBest = existing && typeof existing.bestScore === 'number' ? existing.bestScore : null;
             const nextBest = scoreNow !== null ? (prevBest !== null ? Math.max(prevBest, scoreNow) : scoreNow) : prevBest;
-            list[idx] = {
-              ...list[idx],
+
+            await updateDoc(getQuizDocRef(baseQuiz.id), {
               title: state.currentQuiz.title || 'AI練習問題テスト',
               sectionCount: baseQuiz.sections.length,
               totalQuestions,
               bestScore: nextBest,
-              sections: JSON.parse(JSON.stringify(baseQuiz.sections)),
+              sectionsJson: serializedSections,
               updatedAt: now
-            };
-            persistUserQuizzes(uid, list);
-            showToast('テストの変更を上書き保存しました！', 'success');
-            return;
+            });
+            showToast('クラウド上のテストを上書き保存しました！', 'success');
+          } else {
+            const docRef = await addDoc(getQuizzesCollection(), {
+              accountId,
+              ownerName: state.user.displayName,
+              title: state.currentQuiz.title || 'AI練習問題テスト',
+              createdAt: now,
+              updatedAt: now,
+              sectionCount: baseQuiz.sections.length,
+              totalQuestions,
+              bestScore: scoreNow,
+              sectionsJson: serializedSections
+            });
+            state.currentQuiz.id = docRef.id;
+            if (state.fullQuizBackup) state.fullQuizBackup.id = docRef.id;
+            showToast('クラウドに保存しました！別端末からもログインして解けます', 'success');
           }
+        } else {
+          // メモリフォールバック
+          if (!memoryFallbackQuizzes[accountId]) memoryFallbackQuizzes[accountId] = [];
+          const newId = baseQuiz.id || 'local_quiz_' + now;
+          state.currentQuiz.id = newId;
+          if (state.fullQuizBackup) state.fullQuizBackup.id = newId;
+
+          const idx = memoryFallbackQuizzes[accountId].findIndex((q) => q.id === newId);
+          const item = {
+            id: newId,
+            accountId,
+            title: state.currentQuiz.title || 'AI練習問題テスト',
+            createdAt: now,
+            updatedAt: now,
+            sectionCount: baseQuiz.sections.length,
+            totalQuestions,
+            bestScore: scoreNow,
+            sections: JSON.parse(serializedSections)
+          };
+          if (idx >= 0) memoryFallbackQuizzes[accountId][idx] = item;
+          else memoryFallbackQuizzes[accountId].unshift(item);
+
+          state.savedQuizzes = [...memoryFallbackQuizzes[accountId]];
+          updateSavedBadges();
+          renderSavedQuizzes();
+          showToast('テストを保存しました', 'success');
         }
-
-        const newId = 'quiz-' + now + '-' + Math.random().toString(36).slice(2, 6);
-        state.currentQuiz.id = newId;
-        if (state.fullQuizBackup) state.fullQuizBackup.id = newId;
-
-        list.unshift({
-          id: newId,
-          title: state.currentQuiz.title || 'AI練習問題テスト',
-          createdAt: now,
-          updatedAt: now,
-          sectionCount: baseQuiz.sections.length,
-          totalQuestions,
-          bestScore: scoreNow,
-          sections: JSON.parse(JSON.stringify(baseQuiz.sections))
-        });
-
-        persistUserQuizzes(uid, list);
+      } catch (err) {
+        showToast('テストの保存に失敗しました。通信状況をご確認ください。', 'error');
+      } finally {
+        if (saveBtn) saveBtn.disabled = false;
         updateAuthUI();
-        showToast('マイクイズに保存しました！', 'success');
+      }
+    }
+
+    function renderSavedQuizzes() {
+      const grid = document.getElementById('saved-quizzes-grid');
+      const noItems = document.getElementById('myquizzes-no-items');
+      if (!grid || !noItems) return;
+
+      const keyword = (document.getElementById('quiz-search-input')?.value || '').trim().toLowerCase();
+      const sortBy = document.getElementById('quiz-sort-select')?.value || 'newest';
+
+      let list = [...state.savedQuizzes];
+      if (keyword) {
+        list = list.filter((q) => (q.title || '').toLowerCase().includes(keyword));
       }
 
-      function renderSavedQuizzes() {
-        const grid = document.getElementById('saved-quizzes-grid');
-        const noItems = document.getElementById('myquizzes-no-items');
-        if (!grid || !noItems) return;
+      if (sortBy === 'newest') {
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+      } else if (sortBy === 'oldest') {
+        list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+      } else if (sortBy === 'questions') {
+        list.sort((a, b) => (b.totalQuestions || 0) - (a.totalQuestions || 0));
+      } else if (sortBy === 'score') {
+        list.sort((a, b) => (b.bestScore ?? -1) - (a.bestScore ?? -1));
+      }
 
-        const keyword = (document.getElementById('quiz-search-input')?.value || '').trim().toLowerCase();
-        const sortBy = document.getElementById('quiz-sort-select')?.value || 'newest';
+      if (list.length === 0) {
+        grid.innerHTML = '';
+        noItems.classList.remove('hidden');
+        return;
+      }
 
-        let list = [...state.savedQuizzes];
-        if (keyword) {
-          list = list.filter((q) => (q.title || '').toLowerCase().includes(keyword));
-        }
+      noItems.classList.add('hidden');
+      grid.innerHTML = list
+        .map((quiz) => {
+          const tags = (quiz.sections || [])
+            .map((s, i) => `<span class="pill-muted" style="font-size: 0.72rem;">大問${i + 1}: ${getQuestionTypeLabel(s.questionType)}</span>`)
+            .join(' ');
+          const bestTag =
+            typeof quiz.bestScore === 'number'
+              ? `<span class="pill-muted" style="background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border);">最高 ${quiz.bestScore}点</span>`
+              : '';
 
-        if (sortBy === 'newest') {
-          list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        } else if (sortBy === 'oldest') {
-          list.sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
-        } else if (sortBy === 'questions') {
-          list.sort((a, b) => (b.totalQuestions || 0) - (a.totalQuestions || 0));
-        }
-
-        if (list.length === 0) {
-          grid.innerHTML = '';
-          noItems.classList.remove('hidden');
-          return;
-        }
-
-        noItems.classList.add('hidden');
-        grid.innerHTML = list
-          .map((quiz) => {
-            const tags = (quiz.sections || [])
-              .map((s, i) => `<span class="pill-muted" style="font-size: 0.72rem;">大問${i + 1}: ${getQuestionTypeLabel(s.questionType)}</span>`)
-              .join(' ');
-            const bestTag =
-              typeof quiz.bestScore === 'number'
-                ? `<span class="pill-muted" style="background: var(--success-bg); color: var(--success); border: 1px solid var(--success-border);">最高 ${quiz.bestScore}点</span>`
-                : '';
-
-            return `
-              <div class="saved-card">
-                <div>
-                  <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
-                    <h3 style="font-size: 1.05rem; font-weight: 800; line-height: 1.4;">${escapeHtml(quiz.title)}</h3>
-                    <div style="display: flex; gap: 6px; flex-shrink: 0;">
-                      ${bestTag}
-                      <span class="pill-muted" style="background: var(--primary-light); color: var(--primary);">全${quiz.totalQuestions}問</span>
-                    </div>
+          return `
+            <div class="saved-card">
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 6px;">
+                  <h3 style="font-size: 1.05rem; font-weight: 800; line-height: 1.4;">${escapeHtml(quiz.title)}</h3>
+                  <div style="display: flex; gap: 6px; flex-shrink: 0;">
+                    ${bestTag}
+                    <span class="pill-muted" style="background: var(--primary-light); color: var(--primary);">全${quiz.totalQuestions}問</span>
                   </div>
-                  <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 10px;">
-                    作成日: ${formatDate(quiz.createdAt)} ・ 大問${quiz.sectionCount}構成
-                  </div>
-                  <div style="display: flex; gap: 6px; flex-wrap: wrap;">${tags}</div>
                 </div>
-
-                <div class="saved-card-actions">
-                  <button type="button" data-action="play-saved" data-id="${quiz.id}" class="btn btn-sm btn-primary" style="flex: 1;">
-                    受験する
-                  </button>
-                  <button type="button" data-action="open-rename-saved" data-id="${quiz.id}" class="btn btn-sm btn-secondary">
-                    改名
-                  </button>
-                  <button type="button" data-action="delete-saved" data-id="${quiz.id}" class="btn btn-sm btn-danger-soft">
-                    削除
-                  </button>
+                <div style="font-size: 0.76rem; color: var(--text-muted); margin-bottom: 10px;">
+                  作成日: ${formatDate(quiz.createdAt)} ・ 大問${quiz.sectionCount}構成
                 </div>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap;">${tags}</div>
               </div>
-            `;
-          })
-          .join('');
+
+              <div class="saved-card-actions">
+                <button type="button" data-action="play-saved" data-id="${quiz.id}" class="btn btn-sm btn-primary" style="flex: 1;">
+                  受験する
+                </button>
+                <button type="button" data-action="open-rename-saved" data-id="${quiz.id}" class="btn btn-sm btn-secondary">
+                  改名
+                </button>
+                <button type="button" data-action="delete-saved" data-id="${quiz.id}" class="btn btn-sm btn-danger-soft">
+                  削除
+                </button>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function openRenameModal(target) {
+      state.renameTarget = target;
+      let currentTitle = '';
+      if (target.type === 'current' && state.currentQuiz) {
+        currentTitle = state.currentQuiz.title || '';
+      } else if (target.type === 'saved') {
+        const item = state.savedQuizzes.find((q) => q.id === target.id);
+        if (!item) return;
+        currentTitle = item.title || '';
+      }
+      const input = document.getElementById('rename-input');
+      input.value = currentTitle;
+      document.getElementById('rename-modal').classList.remove('hidden');
+      setTimeout(() => input.focus(), 40);
+    }
+
+    async function handleRenameFormSubmit(e) {
+      e.preventDefault();
+      const newTitle = document.getElementById('rename-input').value.trim();
+      if (!newTitle) {
+        showToast('タイトルを入力してください', 'warning');
+        return;
+      }
+      if (!state.renameTarget) return;
+
+      const targetQuizId = state.renameTarget.type === 'current'
+        ? (state.currentQuiz ? state.currentQuiz.id : null)
+        : state.renameTarget.id;
+
+      if (state.renameTarget.type === 'current' && state.currentQuiz) {
+        state.currentQuiz.title = newTitle;
+        if (state.fullQuizBackup) state.fullQuizBackup.title = newTitle;
+        document.getElementById('quiz-display-title').textContent = newTitle;
       }
 
-      function openRenameModal(target) {
-        state.renameTarget = target;
-        let currentTitle = '';
-        if (target.type === 'current' && state.currentQuiz) {
-          currentTitle = state.currentQuiz.title || '';
-        } else if (target.type === 'saved') {
-          const item = state.savedQuizzes.find((q) => q.id === target.id);
-          if (!item) return;
-          currentTitle = item.title || '';
-        }
-        const input = document.getElementById('rename-input');
-        input.value = currentTitle;
-        document.getElementById('rename-modal').classList.remove('hidden');
-        setTimeout(() => input.focus(), 40);
-      }
-
-      function handleRenameFormSubmit(e) {
-        e.preventDefault();
-        const newTitle = document.getElementById('rename-input').value.trim();
-        if (!newTitle) {
-          showToast('タイトルを入力してください', 'warning');
-          return;
-        }
-        if (!state.renameTarget) return;
-
-        if (state.renameTarget.type === 'current' && state.currentQuiz) {
-          state.currentQuiz.title = newTitle;
-          if (state.fullQuizBackup) state.fullQuizBackup.title = newTitle;
-          document.getElementById('quiz-display-title').textContent = newTitle;
-          if (state.currentQuiz.id && isLoggedIn()) {
-            const updated = state.savedQuizzes.map((q) =>
-              q.id === state.currentQuiz.id ? { ...q, title: newTitle, updatedAt: Date.now() } : q
-            );
-            persistUserQuizzes(state.user.uid, updated);
+      if (targetQuizId && isLoggedIn()) {
+        try {
+          if (isCloudReady && db && firebaseUser) {
+            await updateDoc(getQuizDocRef(targetQuizId), {
+              title: newTitle,
+              updatedAt: Date.now()
+            });
+          } else {
+            const list = memoryFallbackQuizzes[state.user.accountId] || [];
+            const item = list.find((q) => q.id === targetQuizId);
+            if (item) item.title = newTitle;
+            state.savedQuizzes = [...list];
+            renderSavedQuizzes();
           }
-          showToast('タイトルを変更しました', 'success');
-        } else if (state.renameTarget.type === 'saved' && state.renameTarget.id && isLoggedIn()) {
-          const tid = state.renameTarget.id;
-          const updated = state.savedQuizzes.map((q) =>
-            q.id === tid ? { ...q, title: newTitle, updatedAt: Date.now() } : q
-          );
-          persistUserQuizzes(state.user.uid, updated);
-          if (state.currentQuiz && state.currentQuiz.id === tid) {
+          if (state.currentQuiz && state.currentQuiz.id === targetQuizId) {
             state.currentQuiz.title = newTitle;
             document.getElementById('quiz-display-title').textContent = newTitle;
           }
-          showToast('クイズのタイトルを改名しました', 'success');
+          showToast('クラウド上のタイトルを改名しました！', 'success');
+        } catch (err) {
+          showToast('改名の保存に失敗しました', 'error');
         }
-
-        closeModal('rename-modal');
+      } else {
+        showToast('タイトルを変更しました', 'success');
       }
 
-      // =========================================================================
-      // 12. イベント委譲ハンドラ（全UIの確実な応答性を保証）
-      // =========================================================================
-      function bindGlobalEvents() {
-        // クリック委譲
-        document.addEventListener('click', (e) => {
-          const target = e.target.closest('[data-action]');
-          if (!target) return;
+      closeModal('rename-modal');
+    }
 
-          const action = target.getAttribute('data-action');
+    // =========================================================================
+    // 9. タブ切り替え・モーダル制御
+    // =========================================================================
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+      ['create', 'quiz', 'myquizzes'].forEach((t) => {
+        const view = document.getElementById(`view-${t}`);
+        const dBtn = document.getElementById(`nav-${t}`);
+        const mBtn = document.getElementById(`m-nav-${t}`);
 
-          switch (action) {
-            case 'switch-tab':
-              switchTab(target.getAttribute('data-tab'));
-              break;
+        if (view) view.classList.toggle('hidden', t !== tabName);
+        if (dBtn) {
+          dBtn.classList.toggle('active', t === tabName);
+          if (t === 'quiz') dBtn.classList.toggle('hidden', !state.currentQuiz);
+        }
+        if (mBtn) {
+          mBtn.classList.toggle('active', t === tabName);
+          if (t === 'quiz') mBtn.classList.toggle('hidden', !state.currentQuiz);
+        }
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
 
-            case 'open-auth':
-              openAuthModal(target.getAttribute('data-mode') || 'signup');
-              break;
+    function closeModal(modalId) {
+      const el = document.getElementById(modalId);
+      if (el) el.classList.add('hidden');
+      if (modalId === 'confirm-modal') state.confirmCallback = null;
+      if (modalId === 'rename-modal') state.renameTarget = null;
+    }
 
-            case 'set-auth-mode':
-              setAuthMode(target.getAttribute('data-mode') || 'signup');
-              break;
+    function openConfirmModal(title, message, onOk, isDanger) {
+      document.getElementById('confirm-modal-title').textContent = title;
+      document.getElementById('confirm-modal-message').textContent = message;
+      const okBtn = document.getElementById('confirm-modal-ok-btn');
+      okBtn.className = isDanger ? 'btn btn-danger' : 'btn btn-primary';
+      state.confirmCallback = onOk;
+      document.getElementById('confirm-modal').classList.remove('hidden');
+    }
 
-            case 'sample-login':
-              loginWithSampleAccount();
-              break;
+    // =========================================================================
+    // 10. 画像アップロード・貼り付け・サンプルノート生成
+    // =========================================================================
+    function setupImageDropAndPaste() {
+      const dropZone = document.getElementById('drop-zone');
+      const fileInput = document.getElementById('file-input');
 
-            case 'logout':
-              logoutUser();
-              break;
+      if (dropZone) {
+        dropZone.addEventListener('dragover', (e) => {
+          e.preventDefault();
+          dropZone.classList.add('drag-over');
+        });
+        dropZone.addEventListener('dragleave', () => {
+          dropZone.classList.remove('drag-over');
+        });
+        dropZone.addEventListener('drop', (e) => {
+          e.preventDefault();
+          dropZone.classList.remove('drag-over');
+          if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length) {
+            processSelectedFiles(e.dataTransfer.files);
+          }
+        });
+      }
 
-            case 'toggle-pw': {
-              const pwInput = document.getElementById('auth-password');
-              if (pwInput) {
-                pwInput.type = pwInput.type === 'password' ? 'text' : 'password';
+      if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+          if (e.target.files && e.target.files.length) {
+            processSelectedFiles(e.target.files);
+            fileInput.value = '';
+          }
+        });
+      }
+
+      document.addEventListener('paste', (e) => {
+        if (state.activeTab !== 'create') return;
+        const tag = document.activeElement ? document.activeElement.tagName : '';
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+        const items = e.clipboardData ? e.clipboardData.items : null;
+        if (!items) return;
+        const files = [];
+        for (let i = 0; i < items.length; i++) {
+          if (items[i].type.startsWith('image/')) {
+            const f = items[i].getAsFile();
+            if (f) files.push(f);
+          }
+        }
+        if (files.length > 0) {
+          e.preventDefault();
+          processSelectedFiles(files);
+          showToast('クリップボードから画像を貼り付けました', 'success');
+        }
+      });
+    }
+
+    async function processSelectedFiles(fileList) {
+      const files = Array.from(fileList).filter((f) => f.type.startsWith('image/'));
+      if (files.length === 0) {
+        showToast('画像ファイル（JPG・PNGなど）を選択してください', 'warning');
+        return;
+      }
+      const slots = 6 - state.uploadedImages.length;
+      if (slots <= 0) {
+        showToast('画像は最大6枚まで読み込み可能です', 'warning');
+        return;
+      }
+
+      for (const file of files.slice(0, slots)) {
+        try {
+          const compressed = await compressImageToJpeg(file, 1280, 0.85);
+          state.uploadedImages.push({
+            id: 'img-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+            name: file.name || '学習画像.jpg',
+            topic: 'custom',
+            dataUrl: compressed.dataUrl,
+            base64: compressed.base64,
+            mimeType: 'image/jpeg'
+          });
+        } catch (err) {
+          showToast('画像の読み込みに失敗しました', 'error');
+        }
+      }
+      renderUploadedImages();
+    }
+
+    function compressImageToJpeg(file, maxEdge, quality) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          const img = new Image();
+          img.onload = () => {
+            let w = img.width;
+            let h = img.height;
+            if (w > maxEdge || h > maxEdge) {
+              if (w > h) {
+                h = Math.round((h * maxEdge) / w);
+                w = maxEdge;
+              } else {
+                w = Math.round((w * maxEdge) / h);
+                h = maxEdge;
               }
-              break;
             }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, w, h);
+            ctx.drawImage(img, 0, 0, w, h);
+            const dataUrl = canvas.toDataURL('image/jpeg', quality);
+            resolve({ dataUrl, base64: dataUrl.split(',')[1] });
+          };
+          img.onerror = reject;
+          img.src = ev.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
 
-            case 'close-modal':
+    function createSampleNote(topic) {
+      if (state.uploadedImages.length >= 6) {
+        showToast('画像は最大6枚まで追加できます', 'warning');
+        return;
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = 1020;
+      canvas.height = 760;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#fffef9';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = '#cbd5e1';
+      ctx.lineWidth = 1;
+      for (let y = 90; y < 730; y += 36) {
+        ctx.beginPath();
+        ctx.moveTo(60, y);
+        ctx.lineTo(980, y);
+        ctx.stroke();
+      }
+      ctx.strokeStyle = '#fda4af';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(90, 25);
+      ctx.lineTo(90, 730);
+      ctx.stroke();
+
+      const presets = {
+        history: {
+          name: 'サンプル日本史ノート.jpg',
+          highlight: '#fef08a',
+          title: '【日本史まとめ】織豊政権と江戸幕府の成立',
+          lines: [
+            '1. 織田信長の統一事業（1560〜1582年）',
+            ' ・1560年 桶狭間の戦い：今川義元を破り尾張を統一。',
+            ' ・1573年 室町幕府滅亡：15代将軍・足利義昭を京都から追放。',
+            ' ・1575年 長篠の戦い：鉄砲の三段撃ちで武田勝頼の騎馬隊を破る。',
+            ' ・経済政策：楽市・楽座（座の特権廃止・自由商業の促進）、関所撤廃。',
+            ' ・1582年 本能寺の変：明智光秀の謀反により自害。',
+            '2. 豊臣秀吉の全国統一と検地・刀狩（1582〜1598年）',
+            ' ・1582年〜 太閤検地：全国の土地の面積・収穫高（石高）を統一基準で調査。',
+            ' ・1588年 刀狩令：農民から武器を没収し、一揆の防止と兵農分離を推進。',
+            ' ・1590年 小田原攻め：北条氏を滅ぼし全国統一を達成。',
+            '3. 江戸幕府の成立（1600〜1603年）',
+            ' ・1600年 関ヶ原の戦い：徳川家康（東軍）が石田三成（西軍）に勝利。',
+            ' ・1603年 徳川家康が征夷大将軍に就任し、江戸に幕府を開く。'
+          ]
+        },
+        english: {
+          name: 'サンプル英文法ノート.jpg',
+          highlight: '#bae6fd',
+          title: '【英文法まとめ】関係代名詞 & 仮定法の重要ポイント',
+          lines: [
+            '1. 関係代名詞（先行詞を後ろから修飾する形容詞節）',
+            ' ・先行詞が「人」：主格 who / 所有格 whose / 目的格 whom (who, that)',
+            '   例：I have a friend who lives in London.（ロンドンに住む友達がいる）',
+            ' ・先行詞が「物・動物」：主格 which / 所有格 whose / 目的格 which (that)',
+            '   例：This is the book which I bought yesterday.（昨日買った本です）',
+            ' ・関係代名詞 what：「〜すること（もの）」= the thing(s) which',
+            '   例：What he said is true.（彼が言ったことは本当だ）',
+            '2. 仮定法（事実に反する仮定・願望を表す表現）',
+            ' ・仮定法過去：If + S + 過去形, S + would / could / might + 動詞の原形',
+            '   ※ be動詞は主語に関わらず were を使うのが原則。',
+            '   例：If I were a bird, I could fly to you.（もし鳥なら飛んでいけるのに）',
+            ' ・仮定法過去完了：If + S + had + 過去分詞, S + would have + 過去分詞',
+            ' ・I wish + 仮定法：「〜だったらよいのに」'
+          ]
+        },
+        biology: {
+          name: 'サンプル生物ノート.jpg',
+          highlight: '#bbf7d0',
+          title: '【高校生物まとめ】細胞小器官のはたらきと光合成・呼吸',
+          lines: [
+            '1. 真核細胞の主な細胞小器官',
+            ' ・核：遺伝情報（DNA）を含み、細胞の生命活動を制御する。',
+            ' ・ミトコンドリア：好気呼吸の場。有機物を分解してATPを合成する。',
+            ' ・葉緑体：植物細胞に存在し、光エネルギーを用いて光合成を行う。',
+            ' ・リボソーム：mRNAの情報をもとにタンパク質を合成（膜をもたない）。',
+            ' ・ゴルジ体：小胞体で合成されたタンパク質を修飾・濃縮し細胞外へ分泌。',
+            ' ・液胞：細胞液を含み、浸透圧の調節や老廃物の貯蔵を担う。',
+            '2. 代謝（同化・異化）とATP',
+            ' ・ATP（アデノシン三リン酸）：高エネルギーリン酸結合でエネルギーを仲介。',
+            ' ・光合成（同化）：6CO2 + 12H2O + 光エネルギー → C6H12O6 + 6O2 + 6H2O',
+            '   ※ チラコイドで光化学反応、ストロマでカルビン回路が進行する。',
+            ' ・呼吸（異化）：C6H12O6 + 6O2 + 6H2O → 6CO2 + 12H2O + 最大38ATP'
+          ]
+        }
+      };
+
+      const item = presets[topic] || presets.history;
+      ctx.fillStyle = item.highlight;
+      ctx.fillRect(108, 40, 660, 32);
+      ctx.font = 'bold 25px sans-serif';
+      ctx.fillStyle = '#0f172a';
+      ctx.fillText(item.title, 114, 66);
+
+      ctx.font = '19px sans-serif';
+      item.lines.forEach((line, i) => {
+        ctx.fillStyle = /^[1-9]\./.test(line) ? '#3730a3' : '#1e293b';
+        ctx.fillText(line, 114, 118 + i * 36);
+      });
+
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      state.uploadedImages.push({
+        id: 'sample-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6),
+        name: item.name,
+        topic,
+        dataUrl,
+        base64: dataUrl.split(',')[1],
+        mimeType: 'image/jpeg'
+      });
+      renderUploadedImages();
+      showToast(`${item.name} を読み込みました！`, 'success');
+    }
+
+    function renderUploadedImages() {
+      const grid = document.getElementById('image-preview-grid');
+      const label = document.getElementById('image-count-label');
+      label.textContent = `${state.uploadedImages.length} / 6枚`;
+
+      if (state.uploadedImages.length === 0) {
+        grid.classList.add('hidden');
+        grid.innerHTML = '';
+        return;
+      }
+
+      grid.classList.remove('hidden');
+      grid.innerHTML = state.uploadedImages
+        .map(
+          (img, idx) => `
+          <div class="image-thumb-card">
+            <img src="${img.dataUrl}" alt="${escapeHtml(img.name)}" data-action="lightbox-image" data-id="${img.id}" />
+            <div class="image-thumb-caption">${idx + 1}. ${escapeHtml(img.name)}</div>
+            <button type="button" data-action="remove-image" data-id="${img.id}" class="image-remove-btn" title="削除">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    // =========================================================================
+    // 11. 大問構成カスタマイズ（2〜5問）
+    // =========================================================================
+    function setSectionCount(targetCount) {
+      const count = Math.max(2, Math.min(5, Number(targetCount) || 2));
+      const defaultTypes = ['choice', 'true_false', 'text', 'mixed', 'choice'];
+      while (state.sectionsConfig.length < count) {
+        const idx = state.sectionsConfig.length;
+        state.sectionsConfig.push({
+          id: 'sec-' + Date.now() + '-' + idx,
+          questionType: defaultTypes[idx % defaultTypes.length],
+          questionCount: 3,
+          difficulty: '標準',
+          customInstruction: ''
+        });
+      }
+      if (state.sectionsConfig.length > count) {
+        state.sectionsConfig = state.sectionsConfig.slice(0, count);
+      }
+      renderSectionsConfig();
+    }
+
+    function addSection() {
+      if (state.sectionsConfig.length >= 5) {
+        showToast('大問は最大5問まで設定できます', 'warning');
+        return;
+      }
+      setSectionCount(state.sectionsConfig.length + 1);
+    }
+
+    function removeSection(id) {
+      if (state.sectionsConfig.length <= 2) {
+        showToast('大問は最低2問必要です', 'warning');
+        return;
+      }
+      state.sectionsConfig = state.sectionsConfig.filter((s) => s.id !== id);
+      renderSectionsConfig();
+    }
+
+    function renderSectionsConfig() {
+      const container = document.getElementById('sections-config-list');
+      const addBtn = document.getElementById('add-section-btn');
+      const totalEl = document.getElementById('total-questions-display');
+
+      const currentCount = state.sectionsConfig.length;
+      [2, 3, 4, 5].forEach((n) => {
+        const pill = document.getElementById(`count-pill-${n}`);
+        if (pill) pill.classList.toggle('active', n === currentCount);
+      });
+      if (addBtn) addBtn.disabled = currentCount >= 5;
+
+      const canRemove = currentCount > 2;
+      container.innerHTML = state.sectionsConfig
+        .map(
+          (sec, idx) => `
+          <div class="section-config-card">
+            <div class="section-config-top">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span class="section-badge">大問 ${idx + 1}</span>
+                <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-sub);">${getQuestionTypeLabel(sec.questionType)} ・ ${sec.questionCount}問</span>
+              </div>
+              ${
+                canRemove
+                  ? `<button type="button" data-action="remove-section" data-id="${sec.id}" class="btn btn-sm btn-danger-soft">削除</button>`
+                  : `<span style="font-size: 0.74rem; color: var(--text-muted); font-weight: 700;">必須大問</span>`
+              }
+            </div>
+
+            <div class="config-grid">
+              <div class="col-5">
+                <label class="form-label">出題形式</label>
+                <select data-sec-id="${sec.id}" data-sec-field="questionType" class="form-select sec-field-input">
+                  <option value="choice" ${sec.questionType === 'choice' ? 'selected' : ''}>4択問題（選択式）</option>
+                  <option value="true_false" ${sec.questionType === 'true_false' ? 'selected' : ''}>〇×問題（正誤判定）</option>
+                  <option value="text" ${sec.questionType === 'text' ? 'selected' : ''}>記述・穴埋め問題</option>
+                  <option value="mixed" ${sec.questionType === 'mixed' ? 'selected' : ''}>ミックス（おまかせ）</option>
+                </select>
+              </div>
+
+              <div class="col-3">
+                <label class="form-label">小問数</label>
+                <select data-sec-id="${sec.id}" data-sec-field="questionCount" class="form-select sec-field-input">
+                  ${[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                    .map((n) => `<option value="${n}" ${sec.questionCount === n ? 'selected' : ''}>${n} 問</option>`)
+                    .join('')}
+                </select>
+              </div>
+
+              <div class="col-4">
+                <label class="form-label">難易度レベル</label>
+                <select data-sec-id="${sec.id}" data-sec-field="difficulty" class="form-select sec-field-input">
+                  <option value="基礎" ${sec.difficulty === '基礎' ? 'selected' : ''}>基礎（基本確認）</option>
+                  <option value="標準" ${sec.difficulty === '標準' ? 'selected' : ''}>標準（テスト頻出）</option>
+                  <option value="応用" ${sec.difficulty === '応用' ? 'selected' : ''}>応用（発展・思考）</option>
+                </select>
+              </div>
+
+              <div class="col-12">
+                <input type="text" data-sec-id="${sec.id}" data-sec-field="customInstruction" value="${escapeHtml(sec.customInstruction)}" placeholder="補足指示（任意）：例「重要語句中心」「年号と人物を問う」など" class="form-input sec-field-input" style="font-size: 0.84rem;" />
+              </div>
+            </div>
+          </div>
+        `
+        )
+        .join('');
+
+      const totalQ = state.sectionsConfig.reduce((acc, s) => acc + s.questionCount, 0);
+      if (totalEl) totalEl.textContent = totalQ;
+    }
+
+    // =========================================================================
+    // 12. Gemini API 連携 & デモ問題生成フォールバック
+    // =========================================================================
+    async function callGeminiAPI(payload, maxRetries = 3) {
+      const apiKey = "";
+      const models = ['gemini-2.5-flash', 'gemini-3-flash-preview'];
+      let lastError = null;
+
+      for (const model of models) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        let delay = 1000;
+
+        for (let attempt = 0; attempt <= maxRetries; attempt++) {
+          try {
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+              if (res.status === 404) throw new Error('MODEL_404');
+              throw new Error(`HTTP_${res.status}`);
+            }
+            return await res.json();
+          } catch (err) {
+            lastError = err;
+            if (err.message === 'MODEL_404' || attempt === maxRetries) break;
+            await new Promise((r) => setTimeout(r, delay));
+            delay *= 2;
+          }
+        }
+      }
+      throw lastError || new Error('Gemini API Error');
+    }
+
+    async function generateTestWithAI() {
+      if (state.uploadedImages.length === 0) {
+        showToast('先にノートや教科書の画像を1枚以上読み込んでください', 'warning');
+        return;
+      }
+
+      document.getElementById('ai-fallback-card').classList.add('hidden');
+      const overlay = document.getElementById('loading-overlay');
+      const stepText = document.getElementById('loading-step-text');
+      const bar = document.getElementById('loading-progress-bar');
+
+      overlay.classList.remove('hidden');
+      stepText.textContent = 'アップロードされた画像をAIに送信しています...';
+      bar.style.width = '30%';
+
+      const t1 = setTimeout(() => {
+        stepText.textContent = '画像内の文字・図表を解析して作問しています...';
+        bar.style.width = '68%';
+      }, 2400);
+
+      const t2 = setTimeout(() => {
+        stepText.textContent = '解答とわかりやすい解説を仕上げています...';
+        bar.style.width = '90%';
+      }, 5800);
+
+      try {
+        const specs = state.sectionsConfig
+          .map((sec, idx) => {
+            let fmtRule = '';
+            if (sec.questionType === 'choice') {
+              fmtRule = '4択問題（questionType="choice"、optionsに4つの選択肢、correctAnswerはoptionsの正解と完全一致する文字列）';
+            } else if (sec.questionType === 'true_false') {
+              fmtRule = '〇×問題（questionType="true_false"、options=["〇","×"]、correctAnswerは"〇"または"×"）';
+            } else if (sec.questionType === 'text') {
+              fmtRule = '記述・穴埋め問題（questionType="text"、options=[]、correctAnswerに簡潔な模範解答）';
+            } else {
+              fmtRule = 'ミックス（各小問で"choice"、"true_false"、"text"をバランスよく出題）';
+            }
+            return `・大問${idx + 1}: 出題形式=${fmtRule} / 小問数=${sec.questionCount}問 / 難易度=${sec.difficulty}${sec.customInstruction ? ` / 補足指示=${sec.customInstruction}` : ''}`;
+          })
+          .join('\n');
+
+        const systemInstruction = `あなたは日本の優れた教育者・テスト作問スペシャリストです。
+添付された学習資料画像の内容を正確に読み取り、指定された大問構成・出題形式・小問数に厳密に従って練習問題テストを日本語で作成してください。
+- choice の場合: options は4要素の文字列配列（記号不要）、correctAnswer は options 内の正解と完全一致させてください。
+- true_false の場合: options は ["〇", "×"]、correctAnswer は "〇" または "×" にしてください。
+- text の場合: options は []、一意に答えやすい穴埋めまたは簡潔な記述問題にし、correctAnswer に簡潔な模範解答を入れてください。
+- explanation には初学者にもわかりやすい丁寧な解説を書いてください。`;
+
+        const parts = [{ text: `以下の構成で練習問題テストを作成してください。\n\n${specs}` }];
+        state.uploadedImages.forEach((img) => {
+          parts.push({ inlineData: { mimeType: img.mimeType, data: img.base64 } });
+        });
+
+        const payload = {
+          contents: [{ role: 'user', parts }],
+          systemInstruction: { parts: [{ text: systemInstruction }] },
+          generationConfig: {
+            responseMimeType: 'application/json',
+            responseSchema: {
+              type: 'OBJECT',
+              properties: {
+                quizTitle: { type: 'STRING' },
+                sections: {
+                  type: 'ARRAY',
+                  items: {
+                    type: 'OBJECT',
+                    properties: {
+                      sectionTitle: { type: 'STRING' },
+                      instruction: { type: 'STRING' },
+                      questions: {
+                        type: 'ARRAY',
+                        items: {
+                          type: 'OBJECT',
+                          properties: {
+                            questionType: { type: 'STRING' },
+                            questionText: { type: 'STRING' },
+                            options: { type: 'ARRAY', items: { type: 'STRING' } },
+                            correctAnswer: { type: 'STRING' },
+                            explanation: { type: 'STRING' }
+                          },
+                          required: ['questionType', 'questionText', 'options', 'correctAnswer', 'explanation']
+                        }
+                      }
+                    },
+                    required: ['sectionTitle', 'instruction', 'questions']
+                  }
+                }
+              },
+              required: ['quizTitle', 'sections']
+            }
+          }
+        };
+
+        const result = await callGeminiAPI(payload);
+        const rawText = result?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (!rawText) throw new Error('Empty AI response');
+
+        const parsed = JSON.parse(rawText);
+        const normalizedSections = (parsed.sections || []).map((sec, sIdx) => {
+          const cfg = state.sectionsConfig[sIdx] || {};
+          const secType = cfg.questionType || 'choice';
+          const questions = (sec.questions || []).map((q, qIdx) => {
+            let qType = ['choice', 'true_false', 'text'].includes(q.questionType) ? q.questionType : 'choice';
+            if (secType !== 'mixed') qType = secType;
+            let opts = Array.isArray(q.options) ? q.options : [];
+            if (qType === 'true_false') opts = ['〇', '×'];
+            if (qType === 'text') opts = [];
+
+            return {
+              id: `q-${sIdx + 1}-${qIdx + 1}-${Math.random().toString(36).slice(2, 6)}`,
+              type: qType,
+              questionText: q.questionText || '',
+              options: opts,
+              correctAnswer: q.correctAnswer || '',
+              explanation: q.explanation || '解説はありません。'
+            };
+          });
+
+          return {
+            sectionNumber: sIdx + 1,
+            sectionTitle: sec.sectionTitle || `大問 ${sIdx + 1}`,
+            questionType: secType,
+            instruction: sec.instruction || '次の問いに答えなさい。',
+            questions
+          };
+        });
+
+        bar.style.width = '100%';
+        startQuizSession({
+          title: parsed.quizTitle || 'AI練習問題テスト',
+          sections: normalizedSections
+        });
+        showToast('AIによるテスト作成が完了しました！', 'success');
+      } catch (err) {
+        const fallbackCard = document.getElementById('ai-fallback-card');
+        if (fallbackCard) {
+          fallbackCard.classList.remove('hidden');
+          fallbackCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+        showToast('AI通信エラーが発生しました。「デモ問題としてテストを生成する」ボタンから続行できます。', 'warning');
+      } finally {
+        clearTimeout(t1);
+        clearTimeout(t2);
+        overlay.classList.add('hidden');
+        bar.style.width = '30%';
+      }
+    }
+
+    // APIキー未設定や通信制限時でも体験を止めないデモ問題生成フォールバック
+    function generateDemoTestFromConfig() {
+      document.getElementById('ai-fallback-card').classList.add('hidden');
+
+      const firstImg = state.uploadedImages[0];
+      const detectedTopic = firstImg?.topic || (firstImg?.name?.includes('英') ? 'english' : firstImg?.name?.includes('生') ? 'biology' : 'history');
+
+      const banks = {
+        history: {
+          title: '【練習テスト】織豊政権と江戸幕府の成立',
+          choice: [
+            { q: '1560年に織田信長が今川義元を破った戦いを何というか。', opts: ['桶狭間の戦い', '長篠の戦い', '関ヶ原の戦い', '川中島の戦い'], ans: '桶狭間の戦い', exp: '1560年、織田信長は少数の軍勢で今川義元の大軍を奇襲し、尾張統一の足がかりをつくりました。' },
+            { q: '織田信長が座の特権を廃止し、自由な商業活動を促進するために出した政策は何か。', opts: ['楽市・楽座', '太閤検地', '刀狩令', '徳政令'], ans: '楽市・楽座', exp: '従来の商工業者の同業者組合である「座」の独占権を廃し、市場での自由な取引を認めました。' },
+            { q: '1588年に豊臣秀吉が農民から武器を没収し、兵農分離を進めた法令は何か。', opts: ['刀狩令', '武家諸法度', '撰銭令', '禁中並公家諸法度'], ans: '刀狩令', exp: '刀狩令により農民の一揆を防ぎ、農業に専念させることで武士と農民の身分を明確に分けました。' },
+            { q: '1603年に征夷大将軍に任命され、江戸幕府を開いた人物は誰か。', opts: ['徳川家康', '豊臣秀吉', '織田信長', '足利義昭'], ans: '徳川家康', exp: '1600年の関ヶ原の戦いに勝利した徳川家康は、1603年に江戸幕府を開きました。' }
+          ],
+          tf: [
+            { q: '1575年の長篠の戦いでは、織田・徳川連合軍が鉄砲を効果的に用いて武田勝頼の騎馬隊を破った。', ans: '〇', exp: '設問の通り、長篠の戦いでは鉄砲の集団運用と馬防柵により武田軍を破りました。' },
+            { q: '豊臣秀吉は全国の土地の面積や収穫高を統一基準で調査する「太閤検地」を実施した。', ans: '〇', exp: '太閤検地により枡や物差しの基準が統一され、石高制が確立しました。' },
+            { q: '1600年の関ヶ原の戦いでは、石田三成率いる西軍が徳川家康の東軍を破った。', ans: '×', exp: '勝利したのは徳川家康率いる東軍です。' },
+            { q: '1573年、織田信長は15代将軍・足利義昭を京都から追放し、室町幕府を滅ぼした。', ans: '〇', exp: '1573年の足利義昭追放により、約240年続いた室町幕府が滅亡しました。' }
+          ],
+          text: [
+            { q: '豊臣秀吉が全国の土地の面積や収穫高（石高）を統一基準で調査した政策を［　　］という。', ans: '太閤検地', exp: '全国の農地を一律の基準で測量し、年貢の納入責任者を明確にしました。' },
+            { q: '1582年に織田信長が家臣の明智光秀に討たれた事件を［　　］という。', ans: '本能寺の変', exp: '京都の本能寺に宿泊していた織田信長が明智光秀の謀反により自害しました。' },
+            { q: '1600年に美濃国で徳川家康（東軍）と石田三成（西軍）が激突した戦いを［　　］という。', ans: '関ヶ原の戦い', exp: 'この戦いの勝利によって徳川家康が天下の実権を握りました。' }
+          ]
+        },
+        english: {
+          title: '【練習テスト】関係代名詞と仮定法の基礎・応用',
+          choice: [
+            { q: '次の空欄に入る最も適切な語を選びなさい：I have a friend (   ) lives in London.', opts: ['who', 'which', 'whose', 'whom'], ans: 'who', exp: '先行詞が「a friend（人）」で、後ろの節の主語の働きをするため主格の who を用います。' },
+            { q: '次の空欄に入る最も適切な語を選びなさい：This is the book (   ) I bought yesterday.', opts: ['which', 'who', 'whose', 'what'], ans: 'which', exp: '先行詞が「the book（物）」で目的語の働きをするため、目的格の which（または that）を入れます。' },
+            { q: '仮定法過去の文として正しいものを選びなさい：「もし私が鳥なら、あなたのところへ飛んでいけるのに。」', opts: ['If I were a bird, I could fly to you.', 'If I am a bird, I can fly to you.', 'If I was a bird, I will fly to you.', 'If I had been a bird, I could fly to you.'], ans: 'If I were a bird, I could fly to you.', exp: '現在の事実に反する仮定は「If + S + 過去形, S + would/could + 原形」で表し、be動詞は were を使います。' },
+            { q: '関係代名詞 what の意味として最も適切なものを選びなさい。', opts: ['〜すること（もの）', '〜する場所', '〜する理由', '〜する方法'], ans: '〜すること（もの）', exp: '関係代名詞 what は先行詞を含み「the thing(s) which」と同じ意味を表します。' }
+          ],
+          tf: [
+            { q: '仮定法過去の If 節では、主語が I や he の単数であっても be 動詞には were を使うのが原則である。', ans: '〇', exp: '現在の事実に反する仮定を表すため、人称に関わらず were を用います。' },
+            { q: '関係代名詞 what の直前には、必ず修飾される先行詞（名詞）を置かなければならない。', ans: '×', exp: 'what は先行詞そのものを含んでいるため、直前に先行詞は置きません。' },
+            { q: '「I wish + 仮定法」は「〜だったらよいのに」という実現困難な願望を表す。', ans: '〇', exp: '現在の願望なら仮定法過去、過去の願望なら仮定法過去完了を続けます。' }
+          ],
+          text: [
+            { q: '「彼が言ったことは本当だ」を英語で表すと［　　］he said is true. となる。', ans: 'What', exp: '「〜すること」を表す関係代名詞 What を文頭に置きます。' },
+            { q: '過去の事実に反する仮定を表す仮定法過去完了の帰結節は「S + would / could / might + ［　　］+ 過去分詞」の形をとる。', ans: 'have', exp: '助動詞の過去形に「have + 過去分詞」を続けて過去の事実に反する推量を表します。' }
+          ]
+        },
+        biology: {
+          title: '【練習テスト】細胞小器官のはたらきと代謝・ATP',
+          choice: [
+            { q: '好気呼吸の場となり、有機物を分解して多くのATPを合成する細胞小器官はどれか。', opts: ['ミトコンドリア', '葉緑体', 'リボソーム', 'ゴルジ体'], ans: 'ミトコンドリア', exp: 'ミトコンドリアではクエン酸回路や電子伝達系が進行し、効率よくATPが合成されます。' },
+            { q: 'mRNAの塩基配列の情報をもとにタンパク質を合成する（膜をもたない）構造体はどれか。', opts: ['リボソーム', '液胞', '核', '中心体'], ans: 'リボソーム', exp: 'リボソームはタンパク質とrRNAからなり、アミノ酸を結合させてタンパク質を合成します。' },
+            { q: '植物細胞の光合成において、カルビン回路（炭酸固定反応）が進行する場所はどこか。', opts: ['ストロマ', 'チラコイド', 'クリステ', 'マトリックス'], ans: 'ストロマ', exp: 'チラコイドで光化学反応、葉緑体の基質であるストロマでカルビン回路が進行します。' }
+          ],
+          tf: [
+            { q: 'ATP（アデノシン三リン酸）は高エネルギーリン酸結合をもち、エネルギーの受け渡しを仲介する。', ans: '〇', exp: 'ATPがADPとリン酸に分解される際に放出されるエネルギーが生命活動に利用されます。' },
+            { q: '光合成は二酸化炭素と水から有機物を合成する「異化」の代表的な反応である。', ans: '×', exp: '単純な物質から複雑な有機物を合成する反応は「同化」です。呼吸が「異化」にあたります。' },
+            { q: 'ゴルジ体は小胞体で合成されたタンパク質を修飾・濃縮し、細胞外へ分泌するはたらきをもつ。', ans: '〇', exp: '分泌小胞として細胞膜へ輸送し、細胞外へ分泌する役割を担います。' }
+          ],
+          text: [
+            { q: '生体内のエネルギー通貨とも呼ばれ、高エネルギーリン酸結合をもつ物質を［　　］という。', ans: 'ATP', exp: 'アデノシン三リン酸（ATP）はすべての生物に共通してエネルギーの仲介を行います。' },
+            { q: '葉緑体において、光エネルギーを吸収してATPやNADPHをつくる反応が行われる扁平な袋状の膜構造を［　　］という。', ans: 'チラコイド', exp: 'チラコイド膜上の光化学系で光エネルギーが化学エネルギーに変換されます。' }
+          ]
+        }
+      };
+
+      const bank = banks[detectedTopic] || banks.history;
+      const sections = state.sectionsConfig.map((sec, sIdx) => {
+        const questions = [];
+        for (let qIdx = 0; qIdx < sec.questionCount; qIdx++) {
+          let targetType = sec.questionType;
+          if (targetType === 'mixed') {
+            const types = ['choice', 'true_false', 'text'];
+            targetType = types[qIdx % types.length];
+          }
+
+          if (targetType === 'choice') {
+            const item = bank.choice[qIdx % bank.choice.length];
+            questions.push({
+              id: `demo-q-${sIdx + 1}-${qIdx + 1}-${Math.random().toString(36).slice(2, 6)}`,
+              type: 'choice',
+              questionText: item.q,
+              options: [...item.opts],
+              correctAnswer: item.ans,
+              explanation: item.exp
+            });
+          } else if (targetType === 'true_false') {
+            const item = bank.tf[qIdx % bank.tf.length];
+            questions.push({
+              id: `demo-q-${sIdx + 1}-${qIdx + 1}-${Math.random().toString(36).slice(2, 6)}`,
+              type: 'true_false',
+              questionText: item.q,
+              options: ['〇', '×'],
+              correctAnswer: item.ans,
+              explanation: item.exp
+            });
+          } else {
+            const item = bank.text[qIdx % bank.text.length];
+            questions.push({
+              id: `demo-q-${sIdx + 1}-${qIdx + 1}-${Math.random().toString(36).slice(2, 6)}`,
+              type: 'text',
+              questionText: item.q,
+              options: [],
+              correctAnswer: item.ans,
+              explanation: item.exp
+            });
+          }
+        }
+
+        return {
+          sectionNumber: sIdx + 1,
+          sectionTitle: `${getQuestionTypeLabel(sec.questionType)}（難易度：${sec.difficulty}）`,
+          questionType: sec.questionType,
+          instruction: `次の各問いに答えなさい。（全${sec.questionCount}問）`,
+          questions
+        };
+      });
+
+      startQuizSession({
+        title: bank.title,
+        sections
+      });
+      showToast('設定した大問構成で練習問題テストを生成しました！', 'success');
+    }
+
+    // =========================================================================
+    // 13. テスト受験・採点・復習ロジック
+    // =========================================================================
+    function startTimer() {
+      stopTimer();
+      state.quizStartTime = Date.now();
+      state.quizElapsedSeconds = 0;
+      document.getElementById('quiz-timer-display').textContent = '00:00';
+      state.quizTimerId = setInterval(() => {
+        if (state.quizMode !== 'solving') return;
+        state.quizElapsedSeconds = Math.floor((Date.now() - state.quizStartTime) / 1000);
+        document.getElementById('quiz-timer-display').textContent = formatMMSS(state.quizElapsedSeconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (state.quizTimerId) {
+        clearInterval(state.quizTimerId);
+        state.quizTimerId = null;
+      }
+    }
+
+    function startQuizSession(quizData) {
+      state.currentQuiz = JSON.parse(JSON.stringify(quizData));
+      state.fullQuizBackup = JSON.parse(JSON.stringify(quizData));
+      state.isWrongOnlyMode = false;
+      state.quizMode = 'solving';
+      state.userAnswers = {};
+      state.manualGrades = {};
+
+      updateAuthUI();
+      startTimer();
+      renderQuizView();
+      switchTab('quiz');
+    }
+
+    function retryFullQuiz() {
+      if (!state.currentQuiz) return;
+      if (state.isWrongOnlyMode && state.fullQuizBackup) {
+        state.currentQuiz = JSON.parse(JSON.stringify(state.fullQuizBackup));
+        state.isWrongOnlyMode = false;
+      }
+      state.quizMode = 'solving';
+      state.userAnswers = {};
+      state.manualGrades = {};
+      startTimer();
+      renderQuizView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('回答をリセットしました。最初から再挑戦しましょう！', 'info');
+    }
+
+    function retryWrongQuestionsOnly() {
+      if (!state.currentQuiz) return;
+      const wrongSections = state.currentQuiz.sections
+        .map((sec) => ({
+          ...sec,
+          questions: (sec.questions || []).filter((q) => !evaluateQuestion(q))
+        }))
+        .filter((sec) => sec.questions.length > 0);
+
+      if (wrongSections.length === 0) {
+        showToast('間違えた問題はありません！', 'success');
+        return;
+      }
+      if (!state.isWrongOnlyMode) {
+        state.fullQuizBackup = JSON.parse(JSON.stringify(state.currentQuiz));
+      }
+      state.isWrongOnlyMode = true;
+      state.currentQuiz = { ...state.currentQuiz, sections: wrongSections };
+      state.quizMode = 'solving';
+      state.userAnswers = {};
+      state.manualGrades = {};
+      startTimer();
+      renderQuizView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('間違えた問題だけを抽出しました！', 'info');
+    }
+
+    function getAllQuestions() {
+      if (!state.currentQuiz) return [];
+      return state.currentQuiz.sections.flatMap((s) => s.questions || []);
+    }
+
+    function updateProgressUI() {
+      const all = getAllQuestions();
+      const total = all.length;
+      const answered = all.filter((q) => {
+        const val = state.userAnswers[q.id];
+        return val !== undefined && String(val).trim() !== '';
+      }).length;
+      document.getElementById('quiz-progress-text').textContent = `${answered} / ${total} 問回答済み`;
+      const pct = total > 0 ? Math.round((answered / total) * 100) : 0;
+      document.getElementById('quiz-progress-bar').style.width = `${pct}%`;
+    }
+
+    function normalizeAnswerStr(str) {
+      return String(str || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xfee0))
+        .replace(/[\s　・、。,.()（）「」『』]/g, '');
+    }
+
+    function evaluateQuestion(q) {
+      if (Object.prototype.hasOwnProperty.call(state.manualGrades, q.id)) {
+        return state.manualGrades[q.id];
+      }
+      const ans = state.userAnswers[q.id];
+      if (!ans || String(ans).trim() === '') return false;
+
+      if (q.type === 'choice') {
+        return ans === q.correctAnswer || normalizeAnswerStr(ans) === normalizeAnswerStr(q.correctAnswer);
+      }
+      if (q.type === 'true_false') {
+        return ans.replace('○', '〇') === q.correctAnswer.replace('○', '〇');
+      }
+      return normalizeAnswerStr(ans) === normalizeAnswerStr(q.correctAnswer);
+    }
+
+    function requestSubmitQuiz() {
+      const all = getAllQuestions();
+      const unanswered = all.filter((q) => !state.userAnswers[q.id] || String(state.userAnswers[q.id]).trim() === '').length;
+      if (unanswered > 0) {
+        openConfirmModal(
+          '未回答の問題があります',
+          `未回答の問題が ${unanswered} 問あります。このまま採点に進みますか？`,
+          () => performGrading(),
+          false
+        );
+      } else {
+        performGrading();
+      }
+    }
+
+    async function performGrading() {
+      stopTimer();
+      state.quizMode = 'graded';
+
+      // 保存済みテストであれば最高スコアをクラウドへ自動反映
+      if (!state.isWrongOnlyMode && state.currentQuiz && state.currentQuiz.id && isLoggedIn()) {
+        const all = getAllQuestions();
+        const correct = all.filter((q) => evaluateQuestion(q)).length;
+        const score100 = all.length > 0 ? Math.round((correct / all.length) * 100) : 0;
+        const existing = state.savedQuizzes.find((item) => item.id === state.currentQuiz.id);
+        const prevBest = existing && typeof existing.bestScore === 'number' ? existing.bestScore : 0;
+        const nextBest = Math.max(prevBest, score100);
+
+        if (isCloudReady && db && firebaseUser) {
+          try {
+            await updateDoc(getQuizDocRef(state.currentQuiz.id), {
+              bestScore: nextBest,
+              updatedAt: Date.now()
+            });
+          } catch (e) {}
+        }
+      }
+
+      renderQuizView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      showToast('採点が完了しました！', 'success');
+    }
+
+    function renderQuizView() {
+      if (!state.currentQuiz) return;
+      const totalQ = getAllQuestions().length;
+      document.getElementById('quiz-display-title').textContent = state.currentQuiz.title;
+      document.getElementById('quiz-meta-info').textContent = `大問${state.currentQuiz.sections.length}・全${totalQ}問`;
+
+      const pill = document.getElementById('quiz-status-pill');
+      const progressWrap = document.getElementById('quiz-progress-container');
+      const summaryCard = document.getElementById('grading-summary-card');
+      const submitFooter = document.getElementById('quiz-submit-footer');
+
+      if (state.quizMode === 'solving') {
+        pill.textContent = '受験中';
+        pill.className = 'status-pill status-solving';
+        progressWrap.classList.remove('hidden');
+        summaryCard.classList.add('hidden');
+        submitFooter.classList.remove('hidden');
+        updateProgressUI();
+      } else {
+        pill.textContent = '採点完了';
+        pill.className = 'status-pill status-graded';
+        progressWrap.classList.add('hidden');
+        summaryCard.classList.remove('hidden');
+        submitFooter.classList.add('hidden');
+        renderGradingSummary();
+      }
+
+      renderQuizSections();
+    }
+
+    function renderGradingSummary() {
+      const all = getAllQuestions();
+      const total = all.length;
+      const correct = all.filter((q) => evaluateQuestion(q)).length;
+      const score100 = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+      document.getElementById('score-100-point').textContent = score100;
+      document.getElementById('score-correct-count').textContent = correct;
+      document.getElementById('score-total-count').textContent = total;
+      document.getElementById('score-elapsed-time').textContent = `所要時間 ${formatMMSS(state.quizElapsedSeconds)}`;
+
+      let rank = 'C';
+      let headline = '解説を確認して復習しましょう！';
+      if (score100 === 100) {
+        rank = 'S+';
+        headline = 'パーフェクト達成！100点満点です！';
+      } else if (score100 >= 85) {
+        rank = 'S';
+        headline = '素晴らしい成績です！非常によく理解できています！';
+      } else if (score100 >= 70) {
+        rank = 'A';
+        headline = '合格ライン突破！あと少しで完璧です！';
+      } else if (score100 >= 50) {
+        rank = 'B';
+        headline = '基礎は身についています！間違えた問題を復習しましょう。';
+      }
+      document.getElementById('score-rank').textContent = rank;
+      document.getElementById('score-headline').textContent = headline;
+
+      const wrongCount = total - correct;
+      const retryWrongBtn = document.getElementById('retry-wrong-only-btn');
+      const retryWrongLabel = document.getElementById('retry-wrong-only-label');
+      if (wrongCount > 0) {
+        retryWrongBtn.classList.remove('hidden');
+        retryWrongLabel.textContent = `間違えた問題だけ再挑戦（${wrongCount}問）`;
+      } else {
+        retryWrongBtn.classList.add('hidden');
+      }
+
+      const breakdown = document.getElementById('section-breakdown-grid');
+      breakdown.innerHTML = (state.currentQuiz.sections || [])
+        .map((sec, idx) => {
+          const sTot = sec.questions.length;
+          const sCor = sec.questions.filter((q) => evaluateQuestion(q)).length;
+          const sPct = sTot > 0 ? Math.round((sCor / sTot) * 100) : 0;
+          return `
+            <div class="breakdown-item">
+              <div style="display: flex; justify-content: space-between; font-size: 0.78rem; font-weight: 700;">
+                <span>大問 ${idx + 1}：${escapeHtml(sec.sectionTitle)}</span>
+                <span style="color: #fde047;">${sCor}/${sTot} (${sPct}%)</span>
+              </div>
+              <div class="progress-track" style="height: 6px; background: rgba(255,255,255,0.18); margin-top: 6px;">
+                <div class="progress-fill" style="width: ${sPct}%; background: #6ee7b7;"></div>
+              </div>
+            </div>
+          `;
+        })
+        .join('');
+    }
+
+    function renderQuizSections() {
+      const container = document.getElementById('quiz-sections-container');
+      if (!state.currentQuiz) return;
+
+      const isGraded = state.quizMode === 'graded';
+      const letters = ['ア', 'イ', 'ウ', 'エ', 'オ'];
+
+      container.innerHTML = state.currentQuiz.sections
+        .map(
+          (sec, sIdx) => `
+          <div class="quiz-section-box">
+            <div class="quiz-section-header">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span class="step-num" style="width: auto; padding: 0 10px; font-size: 0.76rem;">大問 ${sIdx + 1}</span>
+                  <h2 style="font-size: 1.05rem; font-weight: 800;">${escapeHtml(sec.sectionTitle)}</h2>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-sub); margin-top: 4px;">${escapeHtml(sec.instruction)}</p>
+              </div>
+              <span class="pill-muted">${getQuestionTypeLabel(sec.questionType)}（${sec.questions.length}問）</span>
+            </div>
+
+            <div>
+              ${sec.questions
+                .map((q, qIdx) => {
+                  const userAns = state.userAnswers[q.id] || '';
+                  const isCorrect = isGraded ? evaluateQuestion(q) : false;
+
+                  let answerHtml = '';
+                  if (q.type === 'choice') {
+                    answerHtml = `
+                      <div class="options-grid">
+                        ${q.options
+                          .map((opt, oIdx) => {
+                            const selected = userAns === opt;
+                            const actualCorrect = opt === q.correctAnswer;
+                            let cls = 'option-btn';
+                            if (!isGraded) {
+                              if (selected) cls += ' selected';
+                            } else {
+                              if (actualCorrect) cls += ' correct';
+                              else if (selected) cls += ' wrong';
+                              else cls += ' dimmed';
+                            }
+                            return `
+                              <button type="button" ${isGraded ? 'disabled' : ''} data-action="select-option" data-qid="${q.id}" data-opt-index="${oIdx}" class="${cls}">
+                                <span class="opt-letter">${letters[oIdx] || oIdx + 1}</span>
+                                <span style="font-size: 0.88rem; line-height: 1.4;">${escapeHtml(opt)}</span>
+                              </button>
+                            `;
+                          })
+                          .join('')}
+                      </div>
+                    `;
+                  } else if (q.type === 'true_false') {
+                    answerHtml = `
+                      <div class="tf-grid">
+                        ${['〇', '×']
+                          .map((sym) => {
+                            const selected = userAns === sym;
+                            const actualCorrect = q.correctAnswer.replace('○', '〇') === sym;
+                            let cls = 'tf-btn';
+                            if (!isGraded) {
+                              if (selected) cls += ' selected';
+                            } else {
+                              if (actualCorrect) cls += ' correct';
+                              else if (selected) cls += ' wrong';
+                            }
+                            return `
+                              <button type="button" ${isGraded ? 'disabled' : ''} data-action="select-tf" data-qid="${q.id}" data-val="${sym}" class="${cls}">
+                                <span>${sym}</span>
+                                <span style="font-size: 0.78rem;">${sym === '〇' ? '正しい' : '誤り'}</span>
+                              </button>
+                            `;
+                          })
+                          .join('')}
+                      </div>
+                    `;
+                  } else {
+                    answerHtml = `
+                      <div style="margin-top: 12px; max-width: 520px;">
+                        <input type="text" data-qid="${q.id}" value="${escapeHtml(userAns)}" ${isGraded ? 'disabled' : ''} placeholder="ここに解答を入力してください..." class="form-input text-answer-input" />
+                      </div>
+                    `;
+                  }
+
+                  let reviewHtml = '';
+                  if (isGraded) {
+                    reviewHtml = `
+                      <div class="review-box ${isCorrect ? 'is-correct' : 'is-wrong'}">
+                        <div class="review-header">
+                          <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                            <span class="result-tag ${isCorrect ? 'ok' : 'ng'}">${isCorrect ? '✓ 正解' : '✕ 不正解'}</span>
+                            <span style="font-size: 0.85rem; font-weight: 800;">
+                              正解（模範解答）：<span style="color: var(--primary);">${escapeHtml(q.correctAnswer)}</span>
+                            </span>
+                          </div>
+                          ${
+                            q.type === 'text'
+                              ? `<button type="button" data-action="toggle-manual-grade" data-qid="${q.id}" data-grade="${!isCorrect}" class="btn btn-sm btn-outline">
+                                  ${isCorrect ? '不正解に変更' : '正解にする（自己採点）'}
+                                </button>`
+                              : ''
+                          }
+                        </div>
+                        <div style="font-size: 0.84rem; color: var(--text-main); line-height: 1.6;">
+                          <strong>解説：</strong>${escapeHtml(q.explanation)}
+                        </div>
+                      </div>
+                    `;
+                  }
+
+                  return `
+                    <div class="question-item">
+                      <div class="question-row">
+                        <span class="q-num-badge">問${qIdx + 1}</span>
+                        <div style="flex: 1; min-width: 0;">
+                          <div style="margin-bottom: 4px;">
+                            <span class="pill-muted" style="font-size: 0.7rem;">${getQuestionTypeLabel(q.type)}</span>
+                          </div>
+                          <div style="font-size: 0.96rem; font-weight: 700; line-height: 1.55;">${escapeHtml(q.questionText)}</div>
+                          ${answerHtml}
+                          ${reviewHtml}
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                })
+                .join('')}
+            </div>
+          </div>
+        `
+        )
+        .join('');
+    }
+
+    // =========================================================================
+    // 14. イベント委譲ハンドラ（全UIの確実な応答性を保証）
+    // =========================================================================
+    function bindGlobalEvents() {
+      document.addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+
+        const action = target.getAttribute('data-action');
+
+        switch (action) {
+          case 'switch-tab':
+            switchTab(target.getAttribute('data-tab'));
+            break;
+
+          case 'open-auth':
+            openAuthModal(target.getAttribute('data-mode') || 'signup');
+            break;
+
+          case 'set-auth-mode':
+            setAuthMode(target.getAttribute('data-mode') || 'signup');
+            break;
+
+          case 'sample-login':
+            loginWithSampleAccount();
+            break;
+
+          case 'logout':
+            logoutUser();
+            break;
+
+          case 'toggle-pw': {
+            const pwInput = document.getElementById('auth-password');
+            const eyeOpen = document.getElementById('pw-eye-open');
+            const eyeClosed = document.getElementById('pw-eye-closed');
+            if (pwInput) {
+              const show = pwInput.type === 'password';
+              pwInput.type = show ? 'text' : 'password';
+              if (eyeOpen) eyeOpen.classList.toggle('hidden', show);
+              if (eyeClosed) eyeClosed.classList.toggle('hidden', !show);
+            }
+            break;
+          }
+
+          case 'close-modal':
+            closeModal(target.getAttribute('data-modal'));
+            break;
+
+          case 'close-modal-backdrop':
+            if (e.target === target) {
               closeModal(target.getAttribute('data-modal'));
-              break;
-
-            case 'close-modal-backdrop':
-              if (e.target === target) {
-                closeModal(target.getAttribute('data-modal'));
-              }
-              break;
-
-            case 'confirm-ok': {
-              const cb = state.confirmCallback;
-              closeModal('confirm-modal');
-              if (typeof cb === 'function') cb();
-              break;
             }
+            break;
 
-            case 'trigger-file-input': {
-              const fileInput = document.getElementById('file-input');
-              if (fileInput) fileInput.click();
-              break;
+          case 'confirm-ok': {
+            const cb = state.confirmCallback;
+            closeModal('confirm-modal');
+            if (typeof cb === 'function') cb();
+            break;
+          }
+
+          case 'trigger-file-input': {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput) fileInput.click();
+            break;
+          }
+
+          case 'load-sample':
+            createSampleNote(target.getAttribute('data-topic'));
+            break;
+
+          case 'remove-image': {
+            const imgId = target.getAttribute('data-id');
+            state.uploadedImages = state.uploadedImages.filter((img) => img.id !== imgId);
+            renderUploadedImages();
+            break;
+          }
+
+          case 'lightbox-image': {
+            const imgId = target.getAttribute('data-id');
+            const found = state.uploadedImages.find((img) => img.id === imgId);
+            if (found) {
+              document.getElementById('lightbox-title').textContent = found.name;
+              document.getElementById('lightbox-img').src = found.dataUrl;
+              document.getElementById('lightbox-modal').classList.remove('hidden');
             }
+            break;
+          }
 
-            case 'load-sample':
-              createSampleNote(target.getAttribute('data-topic'));
-              break;
+          case 'set-section-count':
+            setSectionCount(target.getAttribute('data-count'));
+            break;
 
-            case 'remove-image': {
-              const imgId = target.getAttribute('data-id');
-              state.uploadedImages = state.uploadedImages.filter((img) => img.id !== imgId);
-              renderUploadedImages();
-              break;
-            }
+          case 'add-section':
+            addSection();
+            break;
 
-            case 'lightbox-image': {
-              const imgId = target.getAttribute('data-id');
-              const found = state.uploadedImages.find((img) => img.id === imgId);
-              if (found) {
-                document.getElementById('lightbox-title').textContent = found.name;
-                document.getElementById('lightbox-img').src = found.dataUrl;
-                document.getElementById('lightbox-modal').classList.remove('hidden');
-              }
-              break;
-            }
+          case 'remove-section':
+            removeSection(target.getAttribute('data-id'));
+            break;
 
-            case 'set-section-count':
-              setSectionCount(target.getAttribute('data-count'));
-              break;
+          case 'generate-test':
+            generateTestWithAI();
+            break;
 
-            case 'add-section':
-              addSection();
-              break;
+          case 'generate-demo-test':
+            generateDemoTestFromConfig();
+            break;
 
-            case 'remove-section':
-              removeSection(target.getAttribute('data-id'));
-              break;
-
-            case 'generate-test':
-              generateTestWithAI();
-              break;
-
-            case 'select-option': {
-              if (state.quizMode !== 'solving') return;
-              const qid = target.getAttribute('data-qid');
-              const optIdx = Number(target.getAttribute('data-opt-index'));
-              const q = getAllQuestions().find((item) => item.id === qid);
-              if (q && q.options && q.options[optIdx] !== undefined) {
-                state.userAnswers[qid] = q.options[optIdx];
-                updateProgressUI();
-                renderQuizSections();
-              }
-              break;
-            }
-
-            case 'select-tf': {
-              if (state.quizMode !== 'solving') return;
-              const qid = target.getAttribute('data-qid');
-              const val = target.getAttribute('data-val');
-              state.userAnswers[qid] = val;
+          case 'select-option': {
+            if (state.quizMode !== 'solving') return;
+            const qid = target.getAttribute('data-qid');
+            const optIdx = Number(target.getAttribute('data-opt-index'));
+            const q = getAllQuestions().find((item) => item.id === qid);
+            if (q && q.options && q.options[optIdx] !== undefined) {
+              state.userAnswers[qid] = q.options[optIdx];
               updateProgressUI();
               renderQuizSections();
-              break;
             }
+            break;
+          }
 
-            case 'toggle-manual-grade': {
-              const qid = target.getAttribute('data-qid');
-              const nextGrade = target.getAttribute('data-grade') === 'true';
-              state.manualGrades[qid] = nextGrade;
-              renderGradingSummary();
-              renderQuizSections();
-              break;
-            }
+          case 'select-tf': {
+            if (state.quizMode !== 'solving') return;
+            const qid = target.getAttribute('data-qid');
+            const val = target.getAttribute('data-val');
+            state.userAnswers[qid] = val;
+            updateProgressUI();
+            renderQuizSections();
+            break;
+          }
 
-            case 'submit-quiz':
-              requestSubmitQuiz();
-              break;
+          case 'toggle-manual-grade': {
+            const qid = target.getAttribute('data-qid');
+            const nextGrade = target.getAttribute('data-grade') === 'true';
+            state.manualGrades[qid] = nextGrade;
+            renderGradingSummary();
+            renderQuizSections();
+            break;
+          }
 
-            case 'retry-full':
-              retryFullQuiz();
-              break;
+          case 'submit-quiz':
+            requestSubmitQuiz();
+            break;
 
-            case 'retry-wrong-only':
-              retryWrongQuestionsOnly();
-              break;
+          case 'retry-full':
+            retryFullQuiz();
+            break;
 
-            case 'save-current-quiz':
-              saveCurrentQuizToStorage();
-              break;
+          case 'retry-wrong-only':
+            retryWrongQuestionsOnly();
+            break;
 
-            case 'open-rename-current':
-              openRenameModal({ type: 'current' });
-              break;
+          case 'save-current-quiz':
+            saveCurrentQuizToCloud();
+            break;
 
-            case 'play-saved': {
-              const qid = target.getAttribute('data-id');
-              const found = state.savedQuizzes.find((q) => q.id === qid);
-              if (found) startQuizSession(found);
-              break;
-            }
+          case 'open-rename-current':
+            openRenameModal({ type: 'current' });
+            break;
 
-            case 'open-rename-saved':
-              openRenameModal({ type: 'saved', id: target.getAttribute('data-id') });
-              break;
+          case 'play-saved': {
+            const qid = target.getAttribute('data-id');
+            const found = state.savedQuizzes.find((q) => q.id === qid);
+            if (found) startQuizSession(found);
+            break;
+          }
 
-            case 'delete-saved': {
-              const qid = target.getAttribute('data-id');
-              const found = state.savedQuizzes.find((q) => q.id === qid);
-              if (!found) return;
-              openConfirmModal(
-                'クイズの削除確認',
-                `「${found.title}」を削除しますか？この操作は取り消せません。`,
-                () => {
-                  if (!isLoggedIn()) return;
-                  const filtered = state.savedQuizzes.filter((q) => q.id !== qid);
-                  persistUserQuizzes(state.user.uid, filtered);
+          case 'open-rename-saved':
+            openRenameModal({ type: 'saved', id: target.getAttribute('data-id') });
+            break;
+
+          case 'delete-saved': {
+            const qid = target.getAttribute('data-id');
+            const found = state.savedQuizzes.find((q) => q.id === qid);
+            if (!found) return;
+            openConfirmModal(
+              'クイズのクラウド削除確認',
+              `「${found.title}」をクラウドから削除しますか？別端末からも消去され、元に戻せません。`,
+              async () => {
+                if (!isLoggedIn()) return;
+                try {
+                  if (isCloudReady && db && firebaseUser) {
+                    await deleteDoc(getQuizDocRef(qid));
+                  } else {
+                    const list = memoryFallbackQuizzes[state.user.accountId] || [];
+                    memoryFallbackQuizzes[state.user.accountId] = list.filter((q) => q.id !== qid);
+                    state.savedQuizzes = [...memoryFallbackQuizzes[state.user.accountId]];
+                    updateSavedBadges();
+                    renderSavedQuizzes();
+                  }
                   if (state.currentQuiz && state.currentQuiz.id === qid) {
                     delete state.currentQuiz.id;
                     updateAuthUI();
                   }
-                  showToast('クイズを削除しました', 'info');
-                },
-                true
-              );
-              break;
-            }
+                  showToast('クイズをクラウドから削除しました', 'info');
+                } catch (err) {
+                  showToast('削除中にエラーが発生しました', 'error');
+                }
+              },
+              true
+            );
+            break;
           }
-        });
+        }
+      });
 
-        // 入力・変更イベント委譲（大問設定・記述回答・検索・ソート）
-        document.addEventListener('input', (e) => {
-          const el = e.target;
-          if (el.classList.contains('sec-field-input')) {
-            const secId = el.getAttribute('data-sec-id');
-            const field = el.getAttribute('data-sec-field');
-            const sec = state.sectionsConfig.find((s) => s.id === secId);
-            if (sec && field === 'customInstruction') {
-              sec.customInstruction = el.value;
-            }
-          } else if (el.classList.contains('text-answer-input')) {
-            if (state.quizMode !== 'solving') return;
-            const qid = el.getAttribute('data-qid');
-            state.userAnswers[qid] = el.value;
-            updateProgressUI();
-          } else if (el.id === 'quiz-search-input') {
-            renderSavedQuizzes();
+      document.addEventListener('input', (e) => {
+        const el = e.target;
+        if (el.classList.contains('sec-field-input')) {
+          const secId = el.getAttribute('data-sec-id');
+          const field = el.getAttribute('data-sec-field');
+          const sec = state.sectionsConfig.find((s) => s.id === secId);
+          if (sec && field === 'customInstruction') {
+            sec.customInstruction = el.value;
           }
-        });
+        } else if (el.classList.contains('text-answer-input')) {
+          if (state.quizMode !== 'solving') return;
+          const qid = el.getAttribute('data-qid');
+          state.userAnswers[qid] = el.value;
+          updateProgressUI();
+        } else if (el.id === 'quiz-search-input') {
+          renderSavedQuizzes();
+        }
+      });
 
-        document.addEventListener('change', (e) => {
-          const el = e.target;
-          if (el.classList.contains('sec-field-input')) {
-            const secId = el.getAttribute('data-sec-id');
-            const field = el.getAttribute('data-sec-field');
-            const sec = state.sectionsConfig.find((s) => s.id === secId);
-            if (!sec) return;
-            if (field === 'questionCount') {
-              sec.questionCount = Math.max(1, Math.min(10, parseInt(el.value, 10) || 1));
-            } else {
-              sec[field] = el.value;
-            }
-            renderSectionsConfig();
-          } else if (el.id === 'quiz-sort-select') {
-            renderSavedQuizzes();
+      document.addEventListener('change', (e) => {
+        const el = e.target;
+        if (el.classList.contains('sec-field-input')) {
+          const secId = el.getAttribute('data-sec-id');
+          const field = el.getAttribute('data-sec-field');
+          const sec = state.sectionsConfig.find((s) => s.id === secId);
+          if (!sec) return;
+          if (field === 'questionCount') {
+            sec.questionCount = Math.max(1, Math.min(10, parseInt(el.value, 10) || 1));
+          } else {
+            sec[field] = el.value;
           }
-        });
+          renderSectionsConfig();
+        } else if (el.id === 'quiz-sort-select') {
+          renderSavedQuizzes();
+        }
+      });
 
-        // フォーム送信イベント
-        const authForm = document.getElementById('auth-form');
-        if (authForm) authForm.addEventListener('submit', handleAuthFormSubmit);
+      const authForm = document.getElementById('auth-form');
+      if (authForm) authForm.addEventListener('submit', handleAuthFormSubmit);
 
-        const renameForm = document.getElementById('rename-form');
-        if (renameForm) renameForm.addEventListener('submit', handleRenameFormSubmit);
-      }
+      const renameForm = document.getElementById('rename-form');
+      if (renameForm) renameForm.addEventListener('submit', handleRenameFormSubmit);
+    }
 
-      // =========================================================================
-      // 13. アプリケーション起動（readyState判定で確実に初期化）
-      // =========================================================================
-      async function bootstrap() {
-        bindGlobalEvents();
-        setupImageDropAndPaste();
-        renderSectionsConfig();
-        await initAuth();
-      }
+    // =========================================================================
+    // 15. アプリケーション起動
+    // =========================================================================
+    async function bootstrap() {
+      bindGlobalEvents();
+      setupImageDropAndPaste();
+      renderSectionsConfig();
+      await initCloudBackend();
+    }
 
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', bootstrap);
-      } else {
-        bootstrap();
-      }
-    })();
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', bootstrap);
+    } else {
+      bootstrap();
+    }
   </script>
 </body>
 </html>
