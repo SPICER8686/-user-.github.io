@@ -140,6 +140,18 @@
           </button>
         </div>
 
+        <!-- 通信モード＆Firebase設定ボタン -->
+        <div class="glass-panel rounded-2xl px-3.5 py-2.5 flex items-center gap-2.5">
+          <span id="netModeBadge" class="text-xs font-extrabold text-amber-300">🌐 端末間同期: 確認中</span>
+          <button
+            id="openFirebaseConfigBtn"
+            type="button"
+            class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-cyan-200 border border-slate-600/70 tactile-btn"
+          >
+            ⚙ 通信設定
+          </button>
+        </div>
+
         <!-- 自動保存ステータスバッジ -->
         <div id="autoSaveBadge" class="glass-panel rounded-2xl px-3.5 py-2.5 flex items-center gap-2 text-xs font-bold text-emerald-300 border border-emerald-400/30">
           <span>💾</span>
@@ -187,7 +199,7 @@
             </div>
 
             <p id="roomSyncGuideText" class="text-xs text-slate-300 leading-relaxed">
-              同一ブラウザの別タブ・別ウィンドウで同じ<strong class="text-cyan-300">合言葉</strong>を入力すると合流できます（BroadcastChannel＋localStorage同期）。※別端末・別ネットワーク間の接続には別途シグナリングサーバーが必要です。
+              Firebase Realtime Database 設定時は<strong class="text-cyan-300">別端末同士</strong>でも同じ<strong class="text-cyan-300">合言葉</strong>で合流できます（同一ブラウザ別タブでは BroadcastChannel / localStorage でも同期）。
             </p>
 
             <!-- 合言葉入力 -->
@@ -689,11 +701,68 @@
     </div>
   </div>
 
+  <!-- Firebase Realtime Database 設定モーダル（別端末マッチ用） -->
+  <div id="firebaseConfigModal" class="hidden fixed inset-0 z-[90] bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="glass-panel rounded-3xl max-w-lg w-full p-6 space-y-4 border border-cyan-400/40">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-black text-white">🌐 別端末マッチ用 Firebase 設定</h3>
+        <button id="closeFirebaseConfigBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 tactile-btn">✕</button>
+      </div>
+      <p class="text-xs text-slate-300 leading-relaxed">
+        PC・スマホなど<strong>別端末</strong>で同じ合言葉の部屋に同期するには、Firebase Realtime Database の設定（<code>apiKey</code>, <code>databaseURL</code>, <code>projectId</code> などを含む JSON）を保存してください。未設定の場合は同一端末タブ間の同期のみ動作します。
+      </p>
+      <textarea
+        id="firebaseConfigTextarea"
+        rows="7"
+        placeholder='{"apiKey":"...","authDomain":"...","databaseURL":"https://xxxx-default-rtdb.firebaseio.com","projectId":"..."}'
+        class="w-full p-3 rounded-xl bg-slate-950/90 border border-slate-700 focus:border-cyan-300 focus:outline-none text-xs font-mono text-cyan-200"
+      ></textarea>
+      <div class="flex items-center justify-end gap-2">
+        <button id="clearFirebaseConfigBtn" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 tactile-btn">
+          設定クリア
+        </button>
+        <button id="saveFirebaseConfigBtn" type="button" class="px-4 py-2 rounded-xl text-xs font-black bg-cyan-400 hover:bg-cyan-300 text-slate-950 tactile-btn">
+          保存して再接続
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp, getApps, deleteApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
+    import {
+      getDatabase,
+      ref,
+      set,
+      onValue,
+      onChildAdded,
+      off,
+      remove,
+      onDisconnect
+    } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-database.js';
+
+    window.__FIREBASE_RTDB__ = {
+      initializeApp,
+      getApps,
+      deleteApp,
+      getDatabase,
+      ref,
+      set,
+      onValue,
+      onChildAdded,
+      off,
+      remove,
+      onDisconnect
+    };
+    window.dispatchEvent(new Event('firebase-rtdb-ready'));
+  </script>
+
   <script>
     // =========================================================================
     // 1. 共通ワールド定数・自動保存キー＆状態管理
     // =========================================================================
     const STORAGE_KEY = 'mist_compass_save_v1';
+    const FB_CONFIG_STORAGE_KEY = 'mist_compass_fb_config_v1';
     const BUS_STORAGE_PREFIX = 'mist_compass_bus_v1_';
     const CLIENT_ID = `crew_${Math.random().toString(36).slice(2, 10)}_${Date.now().toString(36)}`;
 
@@ -890,6 +959,100 @@
       el.textContent = `${dLabel} ${state.bestRecord.time.toFixed(1)}s / HP ${Math.ceil(state.bestRecord.hp)} (${state.bestRecord.playerName})`;
     }
 
+    function showToast(message, tone = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const item = document.createElement('div');
+      const toneClass =
+        tone === 'success'
+          ? 'bg-emerald-950/90 border-emerald-400/50 text-emerald-200'
+          : tone === 'danger'
+            ? 'bg-rose-950/90 border-rose-400/50 text-rose-200'
+            : 'bg-slate-900/95 border-cyan-400/40 text-cyan-100';
+      item.className = `px-4 py-2 rounded-2xl border text-xs font-extrabold shadow-xl backdrop-blur-md ${toneClass}`;
+      item.textContent = message;
+      container.appendChild(item);
+      setTimeout(() => {
+        item.remove();
+      }, 2800);
+    }
+
+    function setEventBanner(text) {
+      state.eventText = text;
+      const el = document.getElementById('eventBanner');
+      if (el) el.textContent = text;
+    }
+
+    // 航行距離約5倍（2,400m）に合わせ、北へ進むほど障害物密度と速度が増す航路を生成
+    function generateObstacles(difficulty) {
+      const cfg = DIFFICULTIES[difficulty] || DIFFICULTIES.normal;
+      const list = [];
+      const count = cfg.obstacleCount;
+      const zStart = WORLD.START_Z - 140;
+      const zEnd = WORLD.GOAL_Z + 110;
+
+      for (let i = 0; i < count; i++) {
+        // 奥（北側, progress -> 1）へ進むほど障害物密度が高くなるよう非線形分布
+        const linearT = i / Math.max(1, count - 1);
+        const progress = Math.pow(linearT, 0.82);
+        const z = zStart - progress * (zStart - zEnd);
+
+        // スタート直後やゴール直前は安全マージンを確保
+        if (Math.hypot(0, z - WORLD.START_Z) < 130) continue;
+        if (Math.hypot(0, z - WORLD.GOAL_Z) < 150) continue;
+
+        const x = (Math.random() * 2 - 1) * (WORLD.BOUND_X - 75);
+        const roll = Math.random();
+        let kind = 'rock';
+        if (progress > 0.55) {
+          kind = roll < 0.32 ? 'rock' : roll < 0.72 ? 'mine' : 'whirlpool';
+        } else if (progress > 0.25) {
+          kind = roll < 0.48 ? 'rock' : roll < 0.80 ? 'mine' : 'whirlpool';
+        } else {
+          kind = roll < 0.65 ? 'rock' : roll < 0.88 ? 'mine' : 'whirlpool';
+        }
+
+        const radius =
+          kind === 'rock'
+            ? 14 + Math.random() * 11
+            : kind === 'mine'
+              ? 10 + Math.random() * 5
+              : 22 + Math.random() * 10;
+
+        const baseDamage =
+          kind === 'mine'
+            ? 24
+            : kind === 'whirlpool'
+              ? 16
+              : 14;
+        const damage = Math.round(baseDamage * cfg.damageScale * (1 + progress * 0.25));
+
+        // 進行度が上がるほど移動する渦潮・機雷が増加
+        const moving = kind !== 'rock' && Math.random() < (0.2 + progress * 0.55);
+        const moveAxis = Math.random() < 0.75 ? 'x' : 'z';
+        const moveAmp = moving ? 35 + Math.random() * 55 : 0;
+        const moveSpeed = moving ? (0.8 + progress * 1.1) * (0.7 + Math.random() * 0.6) : 0;
+
+        list.push({
+          id: `obs_${i}_${Math.random().toString(36).slice(2, 6)}`,
+          kind,
+          x,
+          z,
+          baseX: x,
+          baseZ: z,
+          radius,
+          damage,
+          moving,
+          moveAxis,
+          moveAmp,
+          moveSpeed,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      return list;
+    }
+
     // 入力状態
     const keys = {
       fwd: false,
@@ -899,10 +1062,17 @@
     };
 
     // =========================================================================
-    // 4. BroadcastChannel + localStorage 同期＆WebRTC ボイスチャット管理
+    // 4. Firebase Realtime Database（別端末）＋ BroadcastChannel / localStorage 同期
     // =========================================================================
     let channel = null;
     let currentBusKey = '';
+    let rtdbInstance = null;
+    let rtdbRoomRef = null;
+    let rtdbMessagesRef = null;
+    let rtdbPeerUnsub = null;
+    let rtdbMsgUnsub = null;
+    let fbConnected = false;
+
     let peerConn = null;
     let localStream = null;
     let micEnabled = false;
@@ -910,6 +1080,129 @@
     let audioCtx = null;
     let analyser = null;
     let micDataArray = null;
+
+    function parseFirebaseConfig() {
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        try {
+          return JSON.parse(__firebase_config);
+        } catch (e) {
+          // ignore
+        }
+      }
+      try {
+        const raw = localStorage.getItem(FB_CONFIG_STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function updateNetModeBadge() {
+      const badge = document.getElementById('netModeBadge');
+      if (!badge) return;
+      if (fbConnected) {
+        badge.textContent = '🌐 別端末同期: RTDB接続中';
+        badge.className = 'text-xs font-extrabold text-emerald-300';
+      } else if (parseFirebaseConfig()) {
+        badge.textContent = '🌐 別端末同期: 接続試行中';
+        badge.className = 'text-xs font-extrabold text-amber-300';
+      } else {
+        badge.textContent = '💻 同一端末タブ同期（設定で別端末対応）';
+        badge.className = 'text-xs font-bold text-cyan-200';
+      }
+    }
+
+    async function initFirebaseRealtime(roomCode) {
+      const api = window.__FIREBASE_RTDB__;
+      const cfg = parseFirebaseConfig();
+      if (!api || !cfg || !cfg.databaseURL) {
+        fbConnected = false;
+        updateNetModeBadge();
+        return;
+      }
+
+      try {
+        // 既存リスナー解除
+        if (rtdbPeerUnsub) {
+          rtdbPeerUnsub();
+          rtdbPeerUnsub = null;
+        }
+        if (rtdbMsgUnsub) {
+          rtdbMsgUnsub();
+          rtdbMsgUnsub = null;
+        }
+
+        const existingApps = api.getApps();
+        let app;
+        if (existingApps.length > 0) {
+          app = existingApps[0];
+        } else {
+          app = api.initializeApp(cfg);
+        }
+
+        rtdbInstance = api.getDatabase(app, cfg.databaseURL);
+        const cleanCode = normalizeRoomCode(roomCode);
+        const basePath = `rooms/${cleanCode}`;
+        rtdbRoomRef = api.ref(rtdbInstance, basePath);
+        rtdbMessagesRef = api.ref(rtdbInstance, `${basePath}/messages`);
+
+        const myMemberRef = api.ref(rtdbInstance, `${basePath}/members/${CLIENT_ID}`);
+        api.onDisconnect(myMemberRef).remove().catch(() => {});
+
+        await api.set(myMemberRef, {
+          id: CLIENT_ID,
+          name: state.playerName,
+          role: state.role,
+          ready: state.isReady,
+          difficulty: state.difficulty,
+          screen: state.screen,
+          updatedAt: Date.now()
+        });
+
+        fbConnected = true;
+        updateNetModeBadge();
+
+        // ルームメンバー監視
+        const membersRef = api.ref(rtdbInstance, `${basePath}/members`);
+        rtdbPeerUnsub = api.onValue(membersRef, (snap) => {
+          const val = snap.val() || {};
+          const others = Object.values(val).filter((m) => m && m.id && m.id !== CLIENT_ID);
+          if (others.length > 0) {
+            const partner = others[0];
+            const wasConnected = state.peerConnected;
+            state.peerId = partner.id;
+            state.peerName = partner.name || 'クルー相棒';
+            state.peerRole = partner.role || null;
+            state.peerReady = Boolean(partner.ready);
+            state.peerConnected = true;
+            state.lastPeerHeartbeat = performance.now();
+            if (!wasConnected) {
+              showToast(`✓ ${state.peerName} と別端末ルームで合流しました！`, 'success');
+            }
+          } else {
+            state.peerConnected = false;
+            state.peerReady = false;
+            state.peerRole = null;
+            state.peerName = null;
+          }
+          refreshLobbyUI();
+        });
+
+        // ルームメッセージ監視（直近20秒以内の新着メッセージ）
+        const joinStamp = Date.now() - 20000;
+        rtdbMsgUnsub = api.onChildAdded(rtdbMessagesRef, (snap) => {
+          const data = snap.val();
+          if (!data || !data._ts || data._ts < joinStamp) return;
+          if (data.senderId === CLIENT_ID) return;
+          handleIncomingMessage(data);
+        });
+      } catch (err) {
+        console.warn('Firebase RTDB init error:', err);
+        fbConnected = false;
+        updateNetModeBadge();
+      }
+    }
 
     function sendMsg(payload) {
       const envelope = {
@@ -922,6 +1215,25 @@
         senderRole: state.role
       };
 
+      // 1) Firebase Realtime Database（別端末間同期）
+      const api = window.__FIREBASE_RTDB__;
+      if (api && rtdbInstance && fbConnected) {
+        const cleanCode = normalizeRoomCode(state.roomId);
+        if (payload.type === 'join' || payload.type === 'presence' || payload.type === 'ping' || payload.type === 'pong') {
+          api.set(api.ref(rtdbInstance, `rooms/${cleanCode}/members/${CLIENT_ID}`), {
+            id: CLIENT_ID,
+            name: state.playerName,
+            role: state.role,
+            ready: state.isReady,
+            difficulty: state.difficulty,
+            screen: state.screen,
+            updatedAt: Date.now()
+          }).catch(() => {});
+        }
+        api.set(api.ref(rtdbInstance, `rooms/${cleanCode}/messages/${envelope._msgId}`), envelope).catch(() => {});
+      }
+
+      // 2) BroadcastChannel（同一ブラウザ別タブ同期）
       if (channel) {
         try {
           channel.postMessage(envelope);
@@ -930,7 +1242,7 @@
         }
       }
 
-      // localStorage イベントフォールバック（同一ブラウザ別タブで確実に同期）
+      // 3) localStorage イベントフォールバック（同一ブラウザ別タブ同期）
       if (currentBusKey) {
         try {
           localStorage.setItem(currentBusKey, JSON.stringify(envelope));
@@ -1232,6 +1544,8 @@
           handleIncomingMessage(event.data);
         };
       }
+
+      initFirebaseRealtime(cleanCode);
 
       sendMsg({
         type: 'join',
@@ -2496,19 +2810,45 @@
         setupRoomChannel(code);
       });
 
-      // 役割カード選択
-      document.getElementById('cardRoleHelm')?.addEventListener('click', () => applyRoleView('helm'));
-      document.getElementById('cardRoleMap')?.addEventListener('click', () => applyRoleView('map'));
-
-      // 難易度選択（自動保存）
-      ['easy', 'normal', 'hard'].forEach((d) => {
-        const id = `diff${d.charAt(0).toUpperCase() + d.slice(1)}Btn`;
-        document.getElementById(id)?.addEventListener('click', () => {
-          state.difficulty = d;
-          saveGameData();
-          refreshLobbyUI();
-          sendPresence('HELLO');
-        });
+      // Firebase 設定モーダル操作
+      const fbModal = document.getElementById('firebaseConfigModal');
+      const fbTextarea = document.getElementById('firebaseConfigTextarea');
+      document.getElementById('openFirebaseConfigBtn')?.addEventListener('click', () => {
+        if (fbTextarea) {
+          fbTextarea.value = localStorage.getItem(FB_CONFIG_STORAGE_KEY) || '';
+        }
+        fbModal?.classList.remove('hidden');
+      });
+      document.getElementById('closeFirebaseConfigBtn')?.addEventListener('click', () => {
+        fbModal?.classList.add('hidden');
+      });
+      document.getElementById('saveFirebaseConfigBtn')?.addEventListener('click', () => {
+        if (!fbTextarea) return;
+        const raw = fbTextarea.value.trim();
+        if (!raw) {
+          showToast('Firebase設定JSONを入力してください', 'danger');
+          return;
+        }
+        try {
+          const parsed = JSON.parse(raw);
+          if (!parsed.databaseURL) {
+            showToast('databaseURL を含むJSONを設定してください', 'danger');
+            return;
+          }
+          localStorage.setItem(FB_CONFIG_STORAGE_KEY, JSON.stringify(parsed, null, 2));
+          fbModal?.classList.add('hidden');
+          setupRoomChannel(state.roomId);
+          showToast('✓ 別端末同期用のFirebase設定を保存しました', 'success');
+        } catch (err) {
+          showToast('JSONの形式が正しくありません', 'danger');
+        }
+      });
+      document.getElementById('clearFirebaseConfigBtn')?.addEventListener('click', () => {
+        localStorage.removeItem(FB_CONFIG_STORAGE_KEY);
+        if (fbTextarea) fbTextarea.value = '';
+        fbConnected = false;
+        updateNetModeBadge();
+        showToast('Firebase設定をクリアしました', 'info');
       });
 
       // 準備完了＆出航スタート
@@ -2719,9 +3059,13 @@
       initThreeJS();
       bindEvents();
       updateBestRecordDisplay();
+      updateNetModeBadge();
       setupRoomChannel(state.roomId);
       refreshLobbyUI();
       requestAnimationFrame(mainLoop);
+    });
+    window.addEventListener('firebase-rtdb-ready', () => {
+      initFirebaseRealtime(state.roomId);
     });
   </script>
 </body>
