@@ -1,267 +1,2602 @@
-<!-- ... existing code ... -->
-          <input
-            id="roomIdInput"
-            type="text"
-            value="SEA-01"
-            maxlength="16"
-            class="w-20 sm:w-24 bg-transparent text-cyan-300 font-bold text-xs sm:text-sm uppercase focus:outline-none"
-            aria-label="ルームID"
-          />
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>霧海のコンパス (MIST COMPASS) — 2人協力3D海洋ナビゲーション</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      background: #040b14;
+      color: #e2e8f0;
+      overflow-x: hidden;
+    }
+
+    .glass-panel {
+      background: rgba(7, 17, 31, 0.78);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .glass-card {
+      background: rgba(11, 25, 44, 0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(148, 163, 184, 0.22);
+      transition: transform 0.16s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.55);
+      transform: translateY(-2px);
+    }
+
+    .tactile-btn {
+      transition: transform 0.1s ease, filter 0.15s ease, box-shadow 0.15s ease;
+    }
+    .tactile-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+    .tactile-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    /* 操船役3D視点の極濃霧オーバーレイ */
+    #helmMistOverlay {
+      background:
+        radial-gradient(circle at 50% 44%, rgba(203, 219, 232, 0.34) 0%, rgba(168, 190, 208, 0.72) 42%, rgba(132, 156, 178, 0.94) 82%),
+        linear-gradient(180deg, rgba(185, 205, 222, 0.65) 0%, rgba(145, 168, 188, 0.5) 55%, rgba(110, 134, 155, 0.85) 100%);
+      pointer-events: none;
+    }
+
+    @keyframes pulseRadar {
+      0% { transform: scale(0.75); opacity: 0.85; }
+      100% { transform: scale(1.65); opacity: 0; }
+    }
+    .radar-ring {
+      animation: pulseRadar 2.4s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#040b14] text-slate-100">
+  <!-- 通知トースト -->
+  <div id="toastContainer" class="fixed top-16 left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none px-4 w-full max-w-md"></div>
+
+  <!-- =========================================================
+       1. アニメーション背景付き メニュー＆合言葉ロビー画面
+       ========================================================= -->
+  <div id="lobbyScreen" class="fixed inset-0 z-50 overflow-y-auto bg-[#040b14]">
+    <!-- アニメーション海面＆レーダー背景キャンバス -->
+    <canvas id="lobbyBgCanvas" class="fixed inset-0 w-full h-full pointer-events-none"></canvas>
+
+    <!-- 背景の霧グラデーション -->
+    <div class="fixed inset-0 pointer-events-none bg-gradient-to-b from-[#040b14]/60 via-[#07192d]/45 to-[#030811]/90"></div>
+
+    <div class="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 min-h-screen flex flex-col justify-between gap-6">
+      <!-- ヘッダーロゴ＆ステータス -->
+      <header class="flex flex-wrap items-center justify-between gap-4">
+        <div class="flex items-center gap-3.5">
+          <div class="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-cyan-400/25 via-sky-500/15 to-indigo-600/25 border border-cyan-300/40 flex items-center justify-center shadow-lg shadow-cyan-950/60">
+            <span class="absolute inset-1 rounded-xl border border-cyan-400/30 radar-ring"></span>
+            <!-- コンパス＆波SVGアイコン -->
+            <svg class="w-7 h-7 sm:w-8 sm:h-8 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+              <circle cx="12" cy="12" r="9" />
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" fill="currentColor" fill-opacity="0.25" />
+              <circle cx="12" cy="12" r="1.5" fill="currentColor" />
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-[11px] font-bold tracking-widest uppercase px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/35 text-cyan-300">
+                2-PLAYER CO-OP 3D VOYAGE
+              </span>
+              <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/35 text-amber-300">
+                航路全長 2,400m
+              </span>
+            </div>
+            <h1 class="text-2xl sm:text-4xl font-black tracking-tight text-white mt-1 drop-shadow">
+              霧海のコンパス <span class="text-cyan-300 font-extrabold text-lg sm:text-2xl">MIST COMPASS</span>
+            </h1>
+          </div>
+        </div>
+
+        <!-- ボイスチャットクイックコントロール -->
+        <div class="glass-panel rounded-2xl px-3.5 py-2.5 flex items-center gap-3">
+          <div class="flex flex-col">
+            <span class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">VOICE LINK</span>
+            <span id="vcStatusLabel" class="text-xs font-bold text-slate-200">未接続（待機中）</span>
+          </div>
+          <!-- マイク音量メーター -->
+          <div class="w-16 h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700" title="マイク入力レベル">
+            <div id="vcLevelBar" class="h-full w-0 bg-gradient-to-r from-emerald-400 via-cyan-400 to-amber-400 transition-all duration-75"></div>
+          </div>
           <button
-            id="applyRoomBtn"
-            class="px-2 py-0.5 rounded bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 text-xs font-bold tactile-btn"
+            id="vcToggleMicBtn"
+            class="px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-400/40 tactile-btn flex items-center gap-1.5"
           >
-            接続
+            <span id="vcMicIcon">🎤</span>
+            <span id="vcMicText">マイクON</span>
+          </button>
+          <button
+            id="vcMuteBtn"
+            class="px-2.5 py-1.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/60 tactile-btn"
+            title="相手音声のミュート切替"
+          >
+            <span id="vcMuteIcon">🔊</span>
           </button>
         </div>
+      </header>
 
-        <div id="syncBadge" class="flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300">
-          <span class="w-2 h-2 rounded-full bg-cyan-400"></span>
-          <span id="syncText">待機中: SEA-01</span>
+      <!-- メインロビーグリッド -->
+      <main class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+        <!-- 左カラム：合言葉ルーム＆合流状況＆ボイスチャット詳細 -->
+        <section class="lg:col-span-5 glass-panel rounded-3xl p-5 flex flex-col justify-between gap-5">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                合言葉ルーム接続
+              </h2>
+              <span id="lobbyConnBadge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-slate-300">
+                ソロ待機中
+              </span>
+            </div>
+
+            <p class="text-xs text-slate-300 leading-relaxed">
+              同じブラウザの別タブ・別ウィンドウで同じ<strong class="text-cyan-300">合言葉</strong>を入力すると合流できます。音声通話（WebRTC）も同一ブラウザタブ間で接続可能です。
+            </p>
+
+            <!-- 合言葉入力 -->
+            <div class="flex gap-2">
+              <div class="relative flex-1">
+                <input
+                  id="lobbyRoomInput"
+                  type="text"
+                  value="MIST-77"
+                  maxlength="16"
+                  placeholder="合言葉を入力 (例: MIST-77)"
+                  class="w-full px-3.5 py-2.5 rounded-xl bg-slate-950/80 border border-cyan-400/35 focus:border-cyan-300 focus:outline-none text-sm font-extrabold tracking-wider text-cyan-200 uppercase"
+                />
+              </div>
+              <button
+                id="lobbyJoinBtn"
+                class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-sm shadow-lg shadow-cyan-500/20 tactile-btn"
+              >
+                合流する
+              </button>
+              <button
+                id="lobbyRandomCodeBtn"
+                class="px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600/70 font-bold text-xs tactile-btn"
+                title="ランダムな合言葉を生成"
+              >
+                🎲
+              </button>
+            </div>
+
+            <!-- 2人の合流・役割・準備完了ボード -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+              <!-- 自分のスロット -->
+              <div id="selfSlotCard" class="rounded-2xl p-3.5 bg-slate-900/80 border border-cyan-400/40 flex flex-col justify-between gap-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-cyan-300 uppercase tracking-wider">YOU (あなた)</span>
+                  <span id="selfReadyPill" class="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700">
+                    未準備
+                  </span>
+                </div>
+                <div>
+                  <div id="selfRoleText" class="text-sm font-extrabold text-white">🚢 操船役</div>
+                  <div class="text-[11px] text-slate-400 mt-0.5">右のカードから役割を選択</div>
+                </div>
+              </div>
+
+              <!-- パートナーのスロット -->
+              <div id="peerSlotCard" class="rounded-2xl p-3.5 bg-slate-900/60 border border-slate-700/80 flex flex-col justify-between gap-2.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">PARTNER (相棒)</span>
+                  <span id="peerReadyPill" class="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700">
+                    未接続
+                  </span>
+                </div>
+                <div>
+                  <div id="peerRoleText" class="text-sm font-bold text-slate-400">別タブで合言葉を入力待ち...</div>
+                  <div id="peerSubText" class="text-[11px] text-slate-500 mt-0.5">合流すると状態が同期されます</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ボイスチャット案内ボックス -->
+          <div class="rounded-2xl p-3.5 bg-indigo-950/35 border border-indigo-400/25 space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-extrabold text-indigo-200 flex items-center gap-1.5">
+                <span>🎧</span> クルー無線（ボイスチャット）
+              </span>
+              <span id="vcPeerState" class="text-[11px] font-bold text-indigo-300/80">音声回線: 待機中</span>
+            </div>
+            <p id="vcFallbackNote" class="text-[11px] text-slate-300/90 leading-relaxed">
+              「マイクON」を押すとマイクを許可して相手へ音声を送信します。マイクが使えない環境や別端末では、Discord等や声出しでの連携でも遊べます。
+            </p>
+          </div>
+        </section>
+
+        <!-- 右カラム：役割選択カード＆難易度選択カード -->
+        <section class="lg:col-span-7 glass-panel rounded-3xl p-5 flex flex-col justify-between gap-5">
+          <div class="space-y-5">
+            <!-- 役割選択 -->
+            <div class="space-y-2.5">
+              <div class="flex items-center justify-between">
+                <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                  <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+                  役割を選ぶ
+                </h2>
+                <span id="roleConflictWarning" class="hidden text-xs font-bold text-rose-300 bg-rose-950/70 border border-rose-400/40 px-2.5 py-0.5 rounded-full">
+                  ⚠ 相棒と同じ役割です（分担推奨）
+                </span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <!-- 操船役カード -->
+                <button
+                  id="cardRoleHelm"
+                  type="button"
+                  class="glass-card rounded-2xl p-4 text-left border-2 border-cyan-400 bg-cyan-950/45 shadow-lg shadow-cyan-950/40"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="w-11 h-11 rounded-xl bg-cyan-500/20 border border-cyan-300/40 flex items-center justify-center text-2xl">
+                      🚢
+                    </div>
+                    <span id="badgeRoleHelm" class="text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950">
+                      選択中
+                    </span>
+                  </div>
+                  <div class="mt-3">
+                    <div class="text-base font-black text-white">操船役（HELM）</div>
+                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                      3Dの極濃霧の海で船を操縦（<kbd class="px-1 py-0.5 rounded bg-slate-800 text-[10px]">WASD</kbd>/<kbd class="px-1 py-0.5 rounded bg-slate-800 text-[10px]">矢印</kbd>）。慣性を感じながらマップ役の声で針路を合わせます。
+                    </p>
+                  </div>
+                  <div id="holderHelmTag" class="mt-3 text-[11px] font-bold text-cyan-300"></div>
+                </button>
+
+                <!-- マップ役カード -->
+                <button
+                  id="cardRoleMap"
+                  type="button"
+                  class="glass-card rounded-2xl p-4 text-left border border-slate-700/80"
+                >
+                  <div class="flex items-start justify-between gap-2">
+                    <div class="w-11 h-11 rounded-xl bg-indigo-500/20 border border-indigo-300/40 flex items-center justify-center text-2xl">
+                      🧭
+                    </div>
+                    <span id="badgeRoleMap" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400">
+                      未選択
+                    </span>
+                  </div>
+                  <div class="mt-3">
+                    <div class="text-base font-black text-white">マップ役（RADAR / NAV）</div>
+                    <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                      2D海図を拡大・スクロールして岩礁・機雷・渦潮や3秒後の予測進路を把握。声で指示を出し「ソナー強調スキャン」で支援します。
+                    </p>
+                  </div>
+                  <div id="holderMapTag" class="mt-3 text-[11px] font-bold text-indigo-300"></div>
+                </button>
+              </div>
+            </div>
+
+            <!-- 難易度選択 -->
+            <div class="space-y-2.5">
+              <h2 class="text-base sm:text-lg font-extrabold text-white flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                難易度を選ぶ
+              </h2>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  id="diffEasyBtn"
+                  type="button"
+                  class="glass-card rounded-2xl p-3.5 text-left border border-slate-700/80"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-black text-emerald-300">初級（CALM）</span>
+                    <span class="text-[11px] font-bold text-slate-400">HP 140 / 300s</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 mt-1 leading-snug">
+                    障害物が控えめで慣性マイルド。連携の練習に最適。
+                  </p>
+                </button>
+
+                <button
+                  id="diffNormalBtn"
+                  type="button"
+                  class="glass-card rounded-2xl p-3.5 text-left border-2 border-cyan-400 bg-cyan-950/35"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-black text-cyan-300">標準（MIST）</span>
+                    <span class="text-[11px] font-bold text-slate-400">HP 100 / 240s</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 mt-1 leading-snug">
+                    奥へ進むほど危険が増す標準航路。声の連携が鍵。
+                  </p>
+                </button>
+
+                <button
+                  id="diffHardBtn"
+                  type="button"
+                  class="glass-card rounded-2xl p-3.5 text-left border border-slate-700/80"
+                >
+                  <div class="flex items-center justify-between">
+                    <span class="text-sm font-black text-rose-300">熟練（STORM）</span>
+                    <span class="text-[11px] font-bold text-slate-400">HP 80 / 200s</span>
+                  </div>
+                  <p class="text-[11px] text-slate-300 mt-1 leading-snug">
+                    高密度の機雷・渦潮・岩礁と強い慣性。精密な指示が必須。
+                  </p>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 準備完了＆スタートアクションバー -->
+          <div class="pt-3 border-t border-slate-800/90 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <button
+              id="lobbyReadyBtn"
+              type="button"
+              class="px-5 py-3 rounded-2xl font-extrabold text-sm bg-amber-500/20 hover:bg-amber-500/30 text-amber-200 border border-amber-400/50 tactile-btn flex items-center justify-center gap-2"
+            >
+              <span id="lobbyReadyIcon">☐</span>
+              <span id="lobbyReadyLabel">準備完了にする</span>
+            </button>
+
+            <div class="flex flex-col sm:items-end gap-1">
+              <button
+                id="lobbyStartBtn"
+                type="button"
+                disabled
+                class="px-7 py-3 rounded-2xl font-black text-sm sm:text-base bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 shadow-lg shadow-emerald-500/25 tactile-btn"
+              >
+                ⚓ 出航スタート！
+              </button>
+              <span id="startConditionHint" class="text-[11px] text-slate-400 text-center sm:text-right">
+                2人合流＆双方が「準備完了」で出航できます
+              </span>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <!-- フッター：障害物凡例 -->
+      <footer class="glass-panel rounded-2xl px-4 py-3 flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+        <div class="flex flex-wrap items-center gap-4">
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-stone-400 inline-block"></span> 岩礁（衝突でHP減）</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> 機雷（爆発・大ダメージ）</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full border-2 border-sky-400 inline-block"></span> 渦潮（引き込み＆HP減）</span>
+          <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span> ゴール灯台（北端 z = -1250m）</span>
+        </div>
+        <span class="text-[11px] text-cyan-300/90 font-semibold">終了後は「霧なしリプレイ」で全航路を振り返れます</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- =========================================================
+       2. ゲームプレイ画面（ヘッダー + 操船3Dビュー / マップ2Dビュー）
+       ========================================================= -->
+  <div id="gameScreen" class="hidden min-h-screen flex flex-col bg-[#050c16]">
+    <!-- トップバー -->
+    <header class="sticky top-0 z-30 bg-[#071322]/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5 flex-wrap">
+        <span class="font-black text-sm sm:text-base text-white tracking-tight">霧海のコンパス</span>
+        <span id="hudRoomBadge" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-cyan-500/15 border border-cyan-400/35 text-cyan-300">
+          ROOM: MIST-77
+        </span>
+        <span id="hudRoleBadge" class="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200">
+          🚢 操船役
+        </span>
+        <span id="hudDiffBadge" class="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-300">
+          標準
+        </span>
+      </div>
+
+      <!-- 航行テレメトリ（HP・残り時間・進捗） -->
+      <div class="flex items-center gap-3 sm:gap-5 flex-wrap">
+        <div class="flex items-center gap-2">
+          <span class="text-[11px] font-bold text-slate-400">船体HP</span>
+          <div class="w-24 sm:w-28 h-2.5 rounded-full bg-slate-800 overflow-hidden border border-slate-700">
+            <div id="hudHpBar" class="h-full w-full bg-gradient-to-r from-rose-500 via-amber-400 to-emerald-400 transition-all duration-150"></div>
+          </div>
+          <span id="hudHpText" class="text-xs font-extrabold text-emerald-300 w-12 text-right">100</span>
         </div>
 
-        <!-- 役割切替ボタン -->
-        <div class="flex items-center bg-slate-900/90 border border-slate-700 rounded-lg p-0.5 gap-0.5">
-          <button id="roleHelmBtn" class="role-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-slate-200 transition tactile-btn">
-            🚢 操船役
-          </button>
-          <button id="roleMapBtn" class="role-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-slate-200 transition tactile-btn">
-            🧭 マップ役
-          </button>
-          <button id="roleSplitBtn" class="role-btn px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500 text-slate-950 transition tactile-btn">
-            ⬜ 2画面同時
-          </button>
+        <div class="text-xs font-bold text-slate-200">
+          残り <span id="hudTimeText" class="font-mono font-extrabold text-amber-300">240.0s</span>
+        </div>
+
+        <div class="text-xs font-bold text-slate-200">
+          進捗 <span id="hudProgressText" class="font-mono font-extrabold text-cyan-300">0%</span>
+          <span class="text-[11px] text-slate-400 hidden sm:inline">(<span id="hudDistText">2400</span>m)</span>
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
+      <!-- 右側コントロール：VC・ロビー帰還・リスタート -->
+      <div class="flex items-center gap-1.5">
         <button
-        id="openMenuBtn"
-        class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-400/40 tactile-btn"
-      >
-        ☰ メニュー
-      </button>
-<!-- ... existing code ... -->
-    // --- BroadcastChannel 同期管理 ---
-    let channel = null;
-    let lastBroadcastTime = 0;
+          id="gameVcMuteBtn"
+          class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 tactile-btn"
+          title="音声ミュート切替"
+        >
+          🔊 VC
+        </button>
+        <button
+          id="gameBackLobbyBtn"
+          class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-400/40 tactile-btn"
+        >
+          🏠 ロビー
+        </button>
+        <button
+          id="gameRestartBtn"
+          class="px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-200 border border-cyan-400/40 tactile-btn"
+        >
+          ↻ 再出航
+        </button>
+      </div>
+    </header>
 
-    function broadcastPresence() {
+    <!-- メインビューエリア -->
+    <main class="flex-1 relative w-full max-w-[1600px] mx-auto p-2 sm:p-3 grid grid-cols-1 gap-3 min-h-[560px]">
+      <!-- 操船役 3Dビュー -->
+      <section id="helmViewSection" class="relative rounded-2xl overflow-hidden border border-cyan-500/30 bg-[#8faec8] min-h-[520px] flex flex-col justify-between">
+        <canvas id="helmCanvas" class="absolute inset-0 w-full h-full block"></canvas>
+        <!-- 極濃霧スクリーンベール -->
+        <div id="helmMistOverlay" class="absolute inset-0"></div>
+
+        <!-- 操船役 上部HUD -->
+        <div class="relative z-10 p-3 flex flex-wrap items-start justify-between gap-2 pointer-events-none">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-black bg-slate-900/80 text-amber-200 border border-amber-300/30 backdrop-blur-sm">
+              🌫 視界：極濃霧（約15〜20m先まで）
+            </span>
+            <span id="helmSonarAlert" class="hidden px-3 py-1 rounded-full text-xs font-black bg-cyan-500/90 text-slate-950 animate-pulse">
+              📡 マップ役がソナー強調スキャンを展開中！
+            </span>
+          </div>
+
+          <div class="px-3 py-1.5 rounded-xl bg-slate-900/80 border border-slate-700/80 text-xs font-mono text-cyan-200 backdrop-blur-sm">
+            針路 <span id="hudHeadingText" class="font-bold text-white">000°</span> |
+            速力 <span id="hudSpeedText" class="font-bold text-emerald-300">0.0kt</span>
+          </div>
+        </div>
+
+        <!-- イベントログ帯 -->
+        <div class="relative z-10 px-3 pointer-events-none">
+          <div id="eventBanner" class="mx-auto max-w-xl px-4 py-1.5 rounded-full text-center text-xs font-extrabold bg-slate-950/80 text-cyan-200 border border-cyan-400/30">
+            マップ役の指示を聞きながら北（ゴール灯台）を目指してください！
+          </div>
+        </div>
+
+        <!-- 操船役 下部操作パネル（タッチ＆キー案内） -->
+        <div class="relative z-10 p-3 flex flex-wrap items-end justify-between gap-3">
+          <div class="px-3 py-2 rounded-xl bg-slate-950/75 border border-slate-700/70 text-[11px] text-slate-200 backdrop-blur-sm hidden sm:block">
+            <span class="font-bold text-cyan-300">操船操作：</span>
+            W / ↑ 前進・増速 ｜ S / ↓ 後進・減速 ｜ A / ← 左旋回 ｜ D / 右旋回（慣性あり）
+          </div>
+
+          <!-- タッチ／クリック操船パッド -->
+          <div class="flex items-center gap-2 mx-auto sm:mx-0">
+            <button id="ctrlLeftBtn" type="button" class="w-12 h-12 rounded-2xl bg-slate-900/85 hover:bg-slate-800 border border-cyan-400/40 text-cyan-200 font-black text-lg tactile-btn shadow-lg">
+              ◀
+            </button>
+            <div class="flex flex-col gap-1.5">
+              <button id="ctrlFwdBtn" type="button" class="w-14 h-10 rounded-xl bg-slate-900/85 hover:bg-slate-800 border border-emerald-400/40 text-emerald-200 font-black text-xs tactile-btn shadow-lg">
+                ▲ 前進
+              </button>
+              <button id="ctrlBackBtn" type="button" class="w-14 h-10 rounded-xl bg-slate-900/85 hover:bg-slate-800 border border-amber-400/40 text-amber-200 font-black text-xs tactile-btn shadow-lg">
+                ▼ 後進
+              </button>
+            </div>
+            <button id="ctrlRightBtn" type="button" class="w-12 h-12 rounded-2xl bg-slate-900/85 hover:bg-slate-800 border border-cyan-400/40 text-cyan-200 font-black text-lg tactile-btn shadow-lg">
+              ▶
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- マップ役 2Dレーダー・海図ビュー -->
+      <section id="mapViewSection" class="relative rounded-2xl overflow-hidden border border-indigo-500/35 bg-[#061324] min-h-[520px] flex flex-col">
+        <!-- マップツールバー -->
+        <div class="z-10 px-3 py-2 bg-[#091a30]/95 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs font-black text-indigo-200">🧭 戦術海図（ドラッグ移動・ホイール拡大縮小）</span>
+            <span id="mapZoneDangerBadge" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300">
+              海域密度: 第1海域（序盤）
+            </span>
+          </div>
+
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <button id="mapZoomOutBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 tactile-btn">
+              － 拡大
+            </button>
+            <span id="mapZoomLabel" class="text-xs font-mono text-cyan-300 px-1">460m</span>
+            <button id="mapZoomInBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-600 tactile-btn">
+              ＋ 広域
+            </button>
+            <button id="mapFollowBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-cyan-500 text-slate-950 tactile-btn">
+              🎯 自船追従: ON
+            </button>
+            <button id="sonarScanBtn" type="button" class="px-3 py-1 rounded-lg text-xs font-black bg-gradient-to-r from-cyan-400 to-indigo-400 text-slate-950 shadow tactile-btn">
+              📡 ソナー強調スキャン
+            </button>
+          </div>
+        </div>
+
+        <!-- 2Dレーダーキャンバス -->
+        <div class="relative flex-1 w-full min-h-[450px]">
+          <canvas id="radarCanvas" class="w-full h-full block cursor-grab active:cursor-grabbing"></canvas>
+
+          <!-- 凡例＆予測ライン案内 -->
+          <div class="absolute bottom-3 left-3 z-10 rounded-xl bg-slate-950/85 border border-slate-700/80 px-3 py-2 text-[11px] text-slate-300 space-y-1 pointer-events-none">
+            <div class="font-bold text-cyan-300">破線＝3秒後の予測進路 ／ 赤枠＝接近危険エリア</div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <span><strong class="text-stone-300">●</strong> 岩礁</span>
+              <span><strong class="text-rose-400">◆</strong> 機雷</span>
+              <span><strong class="text-sky-400">◎</strong> 渦潮(移動/吸引)</span>
+              <span><strong class="text-emerald-400">★</strong> ゴール</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- =========================================================
+       3. ゲーム終了モーダル＆霧なしリプレイ再生コントロール
+       ========================================================= -->
+  <div id="endModal" class="hidden fixed inset-0 z-50 bg-slate-950/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="endModalCard" class="glass-panel rounded-3xl max-w-lg w-full p-6 space-y-5 border border-cyan-400/35">
+      <div class="text-center space-y-1.5">
+        <div id="endBadge" class="inline-block text-xs font-black px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
+          VOYAGE COMPLETE
+        </div>
+        <h2 id="endTitle" class="text-2xl sm:text-3xl font-black text-white">ゴール灯台に到達！</h2>
+        <p id="endSummary" class="text-xs sm:text-sm text-slate-300">
+          残りHP 80 / 航行タイム 142.3s
+        </p>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2.5 text-center">
+        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-3">
+          <div class="text-[11px] text-slate-400">残りHP</div>
+          <div id="statHp" class="text-lg font-black text-emerald-300 mt-0.5">80</div>
+        </div>
+        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-3">
+          <div class="text-[11px] text-slate-400">衝突回数</div>
+          <div id="statHits" class="text-lg font-black text-amber-300 mt-0.5">2</div>
+        </div>
+        <div class="rounded-2xl bg-slate-900/80 border border-slate-800 p-3">
+          <div class="text-[11px] text-slate-400">ソナー使用</div>
+          <div id="statSonars" class="text-lg font-black text-cyan-300 mt-0.5">5</div>
+        </div>
+      </div>
+
+      <div class="flex flex-col sm:flex-row gap-2.5">
+        <button
+          id="startReplayBtn"
+          type="button"
+          class="flex-1 py-3 px-4 rounded-2xl font-black text-sm bg-gradient-to-r from-amber-400 to-cyan-400 text-slate-950 shadow-lg tactile-btn"
+        >
+          🎬 霧なしリプレイ再生
+        </button>
+        <button
+          id="endRetryBtn"
+          type="button"
+          class="flex-1 py-3 px-4 rounded-2xl font-extrabold text-sm bg-slate-800 hover:bg-slate-700 text-white border border-slate-600 tactile-btn"
+        >
+          ↻ もう一度出航
+        </button>
+        <button
+          id="endLobbyBtn"
+          type="button"
+          class="py-3 px-4 rounded-2xl font-bold text-sm bg-indigo-950/70 hover:bg-indigo-900/70 text-indigo-200 border border-indigo-400/40 tactile-btn"
+        >
+          ロビーへ
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 霧なしリプレイ再生中のフローティングバー -->
+  <div id="replayBar" class="hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-50 glass-panel rounded-2xl px-4 py-3 w-[94%] max-w-2xl border border-amber-400/45 space-y-2">
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+      <span class="text-xs font-black text-amber-300 flex items-center gap-1.5">
+        <span>☀️</span> 霧なしリプレイ再生中（全航路・障害物クリア表示）
+      </span>
+      <span id="replayTimeLabel" class="text-xs font-mono font-bold text-cyan-200">0.0s / 0.0s</span>
+    </div>
+
+    <input id="replayScrubber" type="range" min="0" max="100" value="0" class="w-full accent-cyan-400 cursor-pointer" />
+
+    <div class="flex items-center justify-between gap-2 flex-wrap">
+      <div class="flex items-center gap-1.5">
+        <button id="replayPlayPauseBtn" type="button" class="px-3 py-1 rounded-xl text-xs font-black bg-cyan-400 text-slate-950 tactile-btn">
+          ⏸ 一時停止
+        </button>
+        <button data-speed="1" type="button" class="replay-spd-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/25 text-cyan-200 border border-cyan-400/40 tactile-btn">
+          1x
+        </button>
+        <button data-speed="2" type="button" class="replay-spd-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 tactile-btn">
+          2x
+        </button>
+        <button data-speed="4" type="button" class="replay-spd-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 tactile-btn">
+          4x
+        </button>
+      </div>
+
+      <button id="replayExitBtn" type="button" class="px-3 py-1 rounded-xl text-xs font-bold bg-rose-500/20 hover:bg-rose-500/30 text-rose-200 border border-rose-400/40 tactile-btn">
+        ✕ リプレイ終了
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // 1. 共通ワールド定数＆状態管理
+    // =========================================================================
+    const WORLD = {
+      START_X: 0,
+      START_Z: 1150,
+      GOAL_X: 0,
+      GOAL_Z: -1250,
+      GOAL_RADIUS: 75,
+      BOUND_X: 650,
+      NORTH_BOUND_Z: -1420,
+      SOUTH_BOUND_Z: 1320,
+      TOTAL_DISTANCE: 2400
+    };
+
+    const DIFFICULTIES = {
+      easy: {
+        label: '初級',
+        maxHp: 140,
+        timeLimit: 300,
+        thrust: 42,
+        reverseThrust: 24,
+        maxSpeed: 64,
+        turnRate: 1.55,
+        drag: 0.72,
+        obstacleCount: 95,
+        damageScale: 0.75
+      },
+      normal: {
+        label: '標準',
+        maxHp: 100,
+        timeLimit: 240,
+        thrust: 46,
+        reverseThrust: 26,
+        maxSpeed: 72,
+        turnRate: 1.42,
+        drag: 0.65,
+        obstacleCount: 150,
+        damageScale: 1.0
+      },
+      hard: {
+        label: '熟練',
+        maxHp: 80,
+        timeLimit: 200,
+        thrust: 50,
+        reverseThrust: 28,
+        maxSpeed: 80,
+        turnRate: 1.32,
+        drag: 0.58,
+        obstacleCount: 215,
+        damageScale: 1.35
+      }
+    };
+
+    const state = {
+      screen: 'lobby', // 'lobby' | 'playing' | 'ended' | 'replay'
+      roomId: 'MIST-77',
+      role: 'helm', // 'helm' | 'map'
+      difficulty: 'normal',
+      isReady: false,
+
+      // パートナー同期情報
+      peerConnected: false,
+      peerRole: null,
+      peerReady: false,
+      lastPeerHeartbeat: 0,
+
+      // 航行状態（共通ワールド座標: x, z, heading は北=-Zを0radとし時計回りに正）
+      ship: {
+        x: WORLD.START_X,
+        z: WORLD.START_Z,
+        heading: 0, // 0 = 北(-z)
+        vx: 0,
+        vz: 0,
+        angularVel: 0,
+        propAngle: 0,
+        radarBarAngle: 0,
+        invulnTimer: 0
+      },
+      hp: 100,
+      maxHp: 100,
+      timeLeft: 240,
+      elapsed: 0,
+      status: 'playing', // 'playing' | 'victory' | 'gameover' | 'timeout'
+      hitCount: 0,
+      sonarCount: 0,
+
+      // ソナー強調スキャン
+      sonar: {
+        activeTimer: 0,
+        activeDuration: 5.5,
+        cooldownLeft: 0,
+        cooldownTotal: 11.0,
+        pulseWave: 0
+      },
+
+      obstacles: [],
+      particles: [],
+      eventText: 'マップ役の指示を聞きながら北（ゴール灯台）を目指してください！',
+
+      // マップビュー操作状態
+      map: {
+        viewHalfSpan: 460, // 表示半幅（メートル）
+        panX: 0,
+        panZ: WORLD.START_Z - 260,
+        followShip: true,
+        dragging: false,
+        dragStartX: 0,
+        dragStartY: 0,
+        panStartX: 0,
+        panStartZ: 0
+      },
+
+      // リプレイ記録＆再生状態
+      replay: {
+        frames: [],
+        recordAccum: 0,
+        playing: false,
+        speed: 1,
+        time: 0,
+        duration: 0
+      }
+    };
+
+    // 入力状態
+    const keys = {
+      fwd: false,
+      back: false,
+      left: false,
+      right: false
+    };
+
+    // =========================================================================
+    // 2. UI ヘルパー＆トースト通知
+    // =========================================================================
+    function showToast(message, tone = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const el = document.createElement('div');
+      const toneClass =
+        tone === 'danger'
+          ? 'bg-rose-950/95 border-rose-400/60 text-rose-200'
+          : tone === 'success'
+            ? 'bg-emerald-950/95 border-emerald-400/60 text-emerald-200'
+            : 'bg-slate-900/95 border-cyan-400/50 text-cyan-100';
+      el.className = `px-4 py-2 rounded-2xl border text-xs font-extrabold shadow-xl backdrop-blur-md transition-opacity duration-300 ${toneClass}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        setTimeout(() => el.remove(), 320);
+      }, 2400);
+    }
+
+    function setEventBanner(text) {
+      state.eventText = text;
+      const banner = document.getElementById('eventBanner');
+      if (banner) banner.textContent = text;
+    }
+
+    // =========================================================================
+    // 3. 障害物生成（奥へ進むほど密度・パターンが増加）
+    // =========================================================================
+    function generateObstacles(difficultyKey) {
+      const cfg = DIFFICULTIES[difficultyKey] || DIFFICULTIES.normal;
+      const list = [];
+      const totalCount = cfg.obstacleCount;
+
+      // スタート付近（z > 960）は安全水域を確保
+      const minZ = WORLD.GOAL_Z + 90;
+      const maxZ = WORLD.START_Z - 190;
+
+      for (let i = 0; i < totalCount; i++) {
+        // 0（スタート付近）〜 1（ゴール付近）の進行度
+        const t = i / Math.max(1, totalCount - 1);
+        // 奥へ行くほど密になるバイアス
+        const progressBias = Math.pow(t, 0.85);
+        const z = maxZ - progressBias * (maxZ - minZ) + (Math.random() - 0.5) * 36;
+
+        // 進行度に応じて危険種別の出現率を変化
+        // 序盤は岩礁中心、中盤〜終盤は機雷・移動渦潮が増加
+        const r = Math.random();
+        let kind = 'rock';
+        if (progressBias < 0.25) {
+          kind = r < 0.72 ? 'rock' : r < 0.9 ? 'whirlpool' : 'mine';
+        } else if (progressBias < 0.65) {
+          kind = r < 0.45 ? 'rock' : r < 0.76 ? 'mine' : 'whirlpool';
+        } else {
+          kind = r < 0.32 ? 'rock' : r < 0.72 ? 'mine' : 'whirlpool';
+        }
+
+        // ゴール直線の完全封鎖を避けつつ、後半は左右に揺れるスラローム配置も混ぜる
+        const waveCenterX = Math.sin(z * 0.0055) * (120 + progressBias * 180);
+        let x = (Math.random() * 2 - 1) * (WORLD.BOUND_X - 90);
+        if (i % 4 === 0) {
+          x = waveCenterX + (Math.random() - 0.5) * 260;
+        }
+        x = Math.max(-WORLD.BOUND_X + 70, Math.min(WORLD.BOUND_X - 70, x));
+
+        // スタート直前センターライン付近は少し避ける
+        if (z > WORLD.START_Z - 260 && Math.abs(x) < 65) {
+          x += x >= 0 ? 95 : -95;
+        }
+
+        const radius =
+          kind === 'rock'
+            ? 24 + Math.random() * 24
+            : kind === 'mine'
+              ? 15 + Math.random() * 7
+              : 34 + Math.random() * 18;
+
+        const damage =
+          (kind === 'rock' ? 18 : kind === 'mine' ? 26 : 14) * cfg.damageScale;
+
+        const moving = kind === 'whirlpool' || (kind === 'mine' && progressBias > 0.45 && i % 3 === 0);
+        const moveAxis = i % 2 === 0 ? 'x' : 'z';
+        const moveAmp = kind === 'whirlpool' ? 28 + progressBias * 38 : 18 + progressBias * 24;
+        const moveSpeed = (0.7 + progressBias * 1.1) * (Math.random() < 0.5 ? 1 : -1);
+
+        list.push({
+          id: i,
+          kind,
+          x,
+          z,
+          baseX: x,
+          baseZ: z,
+          radius,
+          damage: Math.round(damage),
+          moving,
+          moveAxis,
+          moveAmp,
+          moveSpeed,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      return list;
+    }
+
+    // =========================================================================
+    // 4. BroadcastChannel 同期＆WebRTC ボイスチャット管理
+    // =========================================================================
+    let channel = null;
+    let peerConn = null;
+    let localStream = null;
+    let micEnabled = false;
+    let audioMuted = false;
+    let audioCtx = null;
+    let analyser = null;
+    let micDataArray = null;
+
+    function sendMsg(payload) {
       if (!channel) return;
-      channel.postMessage({
+      try {
+        channel.postMessage({
+          ...payload,
+          roomId: state.roomId,
+          senderRole: state.role
+        });
+      } catch (err) {
+        console.warn('BroadcastChannel send error:', err);
+      }
+    }
+
+    function sendPresence() {
+      sendMsg({
         type: 'presence',
         role: state.role,
         ready: state.isReady,
-        phase: state.phase
+        difficulty: state.difficulty,
+        screen: state.screen
       });
     }
 
-    function setupChannel() {
+    // WebRTC 音声ピア接続（同一オリジンBroadcastChannelシグナリング）
+    async function ensurePeerConnection() {
+      if (peerConn) return peerConn;
+      try {
+        const pc = new RTCPeerConnection({
+          iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+        });
+
+        pc.onicecandidate = (event) => {
+          if (event.candidate) {
+            sendMsg({ type: 'webrtc_ice', candidate: event.candidate });
+          }
+        };
+
+        pc.ontrack = (event) => {
+          let remoteAudio = document.getElementById('remoteVoiceAudio');
+          if (!remoteAudio) {
+            remoteAudio = document.createElement('audio');
+            remoteAudio.id = 'remoteVoiceAudio';
+            remoteAudio.autoplay = true;
+            remoteAudio.playsInline = true;
+            document.body.appendChild(remoteAudio);
+          }
+          remoteAudio.srcObject = event.streams[0];
+          remoteAudio.muted = audioMuted;
+          updateVoiceUI('接続中（通話OK）', true);
+        };
+
+        pc.onconnectionstatechange = () => {
+          if (pc.connectionState === 'connected') {
+            updateVoiceUI('接続中（通話OK）', true);
+          } else if (pc.connectionState === 'disconnected' || pc.connectionState === 'failed') {
+            updateVoiceUI('再接続待機中', false);
+          }
+        };
+
+        if (localStream) {
+          localStream.getTracks().forEach((track) => {
+            pc.addTrack(track, localStream);
+          });
+        }
+
+        peerConn = pc;
+        return pc;
+      } catch (err) {
+        console.warn('WebRTC init failed:', err);
+        return null;
+      }
+    }
+
+    async function startVoiceOffer() {
+      const pc = await ensurePeerConnection();
+      if (!pc) return;
+      try {
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        sendMsg({ type: 'webrtc_offer', sdp: pc.localDescription });
+      } catch (err) {
+        console.warn('Offer error:', err);
+      }
+    }
+
+    async function toggleMicrophone() {
+      if (micEnabled) {
+        if (localStream) {
+          localStream.getTracks().forEach((t) => t.stop());
+          localStream = null;
+        }
+        micEnabled = false;
+        document.getElementById('vcMicIcon').textContent = '🎤';
+        document.getElementById('vcMicText').textContent = 'マイクON';
+        updateVoiceUI('マイク停止中', false);
+        showToast('マイクをオフにしました', 'info');
+        return;
+      }
+
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        showToast('このブラウザではマイクAPIが利用できません（外部VC等をご利用ください）', 'danger');
+        return;
+      }
+
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        micEnabled = true;
+        document.getElementById('vcMicIcon').textContent = '🎙️';
+        document.getElementById('vcMicText').textContent = 'マイク中';
+
+        // 音量メーターセットアップ
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+          audioCtx = new AudioContextClass();
+          const source = audioCtx.createMediaStreamSource(localStream);
+          analyser = audioCtx.createAnalyser();
+          analyser.fftSize = 256;
+          source.connect(analyser);
+          micDataArray = new Uint8Array(analyser.frequencyBinCount);
+        }
+
+        const pc = await ensurePeerConnection();
+        if (pc) {
+          localStream.getTracks().forEach((track) => {
+            const already = pc.getSenders().some((s) => s.track === track);
+            if (!already) pc.addTrack(track, localStream);
+          });
+          await startVoiceOffer();
+        }
+
+        updateVoiceUI('送信中（相手待機）', true);
+        showToast('マイクをオンにしました！', 'success');
+      } catch (err) {
+        micEnabled = false;
+        updateVoiceUI('マイク未許可／利用不可', false);
+        showToast('マイクが許可されなかったか利用できません。声出しや別VCでも遊べます。', 'danger');
+      }
+    }
+
+    function toggleMuteAudio() {
+      audioMuted = !audioMuted;
+      const remoteAudio = document.getElementById('remoteVoiceAudio');
+      if (remoteAudio) remoteAudio.muted = audioMuted;
+      document.getElementById('vcMuteIcon').textContent = audioMuted ? '🔇' : '🔊';
+      const gameMuteBtn = document.getElementById('gameVcMuteBtn');
+      if (gameMuteBtn) gameMuteBtn.textContent = audioMuted ? '🔇 ミュート中' : '🔊 VC';
+      showToast(audioMuted ? '相手音声をミュートしました' : '相手音声をオンにしました', 'info');
+    }
+
+    function updateVoiceUI(statusText, active) {
+      const label = document.getElementById('vcStatusLabel');
+      const peerState = document.getElementById('vcPeerState');
+      if (label) {
+        label.textContent = statusText;
+        label.className = active ? 'text-xs font-bold text-emerald-300' : 'text-xs font-bold text-slate-300';
+      }
+      if (peerState) {
+        peerState.textContent = `音声回線: ${statusText}`;
+      }
+    }
+
+    function cleanupPeerConnection() {
+      if (peerConn) {
+        peerConn.close();
+        peerConn = null;
+      }
+    }
+
+    function setupRoomChannel(roomCode) {
+      const cleanCode = (roomCode || 'MIST-77').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '') || 'MIST-77';
+      state.roomId = cleanCode;
+      document.getElementById('lobbyRoomInput').value = cleanCode;
+      document.getElementById('hudRoomBadge').textContent = `ROOM: ${cleanCode}`;
+
+      cleanupPeerConnection();
       if (channel) {
         channel.close();
       }
-      const roomName = `mist-compass-${state.roomId}`;
-      channel = new BroadcastChannel(roomName);
-      channel.onmessage = (event) => {
+
+      channel = new BroadcastChannel(`mist-compass-v2-${cleanCode}`);
+      channel.onmessage = async (event) => {
         const msg = event.data;
         if (!msg || typeof msg !== 'object') return;
+        if (msg.roomId && msg.roomId !== state.roomId) return;
+
         state.peerConnected = true;
         state.lastPeerHeartbeat = performance.now();
 
         if (msg.type === 'presence') {
-          if (msg.role) state.peerRole = msg.role;
+          state.peerRole = msg.role || null;
           state.peerReady = Boolean(msg.ready);
-          syncLobbyUI();
-          updateSyncBadge();
-        } else if (msg.type === 'state_sync') {
-          if (msg.role) state.peerRole = msg.role;
-          if (typeof msg.peerReady === 'boolean') state.peerReady = msg.peerReady;
-          // マップ役ビューまたは同期受信側が最新状態を反映
-          if (state.role !== 'helm') {
-            state.ship = { ...state.ship, ...msg.ship };
-            state.hp = msg.hp;
-            state.timeLeft = msg.timeLeft;
-            state.elapsed = msg.elapsed;
-            state.status = msg.status;
-            state.sonar = { ...state.sonar, ...msg.sonar };
-            state.lastEventText = msg.lastEventText;
-            state.lastEventTone = msg.lastEventTone;
-            if (Array.isArray(msg.obstacles)) {
-              state.obstacles = msg.obstacles;
-            }
-            syncEndModal();
+          if (msg.difficulty && state.screen === 'lobby') {
+            // 相棒が難易度を変えたら通知
           }
-          syncLobbyUI();
-        } else if (msg.type === 'start_game') {
-          startMatchInternal(false);
-        } else if (msg.type === 'sonar_trigger') {
-          if (state.sonar.cooldownLeft <= 0 && state.status === 'playing') {
-            activateSonarInternal(false);
-          }
-        } else if (msg.type === 'reset_game') {
-          resetGameInternal(false, Boolean(msg.returnToLobby));
+          refreshLobbyUI();
         } else if (msg.type === 'ping') {
-          if (msg.role) state.peerRole = msg.role;
-          channel.postMessage({
+          state.peerRole = msg.role || null;
+          state.peerReady = Boolean(msg.ready);
+          sendMsg({
             type: 'pong',
             role: state.role,
             ready: state.isReady,
-            phase: state.phase
+            difficulty: state.difficulty,
+            screen: state.screen
           });
-          syncLobbyUI();
+          refreshLobbyUI();
         } else if (msg.type === 'pong') {
-          if (msg.role) state.peerRole = msg.role;
-          if (typeof msg.ready === 'boolean') state.peerReady = msg.ready;
-          syncLobbyUI();
+          state.peerRole = msg.role || null;
+          state.peerReady = Boolean(msg.ready);
+          refreshLobbyUI();
+        } else if (msg.type === 'start_voyage') {
+          if (msg.difficulty) {
+            state.difficulty = msg.difficulty;
+          }
+          if (Array.isArray(msg.obstacles) && state.role !== 'helm') {
+            state.obstacles = msg.obstacles;
+          }
+          beginVoyageInternal(false);
+        } else if (msg.type === 'state_sync') {
+          if (state.role !== 'helm' && msg.ship) {
+            state.ship = { ...state.ship, ...msg.ship };
+            state.hp = msg.hp;
+            state.maxHp = msg.maxHp || state.maxHp;
+            state.timeLeft = msg.timeLeft;
+            state.elapsed = msg.elapsed;
+            state.status = msg.status;
+            state.hitCount = msg.hitCount ?? state.hitCount;
+            state.sonarCount = msg.sonarCount ?? state.sonarCount;
+            if (msg.sonar) state.sonar = { ...state.sonar, ...msg.sonar };
+            if (msg.eventText) setEventBanner(msg.eventText);
+            if (Array.isArray(msg.obstacles)) state.obstacles = msg.obstacles;
+            if (Array.isArray(msg.replayFrames)) state.replay.frames = msg.replayFrames;
+
+            if (msg.status !== 'playing' && state.screen === 'playing') {
+              finishVoyageUI();
+            }
+          }
+        } else if (msg.type === 'sonar_request') {
+          if (state.sonar.cooldownLeft <= 0 && state.status === 'playing') {
+            triggerSonarScanInternal(false);
+          }
+        } else if (msg.type === 'reset_voyage') {
+          if (msg.difficulty) state.difficulty = msg.difficulty;
+          if (Array.isArray(msg.obstacles) && state.role !== 'helm') {
+            state.obstacles = msg.obstacles;
+          }
+          beginVoyageInternal(false);
+        } else if (msg.type === 'return_lobby') {
+          returnToLobbyInternal(false);
+        } else if (msg.type === 'webrtc_offer' && msg.sdp) {
+          const pc = await ensurePeerConnection();
+          if (pc) {
+            await pc.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+            const answer = await pc.createAnswer();
+            await pc.setLocalDescription(answer);
+            sendMsg({ type: 'webrtc_answer', sdp: pc.localDescription });
+          }
+        } else if (msg.type === 'webrtc_answer' && msg.sdp) {
+          if (peerConn) {
+            await peerConn.setRemoteDescription(new RTCSessionDescription(msg.sdp));
+          }
+        } else if (msg.type === 'webrtc_ice' && msg.candidate) {
+          if (peerConn) {
+            try {
+              await peerConn.addIceCandidate(new RTCIceCandidate(msg.candidate));
+            } catch (e) {
+              // ignore duplicate candidate
+            }
+          }
         }
       };
-      channel.postMessage({
+
+      sendMsg({
         type: 'ping',
         role: state.role,
         ready: state.isReady,
-        phase: state.phase
+        difficulty: state.difficulty,
+        screen: state.screen
       });
-      broadcastPresence();
-      updateSyncBadge();
+      refreshLobbyUI();
+      showToast(`合言葉「${cleanCode}」に接続しました`, 'info');
     }
 
-    function broadcastState() {
-      if (!channel) return;
-      channel.postMessage({
-        type: 'state_sync',
-        role: state.role,
-        peerReady: state.isReady,
-        ship: state.ship,
-        hp: state.hp,
-        timeLeft: state.timeLeft,
-        elapsed: state.elapsed,
-        status: state.status,
-        sonar: state.sonar,
-        lastEventText: state.lastEventText,
-        lastEventTone: state.lastEventTone,
-        obstacles: state.obstacles
-      });
+    // =========================================================================
+    // 5. ロビー＆画面切替ロジック
+    // =========================================================================
+    function canStartVoyage() {
+      // 2人合流しており、かつ自分と相棒の両方が準備完了なら出航可能
+      // ※ローカル1タブ単体動作確認もできるように、相棒未接続でも自分が準備完了なら「ソロテスト出航」を許可するか？
+      // 要件：「二人で開始ボタンをおしたらスタートするようにして」に合わせて、原則2人合流＆双方Readyを必須としつつ、
+      // もし相棒が未接続の場合は案内を出す。
+      return state.peerConnected && state.isReady && state.peerReady;
     }
-<!-- ... existing code ... -->
-      const badge = document.getElementById('syncBadge');
-      const text = document.getElementById('syncText');
-      if (!badge || !text) return;
-      if (performance.now() - state.lastPeerHeartbeat > 4500) {
+
+    function refreshLobbyUI() {
+      // ハートビートタイムアウト判定（5秒無応答で切断扱い）
+      if (state.peerConnected && performance.now() - state.lastPeerHeartbeat > 5000) {
         state.peerConnected = false;
+        state.peerReady = false;
+        state.peerRole = null;
       }
-      if (state.role === 'split') {
-        badge.className =
-          'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-300';
-        text.textContent = `${state.roomId} (2画面)`;
-      } else if (state.peerConnected) {
-        badge.className =
-          'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-emerald-950/80 border border-emerald-400/50 text-emerald-300';
-        text.textContent = `合流中 (${state.roomId})`;
-      } else {
-        badge.className =
-          'flex items-center gap-1.5 text-[11px] px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-700 text-slate-300';
-        text.textContent = `待機中: ${state.roomId}`;
+
+      const connBadge = document.getElementById('lobbyConnBadge');
+      if (connBadge) {
+        if (state.peerConnected) {
+          connBadge.textContent = '✓ 相棒と合流中';
+          connBadge.className = 'text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300';
+        } else {
+          connBadge.textContent = '相棒の合流待ち';
+          connBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-slate-300';
+        }
+      }
+
+      // 自分のスロット表示
+      const selfRoleText = document.getElementById('selfRoleText');
+      const selfReadyPill = document.getElementById('selfReadyPill');
+      if (selfRoleText) {
+        selfRoleText.textContent = state.role === 'helm' ? '🚢 操船役（3D操舵）' : '🧭 マップ役（2D海図・索敵）';
+      }
+      if (selfReadyPill) {
+        selfReadyPill.textContent = state.isReady ? '準備完了 ✓' : '未準備';
+        selfReadyPill.className = state.isReady
+          ? 'text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-400/50'
+          : 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700';
+      }
+
+      // パートナーのスロット表示
+      const peerRoleText = document.getElementById('peerRoleText');
+      const peerSubText = document.getElementById('peerSubText');
+      const peerReadyPill = document.getElementById('peerReadyPill');
+      if (peerRoleText && peerSubText && peerReadyPill) {
+        if (state.peerConnected) {
+          peerRoleText.textContent =
+            state.peerRole === 'helm'
+              ? '🚢 操船役（3D操舵）'
+              : state.peerRole === 'map'
+                ? '🧭 マップ役（2D海図・索敵）'
+                : '役割選択中...';
+          peerSubText.textContent = `ルーム「${state.roomId}」で接続中`;
+          peerReadyPill.textContent = state.peerReady ? '準備完了 ✓' : '準備中...';
+          peerReadyPill.className = state.peerReady
+            ? 'text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-400/50'
+            : 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-400/40';
+        } else {
+          peerRoleText.textContent = '別タブで合言葉を入力待ち...';
+          peerSubText.textContent = `同じ合言葉「${state.roomId}」で開いてください`;
+          peerReadyPill.textContent = '未接続';
+          peerReadyPill.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700';
+        }
+      }
+
+      // 役割カードのハイライト＆重複警告
+      const helmCard = document.getElementById('cardRoleHelm');
+      const mapCard = document.getElementById('cardRoleMap');
+      const helmBadge = document.getElementById('badgeRoleHelm');
+      const mapBadge = document.getElementById('badgeRoleMap');
+      const holderHelm = document.getElementById('holderHelmTag');
+      const holderMap = document.getElementById('holderMapTag');
+      const conflictWarn = document.getElementById('roleConflictWarning');
+
+      const isHelm = state.role === 'helm';
+      if (helmCard && mapCard) {
+        helmCard.className = isHelm
+          ? 'glass-card rounded-2xl p-4 text-left border-2 border-cyan-400 bg-cyan-950/45 shadow-lg shadow-cyan-950/40'
+          : 'glass-card rounded-2xl p-4 text-left border border-slate-700/80';
+        mapCard.className = !isHelm
+          ? 'glass-card rounded-2xl p-4 text-left border-2 border-indigo-400 bg-indigo-950/45 shadow-lg shadow-indigo-950/40'
+          : 'glass-card rounded-2xl p-4 text-left border border-slate-700/80';
+      }
+      if (helmBadge && mapBadge) {
+        helmBadge.textContent = isHelm ? '選択中' : '未選択';
+        helmBadge.className = isHelm
+          ? 'text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-cyan-400 text-slate-950'
+          : 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
+        mapBadge.textContent = !isHelm ? '選択中' : '未選択';
+        mapBadge.className = !isHelm
+          ? 'text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-400 text-slate-950'
+          : 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-400';
+      }
+
+      if (holderHelm) {
+        const tags = [];
+        if (state.role === 'helm') tags.push('あなた');
+        if (state.peerConnected && state.peerRole === 'helm') tags.push('相棒');
+        holderHelm.textContent = tags.length ? `担当：${tags.join('・')}` : '';
+      }
+      if (holderMap) {
+        const tags = [];
+        if (state.role === 'map') tags.push('あなた');
+        if (state.peerConnected && state.peerRole === 'map') tags.push('相棒');
+        holderMap.textContent = tags.length ? `担当：${tags.join('・')}` : '';
+      }
+
+      if (conflictWarn) {
+        const sameRole = state.peerConnected && state.peerRole && state.peerRole === state.role;
+        conflictWarn.classList.toggle('hidden', !sameRole);
+      }
+
+      // 難易度カードハイライト
+      ['easy', 'normal', 'hard'].forEach((d) => {
+        const btn = document.getElementById(`diff${d.charAt(0).toUpperCase() + d.slice(1)}Btn`);
+        if (!btn) return;
+        const selected = state.difficulty === d;
+        btn.className = selected
+          ? 'glass-card rounded-2xl p-3.5 text-left border-2 border-cyan-400 bg-cyan-950/35'
+          : 'glass-card rounded-2xl p-3.5 text-left border border-slate-700/80';
+      });
+
+      // 準備ボタン表示
+      const readyIcon = document.getElementById('lobbyReadyIcon');
+      const readyLabel = document.getElementById('lobbyReadyLabel');
+      if (readyIcon && readyLabel) {
+        readyIcon.textContent = state.isReady ? '☑' : '☐';
+        readyLabel.textContent = state.isReady ? '準備完了を解除' : '準備完了にする';
+      }
+
+      // 出航スタートボタン有効化判定
+      const startBtn = document.getElementById('lobbyStartBtn');
+      const startHint = document.getElementById('startConditionHint');
+      const readyToLaunch = canStartVoyage();
+      if (startBtn) {
+        startBtn.disabled = !readyToLaunch;
+      }
+      if (startHint) {
+        if (!state.peerConnected) {
+          startHint.textContent = '別タブ・別ウィンドウで同じ合言葉を入力して2人合流してください';
+        } else if (!state.isReady || !state.peerReady) {
+          startHint.textContent = '2人とも「準備完了」を押すと出航スタートできます';
+        } else {
+          startHint.textContent = '✓ 全員準備完了！出航スタートを押してください';
+        }
       }
     }
 
-    function applyRoleLayout(role) {
+    function applyRoleView(role) {
       state.role = role;
-      const helmPane = document.getElementById('helmPane');
-      const mapPane = document.getElementById('mapPane');
-      const mainContainer = document.getElementById('mainContainer');
-      const roleHelmBtn = document.getElementById('roleHelmBtn');
-      const roleMapBtn = document.getElementById('roleMapBtn');
-      const roleSplitBtn = document.getElementById('roleSplitBtn');
-
-      document.querySelectorAll('.role-btn').forEach((btn) => {
-        btn.className = 'role-btn px-2.5 py-1 rounded-md text-xs font-bold text-slate-400 hover:text-slate-200 transition tactile-btn';
-      });
-
-      const pickHelm = document.getElementById('lobbyPickHelmBtn');
-      const pickMap = document.getElementById('lobbyPickMapBtn');
-      const pickSplit = document.getElementById('lobbyPickSplitBtn');
-      if (pickHelm && pickMap && pickSplit) {
-        pickHelm.className = 'p-3 rounded-xl border text-left transition tactile-btn bg-slate-900/80 border-slate-700 hover:border-cyan-400/60';
-        pickMap.className = 'p-3 rounded-xl border text-left transition tactile-btn bg-slate-900/80 border-slate-700 hover:border-indigo-400/60';
-        pickSplit.className = 'p-3 rounded-xl border text-left transition tactile-btn bg-slate-900/80 border-slate-700 hover:border-emerald-400/60';
-      }
+      const helmSec = document.getElementById('helmViewSection');
+      const mapSec = document.getElementById('mapViewSection');
+      const roleBadge = document.getElementById('hudRoleBadge');
 
       if (role === 'helm') {
-        if (roleHelmBtn) roleHelmBtn.className = 'role-btn px-2.5 py-1 rounded-md text-xs font-bold bg-cyan-500 text-slate-950 transition tactile-btn';
-        if (pickHelm) pickHelm.className = 'p-3 rounded-xl border-2 text-left transition tactile-btn bg-cyan-950/60 border-cyan-400 shadow-lg';
-        mainContainer.className =
-          'flex-1 relative max-w-[1600px] w-full mx-auto p-2 sm:p-3 grid grid-cols-1 gap-3 min-h-[540px]';
-        helmPane.classList.remove('hidden');
-        mapPane.classList.add('hidden');
-      } else if (role === 'map') {
-        if (roleMapBtn) roleMapBtn.className = 'role-btn px-2.5 py-1 rounded-md text-xs font-bold bg-indigo-500 text-white transition tactile-btn';
-        if (pickMap) pickMap.className = 'p-3 rounded-xl border-2 text-left transition tactile-btn bg-indigo-950/60 border-indigo-400 shadow-lg';
-        mainContainer.className =
-          'flex-1 relative max-w-[1600px] w-full mx-auto p-2 sm:p-3 grid grid-cols-1 gap-3 min-h-[540px]';
-        helmPane.classList.add('hidden');
-        mapPane.classList.remove('hidden');
+        helmSec.classList.remove('hidden');
+        mapSec.classList.add('hidden');
+        if (roleBadge) {
+          roleBadge.textContent = '🚢 操船役（3D）';
+          roleBadge.className = 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-cyan-500/20 border border-cyan-400/40 text-cyan-200';
+        }
       } else {
-        if (roleSplitBtn) roleSplitBtn.className = 'role-btn px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-500 text-slate-950 transition tactile-btn';
-        if (pickSplit) pickSplit.className = 'p-3 rounded-xl border-2 text-left transition tactile-btn bg-emerald-950/60 border-emerald-400 shadow-lg';
-        mainContainer.className =
-          'flex-1 relative max-w-[1600px] w-full mx-auto p-2 sm:p-3 grid grid-cols-1 lg:grid-cols-2 gap-3 min-h-[540px]';
-        helmPane.classList.remove('hidden');
-        mapPane.classList.remove('hidden');
+        helmSec.classList.add('hidden');
+        mapSec.classList.remove('hidden');
+        if (roleBadge) {
+          roleBadge.textContent = '🧭 マップ役（2D海図）';
+          roleBadge.className = 'text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-indigo-500/20 border border-indigo-400/40 text-indigo-200';
+        }
       }
 
+      refreshLobbyUI();
+      sendPresence();
       setTimeout(() => {
-        resizeThreeJS();
+        resizeHelmCanvas();
         resizeRadarCanvas();
-      }, 40);
-
-      syncLobbyUI();
-      broadcastPresence();
+      }, 30);
     }
-<!-- ... existing code ... -->
-    document.getElementById('applyRoomBtn')?.addEventListener('click', () => {
-      joinRoomWithId(document.getElementById('roomIdInput').value);
-    });
 
-    document.getElementById('lobbyJoinBtn')?.addEventListener('click', () => {
-      joinRoomWithId(document.getElementById('lobbyRoomInput').value);
-    });
+    function beginVoyageInternal(broadcast) {
+      const cfg = DIFFICULTIES[state.difficulty] || DIFFICULTIES.normal;
 
-    document.getElementById('openMenuBtn')?.addEventListener('click', () => {
-      state.phase = 'lobby';
-      document.getElementById('lobbyRoomInput').value = state.roomId;
-      syncLobbyUI();
-      broadcastPresence();
-    });
-
-    document.getElementById('closeLobbyBtn')?.addEventListener('click', () => {
-      state.phase = 'playing';
-      syncLobbyUI();
-    });
-
-    document.getElementById('lobbyPickHelmBtn')?.addEventListener('click', () => applyRoleLayout('helm'));
-    document.getElementById('lobbyPickMapBtn')?.addEventListener('click', () => applyRoleLayout('map'));
-    document.getElementById('lobbyPickSplitBtn')?.addEventListener('click', () => applyRoleLayout('split'));
-
-    document.getElementById('toggleReadyBtn')?.addEventListener('click', () => {
-      state.isReady = !state.isReady;
-      syncLobbyUI();
-      broadcastPresence();
-      showToast(state.isReady ? '✓ 準備完了にしました' : '準備を解除しました', 'info');
-    });
-
-    document.getElementById('startGameBtn')?.addEventListener('click', () => {
-      if (!canStartGameNow()) {
-        showToast('まず「準備完了」を押してください', 'info');
-        return;
+      // 操船側（またはブロードキャスト元）が障害物を生成して共有
+      if (broadcast || state.obstacles.length === 0) {
+        state.obstacles = generateObstacles(state.difficulty);
       }
-      startMatchInternal(true);
+
+      state.ship = {
+        x: WORLD.START_X,
+        z: WORLD.START_Z,
+        heading: 0,
+        vx: 0,
+        vz: 0,
+        angularVel: 0,
+        propAngle: 0,
+        radarBarAngle: 0,
+        invulnTimer: 0
+      };
+
+      state.hp = cfg.maxHp;
+      state.maxHp = cfg.maxHp;
+      state.timeLeft = cfg.timeLimit;
+      state.elapsed = 0;
+      state.status = 'playing';
+      state.hitCount = 0;
+      state.sonarCount = 0;
+      state.particles = [];
+
+      state.sonar.activeTimer = 0;
+      state.sonar.cooldownLeft = 0;
+      state.sonar.pulseWave = 0;
+
+      state.map.followShip = true;
+      state.map.panX = WORLD.START_X;
+      state.map.panZ = WORLD.START_Z - 220;
+
+      state.replay.frames = [];
+      state.replay.recordAccum = 0;
+      state.replay.playing = false;
+      state.replay.time = 0;
+      state.replay.duration = 0;
+
+      state.screen = 'playing';
+      document.getElementById('lobbyScreen').classList.add('hidden');
+      document.getElementById('gameScreen').classList.remove('hidden');
+      document.getElementById('endModal').classList.add('hidden');
+      document.getElementById('replayBar').classList.add('hidden');
+
+      const diffBadge = document.getElementById('hudDiffBadge');
+      if (diffBadge) diffBadge.textContent = cfg.label;
+
+      setEventBanner('出航！濃霧の中、マップ役の指示を頼りに北のゴール灯台を目指しましょう。');
+      applyRoleView(state.role);
+
+      if (broadcast) {
+        sendMsg({
+          type: 'start_voyage',
+          difficulty: state.difficulty,
+          obstacles: state.obstacles
+        });
+      }
+    }
+
+    function returnToLobbyInternal(broadcast) {
+      state.screen = 'lobby';
+      state.isReady = false;
+      state.replay.playing = false;
+      document.getElementById('replayBar').classList.add('hidden');
+      document.getElementById('endModal').classList.add('hidden');
+      document.getElementById('gameScreen').classList.add('hidden');
+      document.getElementById('lobbyScreen').classList.remove('hidden');
+      refreshLobbyUI();
+      if (broadcast) {
+        sendMsg({ type: 'return_lobby' });
+      }
+      sendPresence();
+    }
+
+    // =========================================================================
+    // 6. ソナー強調スキャン＆シミュレーション更新
+    // =========================================================================
+    function triggerSonarScanInternal(broadcast) {
+      if (state.sonar.cooldownLeft > 0 || state.status !== 'playing') return;
+      state.sonar.activeTimer = state.sonar.activeDuration;
+      state.sonar.cooldownLeft = state.sonar.cooldownTotal;
+      state.sonar.pulseWave = 0.05;
+      state.sonarCount += 1;
+
+      setEventBanner('📡 ソナー強調スキャン発動！周囲の障害物エコーを強調表示中！');
+      showToast('📡 ソナー強調スキャンを展開しました！', 'success');
+
+      if (broadcast) {
+        sendMsg({ type: 'sonar_request' });
+      }
+    }
+
+    function spawnSplash(x, z, count, color = 0xe0f2fe) {
+      for (let i = 0; i < count; i++) {
+        const ang = Math.random() * Math.PI * 2;
+        const spd = 6 + Math.random() * 18;
+        state.particles.push({
+          x,
+          y: 1.5,
+          z,
+          vx: Math.cos(ang) * spd,
+          vy: 5 + Math.random() * 12,
+          vz: Math.sin(ang) * spd,
+          life: 0.55 + Math.random() * 0.45,
+          maxLife: 1.0,
+          color
+        });
+      }
+    }
+
+    function recordReplayFrame() {
+      state.replay.frames.push({
+        t: state.elapsed,
+        x: state.ship.x,
+        z: state.ship.z,
+        heading: state.ship.heading,
+        hp: state.hp,
+        sonarActive: state.sonar.activeTimer > 0
+      });
+    }
+
+    function finishVoyageUI() {
+      state.screen = 'ended';
+      const modal = document.getElementById('endModal');
+      const badge = document.getElementById('endBadge');
+      const title = document.getElementById('endTitle');
+      const summary = document.getElementById('endSummary');
+
+      if (state.status === 'victory') {
+        badge.textContent = 'VOYAGE CLEAR';
+        badge.className = 'inline-block text-xs font-black px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
+        title.textContent = '🎉 ゴール灯台に到達！航行成功';
+        summary.textContent = `残りHP ${Math.ceil(state.hp)} / ${state.maxHp} ｜ 突破タイム ${state.elapsed.toFixed(1)}s`;
+      } else if (state.status === 'gameover') {
+        badge.textContent = 'HULL DESTROYED';
+        badge.className = 'inline-block text-xs font-black px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-400/40';
+        title.textContent = '💥 船体HPが0になりました';
+        summary.textContent = `到達距離 ${Math.max(0, Math.round(WORLD.START_Z - state.ship.z))}m / ${WORLD.TOTAL_DISTANCE}m`;
+      } else {
+        badge.textContent = 'TIME UP';
+        badge.className = 'inline-block text-xs font-black px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/40';
+        title.textContent = '⏱ 制限時間切れ';
+        summary.textContent = `到達距離 ${Math.max(0, Math.round(WORLD.START_Z - state.ship.z))}m / ${WORLD.TOTAL_DISTANCE}m`;
+      }
+
+      document.getElementById('statHp').textContent = `${Math.max(0, Math.ceil(state.hp))}`;
+      document.getElementById('statHits').textContent = `${state.hitCount}`;
+      document.getElementById('statSonars').textContent = `${state.sonarCount}`;
+
+      modal.classList.remove('hidden');
+    }
+
+    function stepSimulation(dt) {
+      // 移動する障害物の更新（プレイ中＆リプレイ時）
+      if (state.screen === 'playing' || state.screen === 'replay') {
+        const simTime = state.screen === 'replay' ? state.replay.time : state.elapsed;
+        for (const obs of state.obstacles) {
+          if (!obs.moving) continue;
+          const offset = Math.sin(simTime * obs.moveSpeed + obs.phase) * obs.moveAmp;
+          if (obs.moveAxis === 'x') {
+            obs.x = Math.max(-WORLD.BOUND_X + 55, Math.min(WORLD.BOUND_X - 55, obs.baseX + offset));
+          } else {
+            obs.z = Math.max(WORLD.GOAL_Z - 60, Math.min(WORLD.START_Z - 120, obs.baseZ + offset));
+          }
+        }
+      }
+
+      if (state.screen !== 'playing' || state.status !== 'playing') return;
+
+      const cfg = DIFFICULTIES[state.difficulty] || DIFFICULTIES.normal;
+      state.elapsed += dt;
+      state.timeLeft = Math.max(0, state.timeLeft - dt);
+
+      if (state.ship.invulnTimer > 0) {
+        state.ship.invulnTimer = Math.max(0, state.ship.invulnTimer - dt);
+      }
+
+      // ソナータイマー更新
+      if (state.sonar.activeTimer > 0) {
+        state.sonar.activeTimer = Math.max(0, state.sonar.activeTimer - dt);
+        state.sonar.pulseWave += dt * 1.4;
+        if (state.sonar.pulseWave > 1) state.sonar.pulseWave -= 1;
+      }
+      if (state.sonar.cooldownLeft > 0) {
+        state.sonar.cooldownLeft = Math.max(0, state.sonar.cooldownLeft - dt);
+      }
+
+      // 操船役（または役割が操船役の時）の慣性物理
+      if (state.role === 'helm') {
+        const turnInput = (keys.right ? 1 : 0) - (keys.left ? 1 : 0);
+        const thrustInput = (keys.fwd ? 1 : 0) - (keys.back ? 1 : 0);
+
+        // 旋回慣性
+        const targetAngVel = turnInput * cfg.turnRate;
+        state.ship.angularVel += (targetAngVel - state.ship.angularVel) * Math.min(1, dt * 4.2);
+        state.ship.heading += state.ship.angularVel * dt;
+
+        // 船首方向ベクトル（heading=0 で北 -Z）
+        const fwdX = Math.sin(state.ship.heading);
+        const fwdZ = -Math.cos(state.ship.heading);
+
+        let accel = 0;
+        if (thrustInput > 0) accel = cfg.thrust;
+        else if (thrustInput < 0) accel = -cfg.reverseThrust;
+
+        state.ship.vx += fwdX * accel * dt;
+        state.ship.vz += fwdZ * accel * dt;
+
+        // 海水抵抗（ドラッグ）
+        const damp = Math.exp(-cfg.drag * dt);
+        state.ship.vx *= damp;
+        state.ship.vz *= damp;
+
+        // 最大速度制限
+        const spd = Math.hypot(state.ship.vx, state.ship.vz);
+        if (spd > cfg.maxSpeed) {
+          const scale = cfg.maxSpeed / spd;
+          state.ship.vx *= scale;
+          state.ship.vz *= scale;
+        }
+
+        state.ship.x += state.ship.vx * dt;
+        state.ship.z += state.ship.vz * dt;
+
+        // 東西・南端境界クランプ
+        if (state.ship.x < -WORLD.BOUND_X) {
+          state.ship.x = -WORLD.BOUND_X;
+          state.ship.vx = Math.abs(state.ship.vx) * 0.35;
+        } else if (state.ship.x > WORLD.BOUND_X) {
+          state.ship.x = WORLD.BOUND_X;
+          state.ship.vx = -Math.abs(state.ship.vx) * 0.35;
+        }
+        if (state.ship.z > WORLD.SOUTH_BOUND_Z) {
+          state.ship.z = WORLD.SOUTH_BOUND_Z;
+          state.ship.vz = -Math.abs(state.ship.vz) * 0.35;
+        }
+        if (state.ship.z < WORLD.NORTH_BOUND_Z) {
+          state.ship.z = WORLD.NORTH_BOUND_Z;
+          state.ship.vz = 0;
+        }
+
+        // プロペラ＆レーダーバー回転
+        state.ship.propAngle += (4 + spd * 0.45) * dt;
+        state.ship.radarBarAngle += 2.6 * dt;
+
+        // 渦潮の引き込み＆障害物衝突判定
+        const shipRadius = 9.5;
+        for (const obs of state.obstacles) {
+          const dx = obs.x - state.ship.x;
+          const dz = obs.z - state.ship.z;
+          const dist = Math.hypot(dx, dz) || 0.001;
+
+          // 渦潮は少し外側から引き寄せる
+          if (obs.kind === 'whirlpool' && dist < obs.radius + 45) {
+            const pull = (1 - dist / (obs.radius + 45)) * 22 * dt;
+            state.ship.x += (dx / dist) * pull;
+            state.ship.z += (dz / dist) * pull;
+          }
+
+          if (dist < obs.radius + shipRadius && state.ship.invulnTimer <= 0) {
+            state.hp = Math.max(0, state.hp - obs.damage);
+            state.hitCount += 1;
+            state.ship.invulnTimer = 1.1;
+
+            // 反発＆減速
+            const nx = (state.ship.x - obs.x) / dist;
+            const nz = (state.ship.z - obs.z) / dist;
+            state.ship.vx = nx * 24;
+            state.ship.vz = nz * 24;
+
+            const kindLabel = obs.kind === 'rock' ? '岩礁' : obs.kind === 'mine' ? '機雷' : '渦潮';
+            setEventBanner(`💥 ${kindLabel}に接触！HP -${obs.damage}`);
+            showToast(`💥 ${kindLabel}に接触！HP -${obs.damage}`, 'danger');
+            spawnSplash(state.ship.x, state.ship.z, 22, obs.kind === 'mine' ? 0xfb7185 : 0xf8fafc);
+
+            if (state.hp <= 0) {
+              state.status = 'gameover';
+              recordReplayFrame();
+              finishVoyageUI();
+              break;
+            }
+          }
+        }
+
+        // ゴール判定
+        if (state.status === 'playing') {
+          const distToGoal = Math.hypot(state.ship.x - WORLD.GOAL_X, state.ship.z - WORLD.GOAL_Z);
+          if (distToGoal <= WORLD.GOAL_RADIUS) {
+            state.status = 'victory';
+            recordReplayFrame();
+            finishVoyageUI();
+            showToast('🎉 ゴール灯台に到達しました！', 'success');
+          } else if (state.timeLeft <= 0) {
+            state.status = 'timeout';
+            recordReplayFrame();
+            finishVoyageUI();
+            showToast('⏱ 制限時間切れです', 'danger');
+          }
+        }
+
+        // リプレイフレーム記録（約10Hz）
+        state.replay.recordAccum += dt;
+        if (state.replay.recordAccum >= 0.1) {
+          state.replay.recordAccum = 0;
+          recordReplayFrame();
+        }
+      }
+
+      // パーティクル更新
+      for (let i = state.particles.length - 1; i >= 0; i--) {
+        const p = state.particles[i];
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        p.z += p.vz * dt;
+        p.vy -= 24 * dt;
+        p.life -= dt;
+        if (p.life <= 0) {
+          state.particles.splice(i, 1);
+        }
+      }
+
+      // マップ追従
+      if (state.map.followShip && !state.map.dragging) {
+        state.map.panX += (state.ship.x - state.map.panX) * Math.min(1, dt * 6);
+        state.map.panZ += (state.ship.z - 120 - state.map.panZ) * Math.min(1, dt * 6);
+      }
+
+      updateHUD();
+    }
+
+    function updateHUD() {
+      const hpRatio = Math.max(0, Math.min(1, state.hp / Math.max(1, state.maxHp)));
+      const hpBar = document.getElementById('hudHpBar');
+      const hpText = document.getElementById('hudHpText');
+      if (hpBar) hpBar.style.width = `${hpRatio * 100}%`;
+      if (hpText) hpText.textContent = `${Math.ceil(state.hp)}`;
+
+      const timeEl = document.getElementById('hudTimeText');
+      if (timeEl) timeEl.textContent = `${state.timeLeft.toFixed(1)}s`;
+
+      const traveled = Math.max(0, Math.min(WORLD.TOTAL_DISTANCE, WORLD.START_Z - state.ship.z));
+      const pct = Math.round((traveled / WORLD.TOTAL_DISTANCE) * 100);
+      const progEl = document.getElementById('hudProgressText');
+      const distEl = document.getElementById('hudDistText');
+      if (progEl) progEl.textContent = `${pct}%`;
+      if (distEl) distEl.textContent = `${Math.max(0, Math.round(WORLD.TOTAL_DISTANCE - traveled))}`;
+
+      const deg = (((Math.round((state.ship.heading * 180) / Math.PI)) % 360) + 360) % 360;
+      const kt = (Math.hypot(state.ship.vx, state.ship.vz) * 0.45).toFixed(1);
+      const hdgEl = document.getElementById('hudHeadingText');
+      const spdEl = document.getElementById('hudSpeedText');
+      if (hdgEl) hdgEl.textContent = `${String(deg).padStart(3, '0')}°`;
+      if (spdEl) spdEl.textContent = `${kt}kt`;
+
+      // ソナー強調表示バッジ＆ボタンクールダウン
+      const sonarAlert = document.getElementById('helmSonarAlert');
+      if (sonarAlert) {
+        sonarAlert.classList.toggle('hidden', !(state.sonar.activeTimer > 0));
+      }
+
+      const sonarBtn = document.getElementById('sonarScanBtn');
+      if (sonarBtn) {
+        if (state.sonar.cooldownLeft > 0) {
+          sonarBtn.disabled = true;
+          sonarBtn.textContent = `📡 再装填 ${state.sonar.cooldownLeft.toFixed(1)}s`;
+        } else {
+          sonarBtn.disabled = false;
+          sonarBtn.textContent = '📡 ソナー強調スキャン';
+        }
+      }
+
+      // 海域危険度バッジ
+      const zoneBadge = document.getElementById('mapZoneDangerBadge');
+      if (zoneBadge) {
+        if (pct < 30) {
+          zoneBadge.textContent = '海域密度: 第1海域（序盤・岩礁中心）';
+          zoneBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300';
+        } else if (pct < 70) {
+          zoneBadge.textContent = '海域密度: 第2海域（中盤・機雷増加）';
+          zoneBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 border border-amber-400/40 text-amber-300';
+        } else {
+          zoneBadge.textContent = '海域密度: 第3海域（終盤・高密度警戒）';
+          zoneBadge.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-500/20 border border-rose-400/45 text-rose-300';
+        }
+      }
+    }
+
+    // =========================================================================
+    // 7. リプレイ再生ロジック（霧なし3Dビュー）
+    // =========================================================================
+    function startFogFreeReplay() {
+      if (state.replay.frames.length < 2) {
+        recordReplayFrame();
+      }
+      state.screen = 'replay';
+      state.replay.playing = true;
+      state.replay.speed = 1;
+      state.replay.time = 0;
+      state.replay.duration = state.replay.frames[state.replay.frames.length - 1]?.t || 1;
+
+      document.getElementById('endModal').classList.add('hidden');
+      document.getElementById('replayBar').classList.remove('hidden');
+
+      // リプレイ時は操船3Dビューを霧なしで表示
+      document.getElementById('helmViewSection').classList.remove('hidden');
+      document.getElementById('mapViewSection').classList.add('hidden');
+      document.getElementById('helmMistOverlay').classList.add('hidden');
+
+      const scrubber = document.getElementById('replayScrubber');
+      scrubber.max = String(Math.max(100, Math.round(state.replay.duration * 10)));
+      scrubber.value = '0';
+
+      resizeHelmCanvas();
+      showToast('☀️ 霧なしリプレイ再生を開始しました！', 'success');
+    }
+
+    function stepReplay(dt) {
+      if (state.screen !== 'replay') return;
+      if (state.replay.playing) {
+        state.replay.time = Math.min(state.replay.duration, state.replay.time + dt * state.replay.speed);
+        if (state.replay.time >= state.replay.duration) {
+          state.replay.playing = false;
+          document.getElementById('replayPlayPauseBtn').textContent = '▶ 再開';
+        }
+      }
+
+      // フレーム補間
+      const frames = state.replay.frames;
+      if (frames.length > 0) {
+        let idx = 0;
+        for (let i = 0; i < frames.length - 1; i++) {
+          if (frames[i + 1].t >= state.replay.time) {
+            idx = i;
+            break;
+          }
+          idx = i;
+        }
+        const f0 = frames[idx];
+        const f1 = frames[Math.min(frames.length - 1, idx + 1)];
+        const span = Math.max(0.0001, f1.t - f0.t);
+        const alpha = Math.max(0, Math.min(1, (state.replay.time - f0.t) / span));
+
+        state.ship.x = f0.x + (f1.x - f0.x) * alpha;
+        state.ship.z = f0.z + (f1.z - f0.z) * alpha;
+        state.ship.heading = f0.heading + (f1.heading - f0.heading) * alpha;
+        state.hp = f0.hp;
+        state.ship.propAngle += 14 * dt;
+        state.ship.radarBarAngle += 3.0 * dt;
+      }
+
+      document.getElementById('replayTimeLabel').textContent =
+        `${state.replay.time.toFixed(1)}s / ${state.replay.duration.toFixed(1)}s`;
+      document.getElementById('replayScrubber').value = String(Math.round(state.replay.time * 10));
+      updateHUD();
+    }
+
+    function exitFogFreeReplay() {
+      state.replay.playing = false;
+      document.getElementById('replayBar').classList.add('hidden');
+      document.getElementById('helmMistOverlay').classList.remove('hidden');
+      state.screen = 'ended';
+      document.getElementById('endModal').classList.remove('hidden');
+      applyRoleView(state.role);
+    }
+
+    // =========================================================================
+    // 8. 2D レーダー・海図キャンバス描画（スクロール・拡大縮小・3秒予測）
+    // =========================================================================
+    const radarCanvas = document.getElementById('radarCanvas');
+    const radarCtx = radarCanvas.getContext('2d');
+
+    function resizeRadarCanvas() {
+      const rect = radarCanvas.parentElement?.getBoundingClientRect();
+      if (!rect || rect.width === 0 || rect.height === 0) return;
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      radarCanvas.width = Math.floor(rect.width * dpr);
+      radarCanvas.height = Math.floor(rect.height * dpr);
+      radarCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    }
+
+    function renderRadar() {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = radarCanvas.width / dpr;
+      const h = radarCanvas.height / dpr;
+      if (w <= 0 || h <= 0) return;
+
+      const ctx = radarCtx;
+      ctx.clearRect(0, 0, w, h);
+
+      // 深海チャート背景
+      const grad = ctx.createRadialGradient(w * 0.5, h * 0.5, 20, w * 0.5, h * 0.5, Math.max(w, h) * 0.7);
+      grad.addColorStop(0, '#0a223d');
+      grad.addColorStop(1, '#040e1c');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, w, h);
+
+      const halfSpan = state.map.viewHalfSpan;
+      const scale = Math.min(w, h) / (halfSpan * 2);
+      const centerX = state.map.panX;
+      const centerZ = state.map.panZ;
+
+      const toScreenX = (wx) => w * 0.5 + (wx - centerX) * scale;
+      const toScreenY = (wz) => h * 0.5 + (wz - centerZ) * scale;
+
+      // グリッド線（100m間隔）
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.10)';
+      ctx.lineWidth = 1;
+      const gridStep = 100;
+      const startGx = Math.floor((centerX - halfSpan * 1.4) / gridStep) * gridStep;
+      const endGx = Math.ceil((centerX + halfSpan * 1.4) / gridStep) * gridStep;
+      for (let gx = startGx; gx <= endGx; gx += gridStep) {
+        const sx = toScreenX(gx);
+        ctx.beginPath();
+        ctx.moveTo(sx, 0);
+        ctx.lineTo(sx, h);
+        ctx.stroke();
+      }
+
+      const startGz = Math.floor((centerZ - halfSpan * 1.4) / gridStep) * gridStep;
+      const endGz = Math.ceil((centerZ + halfSpan * 1.4) / gridStep) * gridStep;
+      for (let gz = startGz; gz <= endGz; gz += gridStep) {
+        const sy = toScreenY(gz);
+        ctx.beginPath();
+        ctx.moveTo(0, sy);
+        ctx.lineTo(w, sy);
+        ctx.stroke();
+      }
+
+      // 海域境界線
+      ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(
+        toScreenX(-WORLD.BOUND_X),
+        toScreenY(WORLD.NORTH_BOUND_Z),
+        WORLD.BOUND_X * 2 * scale,
+        (WORLD.SOUTH_BOUND_Z - WORLD.NORTH_BOUND_Z) * scale
+      );
+
+      // ゴール灯台エリア
+      const goalSx = toScreenX(WORLD.GOAL_X);
+      const goalSy = toScreenY(WORLD.GOAL_Z);
+      const goalSr = Math.max(10, WORLD.GOAL_RADIUS * scale);
+      ctx.fillStyle = 'rgba(52, 211, 153, 0.16)';
+      ctx.strokeStyle = '#34d399';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(goalSx, goalSy, goalSr, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#a7f3d0';
+      ctx.font = 'bold 12px "Noto Sans JP", sans-serif';
+      ctx.fillText('★ GOAL', goalSx + goalSr + 6, goalSy + 4);
+
+      const sonarBoost = state.sonar.activeTimer > 0;
+
+      // 障害物描画（ズームスケールに合わせて適切サイズ化）
+      for (const obs of state.obstacles) {
+        const sx = toScreenX(obs.x);
+        const sy = toScreenY(obs.z);
+        const sr = Math.max(4.5, obs.radius * scale);
+
+        if (sx < -sr - 30 || sx > w + sr + 30 || sy < -sr - 30 || sy > h + sr + 30) {
+          continue;
+        }
+
+        const distToShip = Math.hypot(obs.x - state.ship.x, obs.z - state.ship.z);
+        const isDangerNear = distToShip < 130;
+
+        if (sonarBoost || isDangerNear) {
+          ctx.strokeStyle = sonarBoost ? 'rgba(34, 211, 238, 0.75)' : 'rgba(251, 113, 133, 0.55)';
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(sx, sy, sr + 5, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        if (obs.kind === 'rock') {
+          ctx.fillStyle = '#94a3b8';
+          ctx.strokeStyle = '#e2e8f0';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else if (obs.kind === 'mine') {
+          ctx.fillStyle = '#f43f5e';
+          ctx.strokeStyle = '#fecdd3';
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(sx, sy - sr * 1.15);
+          ctx.lineTo(sx + sr * 1.15, sy);
+          ctx.lineTo(sx, sy + sr * 1.15);
+          ctx.lineTo(sx - sr * 1.15, sy);
+          ctx.closePath();
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          // 渦潮
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(sx, sy, sr, 0, Math.PI * 2);
+          ctx.stroke();
+          ctx.beginPath();
+          ctx.arc(sx, sy, sr * 0.5, 0, Math.PI * 1.5);
+          ctx.stroke();
+        }
+      }
+
+      // 3秒後の予測進路ライン
+      const shipSx = toScreenX(state.ship.x);
+      const shipSy = toScreenY(state.ship.z);
+      const predX = state.ship.x + state.ship.vx * 3.0;
+      const predZ = state.ship.z + state.ship.vz * 3.0;
+      const predSx = toScreenX(predX);
+      const predSy = toScreenY(predZ);
+
+      ctx.save();
+      ctx.setLineDash([6, 5]);
+      ctx.strokeStyle = '#fbbf24';
+      ctx.lineWidth = 2.2;
+      ctx.beginPath();
+      ctx.moveTo(shipSx, shipSy);
+      ctx.lineTo(predSx, predSy);
+      ctx.stroke();
+      ctx.restore();
+
+      ctx.fillStyle = '#fbbf24';
+      ctx.beginPath();
+      ctx.arc(predSx, predSy, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 自船マーカー
+      ctx.save();
+      ctx.translate(shipSx, shipSy);
+      ctx.rotate(state.ship.heading);
+      ctx.fillStyle = '#22d3ee';
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -13);
+      ctx.lineTo(9, 10);
+      ctx.lineTo(0, 6);
+      ctx.lineTo(-9, 10);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+
+      // 右上ミニマップ（全体航路＆現在ビュー枠）
+      const mmW = 112;
+      const mmH = 148;
+      const mmX = w - mmW - 12;
+      const mmY = 12;
+      ctx.fillStyle = 'rgba(4, 14, 28, 0.88)';
+      ctx.strokeStyle = 'rgba(125, 211, 252, 0.35)';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(mmX, mmY, mmW, mmH);
+      ctx.strokeRect(mmX, mmY, mmW, mmH);
+
+      const mapWxToMm = (wx) => mmX + mmW * 0.5 + (wx / (WORLD.BOUND_X * 1.15)) * (mmW * 0.45);
+      const mapWzToMm = (wz) => {
+        const ratio = (wz - WORLD.NORTH_BOUND_Z) / (WORLD.SOUTH_BOUND_Z - WORLD.NORTH_BOUND_Z);
+        return mmY + 8 + Math.max(0, Math.min(1, ratio)) * (mmH - 16);
+      };
+
+      // ゴール点
+      ctx.fillStyle = '#34d399';
+      ctx.beginPath();
+      ctx.arc(mapWxToMm(WORLD.GOAL_X), mapWzToMm(WORLD.GOAL_Z), 3.5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 自船点
+      ctx.fillStyle = '#22d3ee';
+      ctx.beginPath();
+      ctx.arc(mapWxToMm(state.ship.x), mapWzToMm(state.ship.z), 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // 現在表示枠
+      const viewRectW = Math.min(mmW - 6, (halfSpan * 2 / (WORLD.BOUND_X * 2.2)) * mmW);
+      const viewRectH = Math.min(mmH - 6, (halfSpan * 2 / (WORLD.SOUTH_BOUND_Z - WORLD.NORTH_BOUND_Z)) * mmH);
+      ctx.strokeStyle = 'rgba(251, 191, 36, 0.8)';
+      ctx.lineWidth = 1.2;
+      ctx.strokeRect(
+        mapWxToMm(centerX) - viewRectW * 0.5,
+        mapWzToMm(centerZ) - viewRectH * 0.5,
+        viewRectW,
+        viewRectH
+      );
+    }
+
+    // =========================================================================
+    // 9. Three.js 3D 操船ビュー＆リプレイビュー（多パーツ船・極濃霧・霧なし切替）
+    // =========================================================================
+    const helmCanvas = document.getElementById('helmCanvas');
+    let scene, camera, renderer, shipGroup, propMesh, radarBarMesh, fogExp2, oceanMesh, goalBeaconGroup;
+    const obstacleMeshes = new Map();
+    const mistPuffs = [];
+
+    function initThreeJS() {
+      scene = new THREE.Scene();
+      fogExp2 = new THREE.FogExp2(0x9fb8cc, 0.048);
+      scene.fog = fogExp2;
+      scene.background = new THREE.Color(0x9fb8cc);
+
+      camera = new THREE.PerspectiveCamera(62, 1, 0.5, 1600);
+      renderer = new THREE.WebGLRenderer({ canvas: helmCanvas, antialias: true, powerPreference: 'high-performance' });
+
+      const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x1e3a5f, 1.15);
+      scene.add(hemiLight);
+
+      const dirLight = new THREE.DirectionalLight(0xf8fafc, 0.95);
+      dirLight.position.set(120, 180, 90);
+      scene.add(dirLight);
+
+      // 海面メッシュ
+      const oceanGeo = new THREE.PlaneGeometry(3400, 4200, 80, 80);
+      oceanGeo.rotateX(-Math.PI / 2);
+      const oceanMat = new THREE.MeshStandardMaterial({
+        color: 0x0e4a6e,
+        roughness: 0.35,
+        metalness: 0.25
+      });
+      oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
+      oceanMesh.position.set(0, 0, -100);
+      scene.add(oceanMesh);
+
+      // ゴール灯台オブジェクト
+      goalBeaconGroup = new THREE.Group();
+      goalBeaconGroup.position.set(WORLD.GOAL_X, 0, WORLD.GOAL_Z);
+      const towerGeo = new THREE.CylinderGeometry(7, 13, 65, 16);
+      const towerMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+      const tower = new THREE.Mesh(towerGeo, towerMat);
+      tower.position.y = 32.5;
+      goalBeaconGroup.add(tower);
+
+      const lampGeo = new THREE.SphereGeometry(8, 16, 16);
+      const lampMat = new THREE.MeshBasicMaterial({ color: 0x34d399 });
+      const lamp = new THREE.Mesh(lampGeo, lampMat);
+      lamp.position.y = 68;
+      goalBeaconGroup.add(lamp);
+      scene.add(goalBeaconGroup);
+
+      // 多パーツ3D船モデル構築
+      shipGroup = new THREE.Group();
+
+      // 船体（下部＆上部・船首テーパー）
+      const hullMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.5, metalness: 0.2 });
+      const deckMat = new THREE.MeshStandardMaterial({ color: 0xb91c1c, roughness: 0.45 });
+      const cabinMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.35 });
+      const glassMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.1, metalness: 0.8 });
+
+      const lowerHull = new THREE.Mesh(new THREE.BoxGeometry(7.2, 2.4, 22), hullMat);
+      lowerHull.position.y = 1.2;
+      shipGroup.add(lowerHull);
+
+      const bowCone = new THREE.Mesh(new THREE.ConeGeometry(5.1, 9, 4), hullMat);
+      bowCone.rotation.y = Math.PI / 4;
+      bowCone.rotation.x = -Math.PI / 2;
+      bowCone.scale.set(1, 0.48, 1);
+      bowCone.position.set(0, 1.5, -14.5);
+      shipGroup.add(bowCone);
+
+      const mainDeck = new THREE.Mesh(new THREE.BoxGeometry(7.6, 0.6, 21), deckMat);
+      mainDeck.position.y = 2.6;
+      shipGroup.add(mainDeck);
+
+      // 操舵室（ブリッジ）
+      const bridge = new THREE.Mesh(new THREE.BoxGeometry(4.8, 2.8, 5.2), cabinMat);
+      bridge.position.set(0, 4.3, 1.5);
+      shipGroup.add(bridge);
+
+      const bridgeWindow = new THREE.Mesh(new THREE.BoxGeometry(4.9, 0.9, 1.2), glassMat);
+      bridgeWindow.position.set(0, 4.7, -1.0);
+      shipGroup.add(bridgeWindow);
+
+      // マスト＆回転レーダースキャナー
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.24, 6.5, 10), cabinMat);
+      mast.position.set(0, 8.8, 1.5);
+      shipGroup.add(mast);
+
+      radarBarMesh = new THREE.Mesh(new THREE.BoxGeometry(3.4, 0.25, 0.35), new THREE.MeshStandardMaterial({ color: 0xfbbf24 }));
+      radarBarMesh.position.set(0, 11.4, 1.5);
+      shipGroup.add(radarBarMesh);
+
+      // 船尾プロペラ
+      propMesh = new THREE.Mesh(new THREE.BoxGeometry(2.4, 0.35, 0.4), new THREE.MeshStandardMaterial({ color: 0xd97706, metalness: 0.7 }));
+      propMesh.position.set(0, 0.8, 11.6);
+      shipGroup.add(propMesh);
+
+      // 航行灯（左舷赤・右舷緑）
+      const portLight = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({ color: 0xef4444 }));
+      portLight.position.set(-3.8, 3.1, -4);
+      shipGroup.add(portLight);
+
+      const stbdLight = new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 8), new THREE.MeshBasicMaterial({ color: 0x22c55e }));
+      stbdLight.position.set(3.8, 3.1, -4);
+      shipGroup.add(stbdLight);
+
+      scene.add(shipGroup);
+
+      // 漂う霧のかたまり（ミストパフ）
+      const puffGeo = new THREE.DodecahedronGeometry(4.5, 1);
+      const puffMat = new THREE.MeshStandardMaterial({
+        color: 0xe2e8f0,
+        transparent: true,
+        opacity: 0.38,
+        roughness: 1
+      });
+      for (let i = 0; i < 42; i++) {
+        const puff = new THREE.Mesh(puffGeo, puffMat);
+        puff.position.set(
+          (Math.random() - 0.5) * 90,
+          1.5 + Math.random() * 8,
+          (Math.random() - 0.5) * 90
+        );
+        puff.scale.setScalar(0.8 + Math.random() * 1.4);
+        scene.add(puff);
+        mistPuffs.push({
+          mesh: puff,
+          offsetX: puff.position.x,
+          offsetZ: puff.position.z,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      resizeHelmCanvas();
+    }
+
+    function resizeHelmCanvas() {
+      if (!renderer || !camera) return;
+      const rect = helmCanvas.parentElement?.getBoundingClientRect();
+      if (!rect || rect.width === 0 || rect.height === 0) return;
+      camera.aspect = rect.width / rect.height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(rect.width, rect.height, false);
+    }
+
+    function syncObstacleMeshes() {
+      const activeIds = new Set(state.obstacles.map((o) => o.id));
+      for (const [id, mesh] of obstacleMeshes.entries()) {
+        if (!activeIds.has(id)) {
+          scene.remove(mesh);
+          obstacleMeshes.delete(id);
+        }
+      }
+
+      for (const obs of state.obstacles) {
+        let mesh = obstacleMeshes.get(obs.id);
+        if (!mesh) {
+          if (obs.kind === 'rock') {
+            mesh = new THREE.Mesh(
+              new THREE.DodecahedronGeometry(obs.radius * 0.72, 1),
+              new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85 })
+            );
+            mesh.scale.set(1.1, 0.85, 1.0);
+          } else if (obs.kind === 'mine') {
+            mesh = new THREE.Mesh(
+              new THREE.OctahedronGeometry(obs.radius * 0.75, 0),
+              new THREE.MeshStandardMaterial({ color: 0xe11d48, roughness: 0.35, metalness: 0.5 })
+            );
+          } else {
+            mesh = new THREE.Mesh(
+              new THREE.TorusGeometry(obs.radius * 0.65, 1.8, 10, 24),
+              new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.3 })
+            );
+            mesh.rotation.x = Math.PI / 2;
+          }
+          scene.add(mesh);
+          obstacleMeshes.set(obs.id, mesh);
+        }
+        mesh.position.set(obs.x, obs.kind === 'whirlpool' ? 0.4 : obs.radius * 0.45, obs.z);
+        if (obs.kind === 'whirlpool') {
+          mesh.rotation.z = state.elapsed * 2.2 + obs.phase;
+        } else if (obs.kind === 'mine') {
+          mesh.rotation.y = state.elapsed * 1.4 + obs.phase;
+        }
+      }
+    }
+
+    function renderThreeJS() {
+      if (!renderer || !scene || !camera) return;
+      syncObstacleMeshes();
+
+      const isReplayFogFree = state.screen === 'replay';
+      if (isReplayFogFree) {
+        scene.fog = null;
+        scene.background = new THREE.Color(0x38bdf8);
+        for (const p of mistPuffs) p.mesh.visible = false;
+      } else {
+        scene.fog = fogExp2;
+        scene.background = new THREE.Color(0x9fb8cc);
+        for (const p of mistPuffs) p.mesh.visible = true;
+      }
+
+      // 船位置・向き反映
+      shipGroup.position.set(state.ship.x, 0, state.ship.z);
+      shipGroup.rotation.y = state.ship.heading;
+      propMesh.rotation.z = state.ship.propAngle;
+      radarBarMesh.rotation.y = state.ship.radarBarAngle;
+
+      // 海面を船に追従させて無限感
+      oceanMesh.position.x = state.ship.x;
+      oceanMesh.position.z = state.ship.z - 200;
+
+      // 漂う霧を船周辺に追従
+      for (const p of mistPuffs) {
+        p.mesh.position.x = state.ship.x + p.offsetX + Math.sin(state.elapsed * 0.4 + p.phase) * 8;
+        p.mesh.position.z = state.ship.z + p.offsetZ + Math.cos(state.elapsed * 0.35 + p.phase) * 8;
+      }
+
+      // カメラ配置（リプレイ時は少し引き＆見晴らし良く、操船時は濃霧内のブリッジ後方視点）
+      const backX = Math.sin(state.ship.heading);
+      const backZ = -Math.cos(state.ship.heading);
+      if (isReplayFogFree) {
+        camera.position.set(state.ship.x - backX * 42, 22, state.ship.z - backZ * 42);
+        camera.lookAt(state.ship.x + backX * 26, 4, state.ship.z + backZ * 26);
+      } else {
+        camera.position.set(state.ship.x - backX * 16, 8.2, state.ship.z - backZ * 16);
+        camera.lookAt(state.ship.x + backX * 24, 3.8, state.ship.z + backZ * 24);
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    // =========================================================================
+    // 10. メニュー背景アニメーションキャンバス
+    // =========================================================================
+    const lobbyBgCanvas = document.getElementById('lobbyBgCanvas');
+    const lobbyBgCtx = lobbyBgCanvas.getContext('2d');
+    let lobbySweepAngle = 0;
+
+    function renderLobbyBackground(t) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      if (lobbyBgCanvas.width !== Math.floor(w * dpr) || lobbyBgCanvas.height !== Math.floor(h * dpr)) {
+        lobbyBgCanvas.width = Math.floor(w * dpr);
+        lobbyBgCanvas.height = Math.floor(h * dpr);
+        lobbyBgCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+
+      const ctx = lobbyBgCtx;
+      ctx.clearRect(0, 0, w, h);
+
+      // レーダースイープ装飾（中央右寄り）
+      const cx = w * 0.68;
+      const cy = h * 0.45;
+      const maxR = Math.min(w, h) * 0.42;
+      lobbySweepAngle += 0.012;
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(56, 189, 248, 0.10)';
+      ctx.lineWidth = 1;
+      for (let r = 1; r <= 3; r++) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, (maxR / 3) * r, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(cx + Math.cos(lobbySweepAngle) * maxR, cy + Math.sin(lobbySweepAngle) * maxR);
+      ctx.strokeStyle = 'rgba(34, 211, 238, 0.28)';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+      ctx.restore();
+
+      // 寄せては返す波のライン
+      for (let row = 0; row < 6; row++) {
+        const baseY = h * 0.56 + row * 38;
+        ctx.beginPath();
+        for (let x = 0; x <= w + 24; x += 24) {
+          const y =
+            baseY +
+            Math.sin(x * 0.008 + t * 0.0014 + row * 0.9) * 10 +
+            Math.cos(x * 0.017 - t * 0.0009 + row) * 5;
+          if (x === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = `rgba(56, 189, 248, ${0.08 + row * 0.025})`;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    // =========================================================================
+    // 11. イベントリスナー＆メインループ
+    // =========================================================================
+    function bindEvents() {
+      // 合言葉接続＆ランダム生成
+      document.getElementById('lobbyJoinBtn')?.addEventListener('click', () => {
+        setupRoomChannel(document.getElementById('lobbyRoomInput').value);
+      });
+      document.getElementById('lobbyRoomInput')?.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') setupRoomChannel(e.target.value);
+      });
+      document.getElementById('lobbyRandomCodeBtn')?.addEventListener('click', () => {
+        const num = Math.floor(10 + Math.random() * 89);
+        const code = `MIST-${num}`;
+        setupRoomChannel(code);
+      });
+
+      // 役割カード選択
+      document.getElementById('cardRoleHelm')?.addEventListener('click', () => applyRoleView('helm'));
+      document.getElementById('cardRoleMap')?.addEventListener('click', () => applyRoleView('map'));
+
+      // 難易度選択
+      ['easy', 'normal', 'hard'].forEach((d) => {
+        const id = `diff${d.charAt(0).toUpperCase() + d.slice(1)}Btn`;
+        document.getElementById(id)?.addEventListener('click', () => {
+          state.difficulty = d;
+          refreshLobbyUI();
+          sendPresence();
+        });
+      });
+
+      // 準備完了＆出航スタート
+      document.getElementById('lobbyReadyBtn')?.addEventListener('click', () => {
+        state.isReady = !state.isReady;
+        refreshLobbyUI();
+        sendPresence();
+        showToast(state.isReady ? '✓ 準備完了にしました' : '準備を解除しました', 'info');
+      });
+
+      document.getElementById('lobbyStartBtn')?.addEventListener('click', () => {
+        if (!canStartVoyage()) {
+          showToast('2人合流＆双方が準備完了になると出航できます', 'info');
+          return;
+        }
+        beginVoyageInternal(true);
+      });
+
+      // ボイスチャットボタン
+      document.getElementById('vcToggleMicBtn')?.addEventListener('click', toggleMicrophone);
+      document.getElementById('vcMuteBtn')?.addEventListener('click', toggleMuteAudio);
+      document.getElementById('gameVcMuteBtn')?.addEventListener('click', toggleMuteAudio);
+
+      // ゲームヘッダー操作
+      document.getElementById('gameBackLobbyBtn')?.addEventListener('click', () => {
+        returnToLobbyInternal(true);
+      });
+      document.getElementById('gameRestartBtn')?.addEventListener('click', () => {
+        beginVoyageInternal(true);
+      });
+
+      // ソナー強調スキャン＆マップズーム・追従
+      document.getElementById('sonarScanBtn')?.addEventListener('click', () => {
+        triggerSonarScanInternal(true);
+      });
+      document.getElementById('mapZoomOutBtn')?.addEventListener('click', () => {
+        state.map.viewHalfSpan = Math.max(180, state.map.viewHalfSpan - 90);
+        document.getElementById('mapZoomLabel').textContent = `${state.map.viewHalfSpan}m`;
+      });
+      document.getElementById('mapZoomInBtn')?.addEventListener('click', () => {
+        state.map.viewHalfSpan = Math.min(1350, state.map.viewHalfSpan + 110);
+        document.getElementById('mapZoomLabel').textContent = `${state.map.viewHalfSpan}m`;
+      });
+      document.getElementById('mapFollowBtn')?.addEventListener('click', (e) => {
+        state.map.followShip = !state.map.followShip;
+        e.currentTarget.textContent = state.map.followShip ? '🎯 自船追従: ON' : '🎯 自船追従: OFF';
+      });
+
+      // マップドラッグパン＆ホイールズーム
+      radarCanvas.addEventListener('pointerdown', (e) => {
+        state.map.dragging = true;
+        state.map.followShip = false;
+        document.getElementById('mapFollowBtn').textContent = '🎯 自船追従: OFF';
+        state.map.dragStartX = e.clientX;
+        state.map.dragStartY = e.clientY;
+        state.map.panStartX = state.map.panX;
+        state.map.panStartZ = state.map.panZ;
+      });
+      window.addEventListener('pointermove', (e) => {
+        if (!state.map.dragging) return;
+        const rect = radarCanvas.getBoundingClientRect();
+        const scale = (state.map.viewHalfSpan * 2) / Math.max(1, Math.min(rect.width, rect.height));
+        state.map.panX = state.map.panStartX - (e.clientX - state.map.dragStartX) * scale;
+        state.map.panZ = state.map.panStartZ - (e.clientY - state.map.dragStartY) * scale;
+      });
+      window.addEventListener('pointerup', () => {
+        state.map.dragging = false;
+      });
+      radarCanvas.addEventListener(
+        'wheel',
+        (e) => {
+          e.preventDefault();
+          const delta = e.deltaY > 0 ? 85 : -85;
+          state.map.viewHalfSpan = Math.max(180, Math.min(1350, state.map.viewHalfSpan + delta));
+          document.getElementById('mapZoomLabel').textContent = `${state.map.viewHalfSpan}m`;
+        },
+        { passive: false }
+      );
+
+      // キーボード操船
+      window.addEventListener('keydown', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') keys.fwd = true;
+        if (k === 's' || e.key === 'ArrowDown') keys.back = true;
+        if (k === 'a' || e.key === 'ArrowLeft') keys.left = true;
+        if (k === 'd' || e.key === 'ArrowRight') keys.right = true;
+      });
+      window.addEventListener('keyup', (e) => {
+        const k = e.key.toLowerCase();
+        if (k === 'w' || e.key === 'ArrowUp') keys.fwd = false;
+        if (k === 's' || e.key === 'ArrowDown') keys.back = false;
+        if (k === 'a' || e.key === 'ArrowLeft') keys.left = false;
+        if (k === 'd' || e.key === 'ArrowRight') keys.right = false;
+      });
+
+      // タッチ／クリック操船ボタン
+      const bindHold = (id, keyName) => {
+        const btn = document.getElementById(id);
+        if (!btn) return;
+        const on = (e) => { e.preventDefault(); keys[keyName] = true; };
+        const off = () => { keys[keyName] = false; };
+        btn.addEventListener('pointerdown', on);
+        window.addEventListener('pointerup', off);
+        btn.addEventListener('pointerleave', off);
+      };
+      bindHold('ctrlFwdBtn', 'fwd');
+      bindHold('ctrlBackBtn', 'back');
+      bindHold('ctrlLeftBtn', 'left');
+      bindHold('ctrlRightBtn', 'right');
+
+      // 終了モーダル＆霧なしリプレイ
+      document.getElementById('startReplayBtn')?.addEventListener('click', startFogFreeReplay);
+      document.getElementById('endRetryBtn')?.addEventListener('click', () => beginVoyageInternal(true));
+      document.getElementById('endLobbyBtn')?.addEventListener('click', () => returnToLobbyInternal(true));
+
+      document.getElementById('replayPlayPauseBtn')?.addEventListener('click', (e) => {
+        state.replay.playing = !state.replay.playing;
+        e.currentTarget.textContent = state.replay.playing ? '⏸ 一時停止' : '▶ 再開';
+      });
+      document.querySelectorAll('.replay-spd-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const spd = Number(btn.getAttribute('data-speed')) || 1;
+          state.replay.speed = spd;
+          document.querySelectorAll('.replay-spd-btn').forEach((b) => {
+            const active = Number(b.getAttribute('data-speed')) === spd;
+            b.className = active
+              ? 'replay-spd-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-cyan-500/25 text-cyan-200 border border-cyan-400/40 tactile-btn'
+              : 'replay-spd-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 border border-slate-700 tactile-btn';
+          });
+        });
+      });
+      document.getElementById('replayScrubber')?.addEventListener('input', (e) => {
+        state.replay.playing = false;
+        document.getElementById('replayPlayPauseBtn').textContent = '▶ 再開';
+        state.replay.time = Number(e.target.value) / 10;
+      });
+      document.getElementById('replayExitBtn')?.addEventListener('click', exitFogFreeReplay);
+
+      // リサイズ＆定期プレゼンス送信
+      window.addEventListener('resize', () => {
+        resizeHelmCanvas();
+        resizeRadarCanvas();
+      });
+
+      setInterval(() => {
+        sendPresence();
+        refreshLobbyUI();
+        if (analyser && micDataArray && micEnabled) {
+          analyser.getByteFrequencyData(micDataArray);
+          let sum = 0;
+          for (let i = 0; i < micDataArray.length; i++) sum += micDataArray[i];
+          const avg = Math.min(100, Math.round((sum / micDataArray.length / 128) * 100));
+          const bar = document.getElementById('vcLevelBar');
+          if (bar) bar.style.width = `${avg}%`;
+        } else {
+          const bar = document.getElementById('vcLevelBar');
+          if (bar && !micEnabled) bar.style.width = '0%';
+        }
+      }, 1500);
+    }
+
+    let lastFrameTime = performance.now();
+    let lastSyncSend = 0;
+
+    function mainLoop(now) {
+      const dt = Math.min(0.05, Math.max(0.001, (now - lastFrameTime) / 1000));
+      lastFrameTime = now;
+
+      if (state.screen === 'lobby') {
+        renderLobbyBackground(now);
+      } else if (state.screen === 'playing') {
+        stepSimulation(dt);
+        if (state.role === 'helm') {
+          renderThreeJS();
+          if (now - lastSyncSend > 60) {
+            lastSyncSend = now;
+            sendMsg({
+              type: 'state_sync',
+              ship: state.ship,
+              hp: state.hp,
+              maxHp: state.maxHp,
+              timeLeft: state.timeLeft,
+              elapsed: state.elapsed,
+              status: state.status,
+              hitCount: state.hitCount,
+              sonarCount: state.sonarCount,
+              sonar: state.sonar,
+              eventText: state.eventText,
+              obstacles: state.obstacles,
+              replayFrames: state.replay.frames
+            });
+          }
+        } else {
+          renderRadar();
+        }
+      } else if (state.screen === 'ended') {
+        if (state.role === 'helm') renderThreeJS();
+        else renderRadar();
+      } else if (state.screen === 'replay') {
+        stepReplay(dt);
+        renderThreeJS();
+      }
+
+      requestAnimationFrame(mainLoop);
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      initThreeJS();
+      bindEvents();
+      setupRoomChannel(state.roomId);
+      refreshLobbyUI();
+      requestAnimationFrame(mainLoop);
     });
-
-    document.getElementById('roleHelmBtn')?.addEventListener('click', () => applyRoleLayout('helm'));
-    document.getElementById('roleMapBtn')?.addEventListener('click', () => applyRoleLayout('map'));
-    document.getElementById('roleSplitBtn')?.addEventListener('click', () => applyRoleLayout('split'));
-
-    document.getElementById('sonarPulseBtn')?.addEventListener('click', requestSonarPulse);
-    document.getElementById('resetBtn')?.addEventListener('click', () => resetGameInternal(true, false));
-    document.getElementById('modalRestartBtn')?.addEventListener('click', () => resetGameInternal(true, true));
-<!-- ... existing code ... -->
+  </script>
+</body>
+</html>
