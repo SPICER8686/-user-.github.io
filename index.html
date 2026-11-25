@@ -184,7 +184,7 @@
             </div>
 
             <p class="text-xs text-slate-300 leading-relaxed">
-              設定不要でそのまま開いて使えます。同じブラウザの<strong>2つのタブやウィンドウ</strong>で同じ<strong class="text-cyan-300">合言葉</strong>を入力すると合流できます。
+              通信設定は不要です。<strong>別々のPC・スマホ・ブラウザ</strong>からでも、同じ<strong class="text-cyan-300">合言葉</strong>を入力して「合流する」を押すだけでオンライン合流できます。
             </p>
 
             <!-- 合言葉入力 -->
@@ -673,288 +673,14 @@
 
   <script>
     // =========================================================================
-    // 1. 共通ワールド定数・自動保存・状態管理（外部通信設定なし）
-    // =========================================================================
-    const STORAGE_KEY = 'mist_compass_save_v2';
-    const BUS_STORAGE_PREFIX = 'mist_compass_bus_v2_';
-    const CLIENT_ID = `crew_${Math.random().toString(36).slice(2, 10)}_${Date.now().toString(36)}`;
-
-    const CALLSIGNS = [
-      '船長_A', '航海士_B', '霧見張り_01', '海図士_02',
-      '舵取り_アルファ', 'ソナー長_ベータ', '灯台守_ガンマ', '波乗り_デルタ'
-    ];
-
-    const WORLD = {
-      START_X: 0,
-      START_Z: 1150,
-      GOAL_X: 0,
-      GOAL_Z: -1250,
-      GOAL_RADIUS: 75,
-      BOUND_X: 650,
-      NORTH_BOUND_Z: -1420,
-      SOUTH_BOUND_Z: 1320,
-      TOTAL_DISTANCE: 2400
-    };
-
-    const DIFFICULTIES = {
-      easy: {
-        shortLabel: '初級',
-        maxHp: 140,
-        timeLimit: 300,
-        thrust: 42,
-        reverseThrust: 24,
-        maxSpeed: 64,
-        turnRate: 1.55,
-        drag: 0.72,
-        obstacleCount: 95,
-        damageScale: 0.75
-      },
-      normal: {
-        shortLabel: '標準',
-        maxHp: 100,
-        timeLimit: 240,
-        thrust: 46,
-        reverseThrust: 26,
-        maxSpeed: 72,
-        turnRate: 1.42,
-        drag: 0.65,
-        obstacleCount: 150,
-        damageScale: 1.0
-      },
-      hard: {
-        shortLabel: '熟練',
-        maxHp: 80,
-        timeLimit: 200,
-        thrust: 50,
-        reverseThrust: 28,
-        maxSpeed: 80,
-        turnRate: 1.32,
-        drag: 0.58,
-        obstacleCount: 215,
-        damageScale: 1.35
-      }
-    };
-
-    function normalizeRoomCode(rawCode) {
-      const cleaned = (rawCode || 'MIST-77')
-        .trim()
-        .toUpperCase()
-        .replace(/\s+/g, '-')
-        .replace(/[^A-Z0-9_-]/g, '');
-      return cleaned || 'MIST-77';
-    }
-
-    function loadSavedData() {
-      try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? JSON.parse(raw) : null;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    const saved = loadSavedData();
-
-    const state = {
-      screen: 'lobby', // 'lobby' | 'playing' | 'ended' | 'replay'
-      playerName: saved?.playerName || CALLSIGNS[0],
-      roomId: normalizeRoomCode(saved?.roomId || 'MIST-77'),
-      role: saved?.role === 'map' ? 'map' : 'helm',
-      difficulty: ['easy', 'normal', 'hard'].includes(saved?.difficulty) ? saved.difficulty : 'normal',
-      isReady: false,
-
-      bestRecord: saved?.bestRecord || null,
-
-      peerId: null,
-      peerName: null,
-      peerConnected: false,
-      peerRole: null,
-      peerReady: false,
-      lastPeerHeartbeat: 0,
-
-      ship: {
-        x: WORLD.START_X,
-        z: WORLD.START_Z,
-        heading: 0,
-        vx: 0,
-        vz: 0,
-        angularVel: 0,
-        propAngle: 0,
-        radarBarAngle: 0,
-        invulnTimer: 0
-      },
-      hp: 100,
-      maxHp: 100,
-      timeLeft: 240,
-      elapsed: 0,
-      status: 'playing',
-      hitCount: 0,
-      sonarCount: 0,
-
-      sonar: {
-        activeTimer: 0,
-        activeDuration: 5.5,
-        cooldownLeft: 0,
-        cooldownTotal: 11.0,
-        pulseWave: 0
-      },
-
-      obstacles: [],
-      eventText: 'マップ役の指示を聞きながら北（ゴール灯台）を目指してください！',
-
-      map: {
-        viewHalfSpan: 460,
-        panX: 0,
-        panZ: WORLD.START_Z - 260,
-        followShip: true,
-        dragging: false,
-        dragStartX: 0,
-        dragStartY: 0,
-        panStartX: 0,
-        panStartZ: 0
-      },
-
-      replay: {
-        frames: [],
-        recordAccum: 0,
-        playing: false,
-        speed: 1,
-        time: 0,
-        duration: 0
-      }
-    };
-
-    const keys = { fwd: false, back: false, left: false, right: false };
-
-    let autoSaveBadgeTimer = null;
-    function saveGameData() {
-      try {
-        localStorage.setItem(
-          STORAGE_KEY,
-          JSON.stringify({
-            playerName: state.playerName,
-            roomId: state.roomId,
-            role: state.role,
-            difficulty: state.difficulty,
-            bestRecord: state.bestRecord,
-            updatedAt: Date.now()
-          })
-        );
-        const badgeText = document.getElementById('autoSaveText');
-        const badge = document.getElementById('autoSaveBadge');
-        if (badgeText) badgeText.textContent = '自動保存済み';
-        if (badge) {
-          badge.classList.add('ring-2', 'ring-emerald-400/50');
-          clearTimeout(autoSaveBadgeTimer);
-          autoSaveBadgeTimer = setTimeout(() => {
-            badge.classList.remove('ring-2', 'ring-emerald-400/50');
-          }, 900);
-        }
-      } catch (e) {
-        // ignore storage errors
-      }
-    }
-
-    function updateBestRecordDisplay() {
-      const el = document.getElementById('bestRecordText');
-      if (!el) return;
-      if (!state.bestRecord) {
-        el.textContent = '未達成（出航して記録を残そう）';
-        return;
-      }
-      const dLabel = DIFFICULTIES[state.bestRecord.difficulty]?.shortLabel || '標準';
-      el.textContent = `${dLabel} ${state.bestRecord.time.toFixed(1)}s / HP ${Math.ceil(state.bestRecord.hp)} (${state.bestRecord.playerName})`;
-    }
-
-    function showToast(message, tone = 'info') {
-      const container = document.getElementById('toastContainer');
-      if (!container) return;
-      const item = document.createElement('div');
-      const toneClass =
-        tone === 'success'
-          ? 'bg-emerald-950/90 border-emerald-400/50 text-emerald-200'
-          : tone === 'danger'
-            ? 'bg-rose-950/90 border-rose-400/50 text-rose-200'
-            : 'bg-slate-900/95 border-cyan-400/40 text-cyan-100';
-      item.className = `px-4 py-2 rounded-2xl border text-xs font-extrabold shadow-xl backdrop-blur-md ${toneClass}`;
-      item.textContent = message;
-      container.appendChild(item);
-      setTimeout(() => item.remove(), 2600);
-    }
-
-    function setEventBanner(text) {
-      state.eventText = text;
-      const el = document.getElementById('eventBanner');
-      if (el) el.textContent = text;
-    }
-
-    // 奥（北側）へ進むほど障害物が増える2,400m航路生成
-    function generateObstacles(difficulty) {
-      const cfg = DIFFICULTIES[difficulty] || DIFFICULTIES.normal;
-      const list = [];
-      const count = cfg.obstacleCount;
-      const zStart = WORLD.START_Z - 140;
-      const zEnd = WORLD.GOAL_Z + 110;
-
-      for (let i = 0; i < count; i++) {
-        const linearT = i / Math.max(1, count - 1);
-        const progress = Math.pow(linearT, 0.8);
-        const z = zStart - progress * (zStart - zEnd);
-
-        if (Math.hypot(0, z - WORLD.START_Z) < 130) continue;
-        if (Math.hypot(0, z - WORLD.GOAL_Z) < 150) continue;
-
-        const x = (Math.random() * 2 - 1) * (WORLD.BOUND_X - 75);
-        const roll = Math.random();
-        let kind = 'rock';
-        if (progress > 0.55) {
-          kind = roll < 0.32 ? 'rock' : roll < 0.72 ? 'mine' : 'whirlpool';
-        } else if (progress > 0.25) {
-          kind = roll < 0.48 ? 'rock' : roll < 0.80 ? 'mine' : 'whirlpool';
-        } else {
-          kind = roll < 0.65 ? 'rock' : roll < 0.88 ? 'mine' : 'whirlpool';
-        }
-
-        const radius =
-          kind === 'rock'
-            ? 14 + Math.random() * 11
-            : kind === 'mine'
-              ? 10 + Math.random() * 5
-              : 22 + Math.random() * 10;
-
-        const baseDamage = kind === 'mine' ? 24 : kind === 'whirlpool' ? 16 : 14;
-        const damage = Math.round(baseDamage * cfg.damageScale * (1 + progress * 0.25));
-
-        const moving = kind !== 'rock' && Math.random() < (0.2 + progress * 0.55);
-        const moveAxis = Math.random() < 0.75 ? 'x' : 'z';
-        const moveAmp = moving ? 35 + Math.random() * 55 : 0;
-        const moveSpeed = moving ? (0.8 + progress * 1.1) * (0.7 + Math.random() * 0.6) : 0;
-
-        list.push({
-          id: `obs_${i}_${Math.random().toString(36).slice(2, 6)}`,
-          kind,
-          x,
-          z,
-          baseX: x,
-          baseZ: z,
-          radius,
-          damage,
-          moving,
-          moveAxis,
-          moveAmp,
-          moveSpeed,
-          phase: Math.random() * Math.PI * 2
-        });
-      }
-
-      return list;
-    }
-
-    // =========================================================================
-    // 2. ルーム同期（BroadcastChannel + localStorage）＆ WebRTC ボイスチャット
+    // 2. ルーム同期（別端末オンラインリレー + 同一端末BroadcastChannel/localStorage）
     // =========================================================================
     let channel = null;
     let currentBusKey = '';
+    let relayWs = null;
+    let relayReconnectTimer = null;
+    let relayJoinedRoom = '';
+    const seenMsgIds = new Set();
     let peerConn = null;
     let localStream = null;
     let micEnabled = false;
@@ -963,10 +689,24 @@
     let analyser = null;
     let micDataArray = null;
 
+    function rememberMsgId(id) {
+      if (!id) return false;
+      if (seenMsgIds.has(id)) return true;
+      seenMsgIds.add(id);
+      if (seenMsgIds.size > 400) {
+        const first = seenMsgIds.values().next().value;
+        seenMsgIds.delete(first);
+      }
+      return false;
+    }
+
     function sendMsg(payload) {
+      const msgId = `${CLIENT_ID}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+      seenMsgIds.add(msgId);
+
       const envelope = {
         ...payload,
-        _msgId: `${CLIENT_ID}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        _msgId: msgId,
         _ts: Date.now(),
         senderId: CLIENT_ID,
         senderName: state.playerName,
@@ -989,23 +729,148 @@
           // ignore
         }
       }
+
+      if (relayWs && relayWs.readyState === WebSocket.OPEN) {
+        try {
+          relayWs.send(
+            JSON.stringify({
+              type: 'room_msg',
+              room: `mist_compass_v2_${state.roomId}`,
+              payload: envelope
+            })
+          );
+        } catch (err) {
+          // ignore
+        }
+      }
+    }
+
+    function connectRelaySocket(cleanCode) {
+      if (relayReconnectTimer) {
+        clearTimeout(relayReconnectTimer);
+        relayReconnectTimer = null;
+      }
+      relayJoinedRoom = `mist_compass_v2_${cleanCode}`;
+
+      if (relayWs) {
+        try {
+          relayWs.onclose = null;
+          relayWs.close();
+        } catch (err) {
+          // ignore
+        }
+        relayWs = null;
+      }
+
+      try {
+        const ws = new WebSocket('wss://signaling.yjs.dev');
+        relayWs = ws;
+
+        ws.onopen = () => {
+          if (relayWs !== ws) return;
+          try {
+            ws.send(JSON.stringify({ type: 'subscribe', topics: [relayJoinedRoom] }));
+          } catch (err) {
+            // ignore
+          }
+          sendPresence('JOIN');
+          refreshLobbyUI();
+        };
+
+        ws.onmessage = (event) => {
+          if (relayWs !== ws) return;
+          try {
+            const raw = typeof event.data === 'string' ? JSON.parse(event.data) : null;
+            if (!raw) return;
+            if (raw.type === 'publish' && raw.topic === relayJoinedRoom && raw.data) {
+              const decoded = typeof raw.data === 'string' ? JSON.parse(raw.data) : raw.data;
+              if (decoded && decoded.type === 'room_msg' && decoded.payload) {
+                handleIncomingMessage(decoded.payload);
+              } else {
+                handleIncomingMessage(decoded);
+              }
+            } else if (raw.type === 'room_msg' && raw.payload) {
+              handleIncomingMessage(raw.payload);
+            }
+          } catch (err) {
+            // ignore malformed frame
+          }
+        };
+
+        ws.onclose = () => {
+          if (relayWs !== ws) return;
+          relayWs = null;
+          refreshLobbyUI();
+          relayReconnectTimer = setTimeout(() => {
+            if (state.roomId === cleanCode) {
+              connectRelaySocket(cleanCode);
+            }
+          }, 2500);
+        };
+
+        ws.onerror = () => {
+          // onclose handles retry
+        };
+      } catch (err) {
+        relayReconnectTimer = setTimeout(() => {
+          if (state.roomId === cleanCode) {
+            connectRelaySocket(cleanCode);
+          }
+        }, 3000);
+      }
     }
 
     function sendPresence(kind = 'HELLO') {
-      sendMsg({
+      const envelope = {
         type: kind === 'JOIN' ? 'join' : 'presence',
+        _msgId: `${CLIENT_ID}_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        _ts: Date.now(),
+        senderId: CLIENT_ID,
+        senderName: state.playerName,
+        roomId: state.roomId,
+        senderRole: state.role,
         playerName: state.playerName,
         role: state.role,
         ready: state.isReady,
         difficulty: state.difficulty,
         screen: state.screen
-      });
+      };
+      seenMsgIds.add(envelope._msgId);
+
+      if (channel) {
+        try {
+          channel.postMessage(envelope);
+        } catch (err) {
+          // ignore
+        }
+      }
+      if (currentBusKey) {
+        try {
+          localStorage.setItem(currentBusKey, JSON.stringify(envelope));
+        } catch (err) {
+          // ignore
+        }
+      }
+      if (relayWs && relayWs.readyState === WebSocket.OPEN && relayJoinedRoom) {
+        try {
+          relayWs.send(
+            JSON.stringify({
+              type: 'publish',
+              topic: relayJoinedRoom,
+              data: envelope
+            })
+          );
+        } catch (err) {
+          // ignore
+        }
+      }
     }
 
     async function handleIncomingMessage(msg) {
       if (!msg || typeof msg !== 'object') return;
       if (msg.senderId && msg.senderId === CLIENT_ID) return;
       if (msg.roomId && normalizeRoomCode(msg.roomId) !== state.roomId) return;
+      if (msg._msgId && rememberMsgId(msg._msgId)) return;
 
       const wasConnected = state.peerConnected;
       state.peerId = msg.senderId || state.peerId;
@@ -1260,9 +1125,10 @@
         channel.onmessage = (event) => handleIncomingMessage(event.data);
       }
 
+      connectRelaySocket(cleanCode);
       sendPresence('JOIN');
       refreshLobbyUI();
-      showToast(`合言葉「${cleanCode}」で待機中`, 'info');
+      showToast(`合言葉「${cleanCode}」でオンライン接続中...`, 'info');
     }
 
     // =========================================================================
@@ -1280,13 +1146,17 @@
         state.peerName = null;
       }
 
+      const relayOnline = Boolean(relayWs && relayWs.readyState === WebSocket.OPEN);
       const connBadge = document.getElementById('lobbyConnBadge');
       if (connBadge) {
         if (state.peerConnected) {
           connBadge.textContent = `✓ ${state.peerName || '相棒'} と合流中`;
           connBadge.className = 'text-xs font-extrabold px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300';
+        } else if (relayOnline) {
+          connBadge.textContent = `🌐 オンライン待機「${state.roomId}」`;
+          connBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-cyan-500/15 border border-cyan-400/35 text-cyan-200';
         } else {
-          connBadge.textContent = `合言葉「${state.roomId}」待機中`;
+          connBadge.textContent = `合言葉「${state.roomId}」接続中...`;
           connBadge.className = 'text-xs font-bold px-2.5 py-1 rounded-full bg-slate-800/90 border border-slate-700 text-slate-300';
         }
       }
@@ -1314,15 +1184,15 @@
             : state.peerRole === 'map'
               ? '🧭 マップ役（2D海図・索敵）'
               : '役割選択中...';
-        peerSubText.textContent = `合言葉「${state.roomId}」で接続中`;
+        peerSubText.textContent = `合言葉「${state.roomId}」でオンライン接続中`;
         peerReadyPill.textContent = state.peerReady ? '準備完了 ✓' : '準備中...';
         peerReadyPill.className = state.peerReady
           ? 'text-[11px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/25 text-emerald-300 border border-emerald-400/50'
           : 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 border border-amber-400/40';
       } else {
         peerNameEl.textContent = '未接続';
-        peerRoleText.textContent = '別タブで合言葉を入力待ち...';
-        peerSubText.textContent = `同じ合言葉「${state.roomId}」で開いてください`;
+        peerRoleText.textContent = '別端末で同じ合言葉を入力待ち...';
+        peerSubText.textContent = relayOnline ? 'オンライン回線接続済み・相棒待ち' : 'オンライン回線へ接続中...';
         peerReadyPill.textContent = '未接続';
         peerReadyPill.className = 'text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-800 text-slate-500 border border-slate-700';
       }
@@ -1375,7 +1245,7 @@
       startBtn.disabled = !readyToLaunch;
 
       if (!state.peerConnected) {
-        startHint.textContent = '別タブ・別ウィンドウで同じ合言葉を入力して2人合流してください';
+        startHint.textContent = '別のPC・スマホから同じ合言葉を入力して2人合流してください';
       } else if (!state.isReady || !state.peerReady) {
         startHint.textContent = '2人とも「準備完了」を押すと出航スタートできます';
       } else {
