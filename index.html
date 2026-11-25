@@ -199,7 +199,7 @@
             </div>
 
             <p id="roomSyncGuideText" class="text-xs text-slate-300 leading-relaxed">
-              Firebase Realtime Database 設定時は<strong class="text-cyan-300">別端末同士</strong>でも同じ<strong class="text-cyan-300">合言葉</strong>で合流できます（同一ブラウザ別タブでは BroadcastChannel / localStorage でも同期）。
+              PCとスマホなど<strong>別端末同士</strong>で同じ<strong class="text-cyan-300">合言葉</strong>につなぐには、両方の端末に <strong class="text-amber-300">Firebase Realtime Database 設定</strong> が必要です（未設定のままだと別端末とはつながりません）。
             </p>
 
             <!-- 合言葉入力 -->
@@ -709,8 +709,14 @@
         <button id="closeFirebaseConfigBtn" type="button" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-800 text-slate-300 tactile-btn">✕</button>
       </div>
       <p class="text-xs text-slate-300 leading-relaxed">
-        PC・スマホなど<strong>別端末</strong>で同じ合言葉の部屋に同期するには、Firebase Realtime Database の設定（<code>apiKey</code>, <code>databaseURL</code>, <code>projectId</code> などを含む JSON）を保存してください。未設定の場合は同一端末タブ間の同期のみ動作します。
+        PC・スマホなど<strong>別端末</strong>で同じ合言葉の部屋に同期するには、Firebase Realtime Database の設定（<code>apiKey</code>, <code>databaseURL</code>, <code>projectId</code> などを含む JSON）を保存してください。スマホでの手入力が大変なので、PCで保存した設定を「設定コードをコピー」してスマホに貼り付けることもできます。
       </p>
+      <div class="flex flex-wrap items-center justify-between gap-2">
+        <span id="fbConfigStatusText" class="text-xs font-bold text-amber-300">状態: 未設定（別端末とは接続不可）</span>
+        <button id="copyFirebaseConfigBtn" type="button" class="px-3 py-1 rounded-lg text-xs font-bold bg-indigo-500/20 hover:bg-indigo-500/30 text-indigo-200 border border-indigo-400/40 tactile-btn">
+          📋 設定JSONをコピー
+        </button>
+      </div>
       <textarea
         id="firebaseConfigTextarea"
         rows="7"
@@ -1100,16 +1106,30 @@
 
     function updateNetModeBadge() {
       const badge = document.getElementById('netModeBadge');
+      const statusText = document.getElementById('fbConfigStatusText');
+      const hasCfg = Boolean(parseFirebaseConfig()?.databaseURL);
+      if (statusText) {
+        if (fbConnected) {
+          statusText.textContent = '状態: RTDB接続中（別端末マッチ有効）';
+          statusText.className = 'text-xs font-bold text-emerald-300';
+        } else if (hasCfg) {
+          statusText.textContent = '状態: 設定あり（接続中／DBルール要確認）';
+          statusText.className = 'text-xs font-bold text-amber-300';
+        } else {
+          statusText.textContent = '状態: 未設定（PCとスマホはつながりません）';
+          statusText.className = 'text-xs font-bold text-rose-300';
+        }
+      }
       if (!badge) return;
       if (fbConnected) {
         badge.textContent = '🌐 別端末同期: RTDB接続中';
         badge.className = 'text-xs font-extrabold text-emerald-300';
-      } else if (parseFirebaseConfig()) {
+      } else if (hasCfg) {
         badge.textContent = '🌐 別端末同期: 接続試行中';
         badge.className = 'text-xs font-extrabold text-amber-300';
       } else {
-        badge.textContent = '💻 同一端末タブ同期（設定で別端末対応）';
-        badge.className = 'text-xs font-bold text-cyan-200';
+        badge.textContent = '⚠ 別端末未設定（⚙ 通信設定へ）';
+        badge.className = 'text-xs font-extrabold text-rose-300';
       }
     }
 
@@ -2817,7 +2837,22 @@
         if (fbTextarea) {
           fbTextarea.value = localStorage.getItem(FB_CONFIG_STORAGE_KEY) || '';
         }
+        updateNetModeBadge();
         fbModal?.classList.remove('hidden');
+      });
+      document.getElementById('copyFirebaseConfigBtn')?.addEventListener('click', () => {
+        const currentText = (fbTextarea?.value || localStorage.getItem(FB_CONFIG_STORAGE_KEY) || '').trim();
+        if (!currentText) {
+          showToast('コピーするFirebase設定がありません', 'danger');
+          return;
+        }
+        const tempInput = document.createElement('textarea');
+        tempInput.value = currentText;
+        document.body.appendChild(tempInput);
+        tempInput.select();
+        document.execCommand('copy');
+        document.body.removeChild(tempInput);
+        showToast('📋 Firebase設定JSONをコピーしました', 'success');
       });
       document.getElementById('closeFirebaseConfigBtn')?.addEventListener('click', () => {
         fbModal?.classList.add('hidden');
