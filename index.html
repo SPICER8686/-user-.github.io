@@ -423,7 +423,271 @@
   </div>
 
   <!-- =========================================================
-       2. ゲームプレイ画面
+       1.5 ワールド定数・難易度・状態管理（初期化）
+       ========================================================= -->
+  <script>
+    const CLIENT_ID = `crew_${Math.random().toString(36).slice(2, 9)}`;
+    const STORAGE_KEY = 'mist_compass_save_v2';
+    const BUS_STORAGE_PREFIX = 'mist_compass_bus_';
+    const CALLSIGNS = ['海燕', '灯台守', '黒潮', '羅針盤', '潮騒', '北極星', '水先案内', '霧笛'];
+
+    const WORLD = {
+      START_X: 0,
+      START_Z: 1150,
+      GOAL_X: 0,
+      GOAL_Z: -1250,
+      GOAL_RADIUS: 58,
+      TOTAL_DISTANCE: 2400,
+      BOUND_X: 680,
+      NORTH_BOUND_Z: -1420,
+      SOUTH_BOUND_Z: 1320
+    };
+
+    const DIFFICULTIES = {
+      easy: {
+        id: 'easy',
+        label: '初級（CALM）',
+        shortLabel: '初級',
+        maxHp: 140,
+        timeLimit: 300,
+        maxSpeed: 42,
+        thrust: 24,
+        reverseThrust: 15,
+        turnRate: 1.55,
+        drag: 0.72,
+        obstacleCount: 58
+      },
+      normal: {
+        id: 'normal',
+        label: '標準（MIST）',
+        shortLabel: '標準',
+        maxHp: 100,
+        timeLimit: 240,
+        maxSpeed: 46,
+        thrust: 26,
+        reverseThrust: 16,
+        turnRate: 1.45,
+        drag: 0.68,
+        obstacleCount: 92
+      },
+      hard: {
+        id: 'hard',
+        label: '熟練（STORM）',
+        shortLabel: '熟練',
+        maxHp: 80,
+        timeLimit: 200,
+        maxSpeed: 50,
+        thrust: 28,
+        reverseThrust: 17,
+        turnRate: 1.38,
+        drag: 0.65,
+        obstacleCount: 130
+      }
+    };
+
+    function normalizeRoomCode(raw) {
+      const cleaned = String(raw || 'MIST-77')
+        .toUpperCase()
+        .replace(/[^A-Z0-9_-]/g, '')
+        .slice(0, 16);
+      return cleaned || 'MIST-77';
+    }
+
+    function loadSavedData() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    const saved = loadSavedData();
+
+    const state = {
+      screen: 'lobby', // 'lobby' | 'playing' | 'ended' | 'replay'
+      playerName: saved?.playerName || `${CALLSIGNS[Math.floor(Math.random() * CALLSIGNS.length)]}_01`,
+      roomId: normalizeRoomCode(saved?.roomId || 'MIST-77'),
+      role: saved?.role === 'map' ? 'map' : 'helm',
+      difficulty: DIFFICULTIES[saved?.difficulty] ? saved.difficulty : 'normal',
+      isReady: false,
+
+      peerConnected: false,
+      peerId: null,
+      peerName: null,
+      peerRole: null,
+      peerReady: false,
+      lastPeerHeartbeat: 0,
+
+      bestRecord: saved?.bestRecord || null,
+
+      hp: 100,
+      maxHp: 100,
+      timeLeft: 240,
+      elapsed: 0,
+      status: 'playing', // 'playing' | 'victory' | 'gameover' | 'timeout'
+      hitCount: 0,
+      sonarCount: 0,
+      eventText: 'マップ役の指示を聞きながら北（ゴール灯台）を目指してください！',
+
+      ship: {
+        x: WORLD.START_X,
+        z: WORLD.START_Z,
+        heading: 0,
+        vx: 0,
+        vz: 0,
+        angularVel: 0,
+        propAngle: 0,
+        radarBarAngle: 0,
+        invulnTimer: 0
+      },
+
+      sonar: {
+        activeTimer: 0,
+        activeDuration: 5.5,
+        cooldownLeft: 0,
+        cooldownTotal: 11.0,
+        pulseWave: 0
+      },
+
+      map: {
+        viewHalfSpan: 460,
+        panX: WORLD.START_X,
+        panZ: WORLD.START_Z - 220,
+        followShip: true,
+        dragging: false,
+        dragStartX: 0,
+        dragStartY: 0,
+        panStartX: 0,
+        panStartZ: 0
+      },
+
+      obstacles: [],
+
+      replay: {
+        frames: [],
+        recordAccum: 0,
+        playing: false,
+        speed: 1,
+        time: 0,
+        duration: 0
+      }
+    };
+
+    const keys = { fwd: false, back: false, left: false, right: false };
+    const touchInput = { fwd: false, back: false, left: false, right: false };
+
+    function saveGameData() {
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({
+            playerName: state.playerName,
+            roomId: state.roomId,
+            role: state.role,
+            difficulty: state.difficulty,
+            bestRecord: state.bestRecord
+          })
+        );
+        const badgeText = document.getElementById('autoSaveText');
+        if (badgeText) badgeText.textContent = '自動保存済み';
+      } catch (e) {
+        // ignore storage quota errors
+      }
+    }
+
+    function updateBestRecordDisplay() {
+      const el = document.getElementById('bestRecordText');
+      if (!el) return;
+      if (!state.bestRecord) {
+        el.textContent = '未達成（出航して記録を残そう）';
+        return;
+      }
+      const dLabel = DIFFICULTIES[state.bestRecord.difficulty]?.shortLabel || '標準';
+      el.textContent = `${dLabel} ${state.bestRecord.time.toFixed(1)}s (残HP ${Math.ceil(state.bestRecord.hp)})`;
+    }
+
+    function showToast(text, tone = 'info') {
+      const container = document.getElementById('toastContainer');
+      if (!container) return;
+      const div = document.createElement('div');
+      const toneClass =
+        tone === 'success'
+          ? 'bg-emerald-950/95 border-emerald-400/60 text-emerald-200'
+          : tone === 'danger'
+            ? 'bg-rose-950/95 border-rose-400/60 text-rose-200'
+            : 'bg-slate-900/95 border-cyan-400/50 text-cyan-100';
+      div.className = `px-4 py-2 rounded-2xl border text-xs font-extrabold shadow-xl ${toneClass}`;
+      div.textContent = text;
+      container.appendChild(div);
+      setTimeout(() => {
+        div.style.opacity = '0';
+        div.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => div.remove(), 260);
+      }, 2400);
+    }
+
+    function setEventBanner(text) {
+      state.eventText = text;
+      const banner = document.getElementById('eventBanner');
+      if (banner) banner.textContent = text;
+    }
+
+    function generateObstacles(diffKey) {
+      const cfg = DIFFICULTIES[diffKey] || DIFFICULTIES.normal;
+      const list = [];
+      const count = cfg.obstacleCount;
+
+      for (let i = 0; i < count; i++) {
+        const progress = i / Math.max(1, count - 1); // 0(スタート付近) -> 1(ゴール付近)
+        const z = WORLD.START_Z - 140 - progress * (WORLD.TOTAL_DISTANCE - 180) + (Math.random() - 0.5) * 36;
+        const corridorHalf = Math.max(230, WORLD.BOUND_X - progress * 170);
+        const x = (Math.random() * 2 - 1) * corridorHalf;
+
+        let kind = 'rock';
+        const r = Math.random();
+        if (progress < 0.3) {
+          kind = r < 0.65 ? 'rock' : r < 0.9 ? 'whirlpool' : 'mine';
+        } else if (progress < 0.7) {
+          kind = r < 0.38 ? 'rock' : r < 0.75 ? 'mine' : 'whirlpool';
+        } else {
+          kind = r < 0.28 ? 'rock' : r < 0.72 ? 'mine' : 'whirlpool';
+        }
+
+        const radius =
+          kind === 'rock'
+            ? 14 + Math.random() * 11
+            : kind === 'mine'
+              ? 10 + Math.random() * 5
+              : 18 + Math.random() * 9;
+
+        const damage = kind === 'mine' ? 28 : kind === 'rock' ? 18 : 14;
+        const moving = kind !== 'rock' && (progress > 0.2 || Math.random() < 0.35);
+
+        list.push({
+          id: `obs_${i}`,
+          kind,
+          x,
+          z,
+          baseX: x,
+          baseZ: z,
+          radius,
+          damage,
+          moving,
+          moveAxis: Math.random() < 0.72 ? 'x' : 'z',
+          moveAmp: 22 + progress * 48 + Math.random() * 22,
+          moveSpeed: 0.7 + progress * 0.9 + Math.random() * 0.5,
+          phase: Math.random() * Math.PI * 2
+        });
+      }
+
+      return list;
+    }
+  </script>
+
+  <!-- =========================================================
+       2. ルーム同期（別端末オンラインリレー + 同一端末BroadcastChannel/localStorage）
        ========================================================= -->
   <div id="gameScreen" class="hidden min-h-screen flex flex-col bg-[#050c16]">
     <header class="sticky top-0 z-30 bg-[#071322]/90 backdrop-blur-md border-b border-slate-800 px-3 sm:px-5 py-2 flex flex-wrap items-center justify-between gap-2">
