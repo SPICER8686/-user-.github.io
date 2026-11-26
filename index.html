@@ -2,2498 +2,2405 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>Mist Compass — 濃霧の2人協力3D航行ゲーム</title>
-  <!-- Tailwind CSS CDN -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Three.js CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-  <!-- PeerJS CDN for real-time P2P sync by passphrase -->
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg-deep: #07111a;
-      --panel-bg: rgba(10, 23, 36, 0.84);
-      --panel-border: rgba(125, 211, 252, 0.18);
+      --bg-dark: #07111a;
+      --panel-bg: rgba(10, 22, 34, 0.88);
+      --panel-border: rgba(125, 211, 252, 0.24);
+      --accent: #38bdf8;
+      --accent-2: #34d399;
+      --warn: #fbbf24;
+      --danger: #f87171;
+      --text: #e6f1f8;
+      --muted: #8aa4b8;
     }
 
+    /* Disable long-press text selection and callouts globally; keep inputs usable */
     * {
       box-sizing: border-box;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
       user-select: none;
+      -webkit-touch-callout: none;
       -webkit-tap-highlight-color: transparent;
     }
 
-    body {
+    html, body {
       margin: 0;
       padding: 0;
-      font-family: 'Noto Sans JP', 'Inter', sans-serif;
-      background-color: var(--bg-deep);
-      color: #e2e8f0;
-      overflow-x: hidden;
-      min-height: 100vh;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg-dark);
+      color: var(--text);
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+      touch-action: manipulation;
     }
 
-    .mist-backdrop {
+    input, textarea {
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
+      user-select: text;
+      -webkit-touch-callout: default;
+      touch-action: auto;
+    }
+
+    /* ==================== MENU SCREEN ==================== */
+    #menu-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
       background:
-        radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
-        radial-gradient(circle at 80% 75%, rgba(14, 165, 233, 0.10), transparent 50%),
-        linear-gradient(180deg, #060e16 0%, #0b1c2c 55%, #07131e 100%);
+        radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.16), transparent 45%),
+        radial-gradient(circle at 80% 75%, rgba(52, 211, 153, 0.12), transparent 50%),
+        linear-gradient(165deg, #061018 0%, #0b1d2c 55%, #07121c 100%);
+      overflow-y: auto;
     }
 
-    .glass-panel {
+    .menu-card {
+      width: 100%;
+      max-width: 840px;
       background: var(--panel-bg);
-      backdrop-filter: blur(14px);
-      -webkit-backdrop-filter: blur(14px);
       border: 1px solid var(--panel-border);
-      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+      border-radius: 18px;
+      padding: 24px 28px;
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(12px);
+      margin: auto;
     }
 
-    .btn-maritime {
-      transition: transform 0.14s ease, box-shadow 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+    .menu-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.18);
+      padding-bottom: 16px;
+      margin-bottom: 20px;
     }
-    .btn-maritime:hover:not(:disabled) {
+
+    .brand-title {
+      font-size: 30px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      margin: 0;
+      background: linear-gradient(90deg, #e0f2fe, #38bdf8, #34d399);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-sub {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .profile-stats {
+      display: flex;
+      gap: 12px;
+      background: rgba(15, 33, 49, 0.85);
+      border: 1px solid rgba(125, 211, 252, 0.18);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+    }
+
+    .stat-box {
+      text-align: center;
+      min-width: 68px;
+    }
+
+    .stat-val {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    @media (max-width: 680px) {
+      .form-grid {
+        grid-template-columns: 1fr;
+      }
+      .menu-card {
+        padding: 18px;
+      }
+    }
+
+    .field-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .field-group.full {
+      grid-column: 1 / -1;
+    }
+
+    label.field-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: #bae6fd;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 11px 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      background: rgba(5, 14, 23, 0.85);
+      color: var(--text);
+      font-size: 15px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .choice-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    @media (max-width: 560px) {
+      .choice-row {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .diff-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    @media (max-width: 760px) {
+      .diff-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .choice-btn {
+      background: rgba(8, 20, 32, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.25);
+      border-radius: 12px;
+      padding: 12px 10px;
+      color: var(--text);
+      cursor: pointer;
+      text-align: left;
+      min-height: 44px;
+      touch-action: manipulation;
+      transition: all 0.18s ease;
+    }
+
+    .choice-btn:hover {
+      border-color: rgba(56, 189, 248, 0.55);
       transform: translateY(-1px);
     }
-    .btn-maritime:active:not(:disabled) {
-      transform: translateY(1px) scale(0.99);
+
+    .choice-btn.active {
+      border-color: var(--accent);
+      background: rgba(14, 48, 72, 0.9);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
     }
-    .btn-maritime:disabled {
+
+    .choice-title {
+      font-size: 14px;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .choice-desc {
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.38;
+      display: block;
+    }
+
+    .diff-badge {
+      display: inline-block;
+      margin-top: 6px;
+      padding: 2px 6px;
+      border-radius: 6px;
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.14);
+      color: #bae6fd;
+    }
+
+    .diff-btn[data-diff="maelstrom"].active {
+      border-color: #fb923c;
+      background: rgba(69, 34, 14, 0.9);
+      box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.28);
+    }
+
+    .diff-btn[data-diff="abyss"].active {
+      border-color: #c084fc;
+      background: rgba(46, 18, 69, 0.9);
+      box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.28);
+    }
+
+    .diff-btn[data-diff="nightmare"].active {
+      border-color: #f87171;
+      background: rgba(69, 18, 26, 0.9);
+      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.28);
+    }
+
+    .menu-footer {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.18);
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .save-note {
+      font-size: 12px;
+      color: var(--accent-2);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #0284c7, #0ea5e9);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 24px;
+      min-height: 44px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.35);
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-1px);
+      filter: brightness(1.08);
+    }
+
+    .btn-primary:disabled {
       opacity: 0.45;
       cursor: not-allowed;
     }
 
-    #threeCanvasHost,
-    #navThreeCanvasHost {
-      position: relative;
+    .btn-secondary {
+      background: rgba(15, 33, 49, 0.9);
+      color: var(--text);
+      border: 1px solid rgba(148, 163, 184, 0.3);
+      border-radius: 10px;
+      padding: 8px 14px;
+      min-height: 44px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--accent);
+    }
+
+    /* ==================== LOBBY OVERLAY ==================== */
+    #lobby-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 45;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 11, 18, 0.86);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+    }
+
+    .lobby-box {
+      max-width: 480px;
+      width: 100%;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 26px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.14);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      font-size: 13px;
+      margin: 12px 0;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--warn);
+      animation: pulse 1.3s infinite;
+    }
+
+    .dot.ok {
+      background: var(--accent-2);
+      animation: none;
+    }
+
+    .dot.err {
+      background: var(--danger);
+      animation: none;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+
+    /* ==================== GAME SCREEN ==================== */
+    #game-screen {
+      position: fixed;
+      inset: 0;
+      display: none;
+    }
+
+    #three-canvas {
+      position: absolute;
+      inset: 0;
       width: 100%;
       height: 100%;
+      display: block;
+    }
+
+    /* Top HUD */
+    .hud-top {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      right: 14px;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+      pointer-events: none;
+    }
+
+    .hud-panel {
+      pointer-events: auto;
+      background: rgba(8, 19, 30, 0.84);
+      border: 1px solid rgba(125, 211, 252, 0.22);
+      border-radius: 12px;
+      padding: 10px 14px;
+      backdrop-filter: blur(8px);
+      font-size: 13px;
+    }
+
+    .hp-bar-wrap {
+      width: 170px;
+      height: 10px;
+      background: rgba(255, 255, 255, 0.12);
+      border-radius: 999px;
       overflow: hidden;
+      margin-top: 5px;
     }
 
-    #threeCanvasHost canvas,
-    #navThreeCanvasHost canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
+    .hp-bar-fill {
+      height: 100%;
+      width: 100%;
+      background: linear-gradient(90deg, #34d399, #38bdf8);
+      transition: width 0.2s, background 0.2s;
     }
 
-    #radarCanvas {
+    .hud-metrics {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .metric-item strong {
       display: block;
+      font-size: 16px;
+      color: #f0f9ff;
+    }
+
+    .metric-item span {
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    /* Helmsman Desktop Hint & Mobile Touch Pad */
+    #helmsman-controls {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 20;
+      background: rgba(8, 19, 30, 0.88);
+      border: 1px solid rgba(125, 211, 252, 0.24);
+      border-radius: 14px;
+      padding: 10px 16px;
+      font-size: 12px;
+      color: #cbd5e1;
+      display: none;
+      gap: 14px;
+      align-items: center;
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+      touch-action: none;
+    }
+
+    #mobile-helm-pad {
+      position: fixed;
+      left: 12px;
+      right: 12px;
+      bottom: 12px;
+      z-index: 24;
+      display: none;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 12px;
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    .touch-cluster {
+      pointer-events: auto;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      background: rgba(8, 19, 30, 0.86);
+      border: 1px solid rgba(125, 211, 252, 0.28);
+      border-radius: 18px;
+      padding: 10px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      touch-action: none;
+    }
+
+    .touch-pad-btn {
+      min-width: 64px;
+      min-height: 58px;
+      padding: 0 14px;
+      border-radius: 14px;
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      background: rgba(15, 35, 54, 0.92);
+      color: #f0f9ff;
+      font-size: 14px;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      touch-action: none;
+      transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+    }
+
+    .touch-pad-btn small {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .touch-pad-btn.pressed {
+      transform: scale(0.95);
+      background: rgba(2, 132, 199, 0.75);
+      border-color: #7dd3fc;
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
+    }
+
+    kbd {
+      background: rgba(30, 41, 59, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      border-radius: 5px;
+      padding: 2px 6px;
+      font-size: 11px;
+      color: #f8fafc;
+      font-family: monospace;
+    }
+
+    /* ==================== MAP ROLE UI ==================== */
+    #map-role-ui {
+      position: fixed;
+      inset: 0;
+      z-index: 15;
+      display: none;
+      pointer-events: none;
+      touch-action: none;
+    }
+
+    #radar-container {
+      position: absolute;
+      top: 84px;
+      left: 14px;
+      width: min(520px, calc(100vw - 28px));
+      height: min(520px, calc(100vh - 175px));
+      background: rgba(5, 15, 24, 0.92);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+      border-radius: 16px;
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+      pointer-events: auto;
+      display: flex;
+      flex-direction: column;
+      touch-action: none;
+    }
+
+    .radar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 12px;
+      background: rgba(12, 28, 44, 0.95);
+      border-bottom: 1px solid rgba(125, 211, 252, 0.18);
+      font-size: 12px;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .radar-controls {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .mini-btn {
+      background: rgba(20, 44, 66, 0.9);
+      border: 1px solid rgba(125, 211, 252, 0.3);
+      color: var(--text);
+      border-radius: 7px;
+      padding: 6px 10px;
+      min-height: 36px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+    }
+
+    .mini-btn:hover:not(:disabled) {
+      background: rgba(2, 132, 199, 0.55);
+    }
+
+    .mini-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .mini-btn.scan-ready {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #34d399;
+      color: #a7f3d0;
+    }
+
+    #radar-canvas {
+      flex: 1;
       width: 100%;
       height: 100%;
+      display: block;
       cursor: grab;
       touch-action: none;
     }
-    #radarCanvas:active {
+
+    #radar-canvas:active {
       cursor: grabbing;
     }
 
-    ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+    .radar-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 6px 12px;
+      background: rgba(8, 19, 30, 0.95);
+      border-top: 1px solid rgba(125, 211, 252, 0.15);
+      font-size: 11px;
+      color: var(--muted);
     }
-    ::-webkit-scrollbar-track {
-      background: rgba(15, 23, 42, 0.5);
+
+    .leg-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 4px;
     }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(148, 163, 184, 0.3);
-      border-radius: 9999px;
+
+    /* Map Role Sub-View (3D Helmsman Cam) */
+    #helmsman-subview-box {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      width: min(380px, calc(100vw - 28px));
+      height: 230px;
+      background: rgba(6, 15, 24, 0.9);
+      border: 1px solid rgba(52, 211, 153, 0.4);
+      border-radius: 14px;
+      overflow: hidden;
+      pointer-events: auto;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
+      z-index: 22;
+      transition: all 0.22s ease;
+      touch-action: none;
+    }
+
+    #helmsman-subview-box.expanded {
+      width: min(680px, calc(100vw - 28px));
+      height: min(430px, calc(100vh - 110px));
+    }
+
+    .subview-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 5;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 10px;
+      background: linear-gradient(180deg, rgba(4, 12, 20, 0.88), rgba(4, 12, 20, 0));
+      font-size: 11px;
+      color: #a7f3d0;
+    }
+
+    /* Mobile / Narrow Screen Layout Adjustments */
+    @media (max-width: 768px) {
+      .hud-top {
+        top: 8px;
+        left: 8px;
+        right: 8px;
+        gap: 6px;
+      }
+
+      .hud-panel {
+        padding: 8px 10px;
+        border-radius: 10px;
+        font-size: 11px;
+      }
+
+      .hp-bar-wrap {
+        width: 110px;
+        height: 8px;
+      }
+
+      .hud-metrics {
+        gap: 10px;
+      }
+
+      .metric-item strong {
+        font-size: 13px;
+      }
+
+      #helmsman-controls {
+        display: none !important;
+      }
+
+      #radar-container {
+        top: 122px;
+        left: 8px;
+        right: 8px;
+        width: calc(100vw - 16px);
+        height: calc(100vh - 122px - 176px);
+        min-height: 170px;
+        border-radius: 14px;
+      }
+
+      #helmsman-subview-box {
+        left: 8px;
+        right: 8px;
+        bottom: 8px;
+        width: calc(100vw - 16px);
+        height: 158px;
+        border-radius: 12px;
+      }
+
+      #helmsman-subview-box.expanded {
+        left: 8px;
+        right: 8px;
+        top: 122px;
+        bottom: 8px;
+        width: calc(100vw - 16px);
+        height: calc(100vh - 130px);
+      }
+
+      #alert-banner {
+        top: 126px;
+        font-size: 12px;
+        padding: 6px 14px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .touch-pad-btn {
+        min-width: 54px;
+        min-height: 52px;
+        padding: 0 10px;
+        font-size: 13px;
+      }
+
+      .touch-cluster {
+        gap: 7px;
+        padding: 8px;
+        border-radius: 15px;
+      }
+    }
+
+    /* Alert Toast */
+    #alert-banner {
+      position: fixed;
+      top: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 30;
+      background: rgba(127, 29, 29, 0.92);
+      border: 1px solid #fca5a5;
+      color: #fef2f2;
+      padding: 8px 18px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      display: none;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      white-space: nowrap;
+    }
+
+    /* End Modal */
+    #end-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 60;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(4, 10, 16, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 20px;
+    }
+
+    .end-card {
+      max-width: 440px;
+      width: 100%;
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      padding: 28px;
+      text-align: center;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
+    }
+
+    .end-title {
+      font-size: 28px;
+      font-weight: 800;
+      margin: 0 0 10px;
     }
   </style>
 </head>
-<body class="mist-backdrop text-slate-100">
+<body>
 
-  <!-- Toast / Status Banner -->
-  <div id="toastBanner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-3 max-w-[92vw]">
-    <div id="toastInner" class="px-4 py-2.5 rounded-xl glass-panel border border-sky-400/40 text-sm font-medium text-slate-100 flex items-center gap-2 shadow-xl">
-      <span id="toastDot" class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
-      <span id="toastText"></span>
-    </div>
-  </div>
-
-  <!-- ========================================================= -->
-  <!-- 1. TITLE & MENU SCREEN                                    -->
-  <!-- ========================================================= -->
-  <section id="menuScreen" class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6">
-    <div class="w-full max-w-5xl glass-panel rounded-3xl p-5 sm:p-8 space-y-6">
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-700/60 pb-5">
+  <!-- ==================== MENU SCREEN ==================== -->
+  <div id="menu-screen">
+    <div class="menu-card">
+      <div class="menu-header">
         <div>
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 text-xs font-semibold tracking-wider mb-2">
-            <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="9" />
-              <polygon points="12 6 15 12 12 18 9 12" fill="currentColor" opacity="0.5"/>
-            </svg>
-            2-PLAYER COOPERATIVE 3D FOG NAVIGATION
-          </div>
-          <h1 class="text-3xl sm:text-4xl font-bold tracking-tight text-white flex items-center gap-3">
-            <span>Mist Compass</span>
-            <span class="text-base sm:text-lg font-normal text-slate-400">ミスト・コンパス</span>
-          </h1>
-          <p class="text-xs sm:text-sm text-slate-300 mt-1.5 leading-relaxed">
-            濃霧で前方が見えない3D海上の「操船役」と、レーダーで危険を察知し声で指示を出す「マップ役」が協力してゴールを目指す2人協力オンラインゲームです。
+          <h1 class="brand-title">MIST COMPASS</h1>
+          <p class="brand-sub">
+            濃霧の3D海上で船を操る<strong>操船役</strong>と、レーダー＆操船視界から危険を伝える<strong>マップ役</strong>の2人協力航行ゲーム
           </p>
         </div>
-
-        <!-- Profile Stats (Auto-saved in localStorage) -->
-        <div class="bg-slate-900/75 border border-slate-700/70 rounded-2xl p-3.5 min-w-[220px] shrink-0">
-          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-2">
-            <span class="flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-              自動保存プロフィール
-            </span>
-            <button id="resetStatsBtn" type="button" class="text-slate-400 hover:text-rose-300 underline transition">戦績リセット</button>
+        <div class="profile-stats">
+          <div class="stat-box">
+            <div class="stat-val" id="stat-plays">0</div>
+            <div class="stat-label">累計プレイ</div>
           </div>
-          <div class="grid grid-cols-2 gap-2.5 text-center">
-            <div class="bg-slate-800/70 rounded-xl p-2 border border-slate-700/50">
-              <div class="text-[11px] text-slate-400">累計プレイ</div>
-              <div id="statPlayCount" class="text-xl font-bold text-sky-300 mt-0.5">0</div>
-            </div>
-            <div class="bg-slate-800/70 rounded-xl p-2 border border-slate-700/50">
-              <div class="text-[11px] text-slate-400">クリア回数</div>
-              <div id="statClearCount" class="text-xl font-bold text-emerald-300 mt-0.5">0</div>
-            </div>
+          <div class="stat-box">
+            <div class="stat-val" id="stat-clears">0</div>
+            <div class="stat-label">クリア回数</div>
           </div>
         </div>
       </div>
 
-      <!-- Main Form Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Left Column: Player Name, Passphrase, Connection -->
-        <div class="lg:col-span-5 space-y-4">
-          <div>
-            <label for="playerNameInput" class="block text-xs font-semibold uppercase tracking-wider text-sky-300 mb-1.5">
-              1. プレイヤー名
-            </label>
-            <input
-              id="playerNameInput"
-              type="text"
-              maxlength="20"
-              placeholder="例：航海士アオイ"
-              class="w-full px-4 py-2.5 rounded-xl bg-slate-900/85 border border-slate-700 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 outline-none text-sm text-white placeholder-slate-500 transition"
-            />
-          </div>
-
-          <div>
-            <label for="passphraseInput" class="block text-xs font-semibold uppercase tracking-wider text-sky-300 mb-1.5">
-              2. 合言葉（ルームID）
-            </label>
-            <div class="flex gap-2">
-              <input
-                id="passphraseInput"
-                type="text"
-                maxlength="32"
-                placeholder="例：mist-bay-77（2人で同じ文字列を入力）"
-                class="flex-1 px-4 py-2.5 rounded-xl bg-slate-900/85 border border-slate-700 focus:border-sky-400 focus:ring-2 focus:ring-sky-400/20 outline-none text-sm text-white placeholder-slate-500 transition"
-              />
-              <button
-                id="randomPassBtn"
-                type="button"
-                title="ランダムな合言葉を生成"
-                class="btn-maritime px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-200 shrink-0"
-              >
-                生成
-              </button>
-            </div>
-            <p id="roomIdPreview" class="text-[11px] text-slate-400 mt-1.5 font-mono truncate">
-              ルーム識別子: mc-room-...
-            </p>
-          </div>
-
-          <!-- Online Connection Box -->
-          <div class="bg-slate-900/75 border border-slate-700/80 rounded-2xl p-4 space-y-3">
-            <div class="flex items-center justify-between gap-2">
-              <span class="text-xs font-semibold text-slate-300">オンライン接続状態</span>
-              <span id="connStatusBadge" class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-600">
-                <span id="connDot" class="w-2 h-2 rounded-full bg-slate-400"></span>
-                <span id="connStatusText">未接続</span>
-              </span>
-            </div>
-            <p id="connDetailText" class="text-xs text-slate-400 leading-relaxed">
-              同じ合言葉を入力したパートナーとP2P接続します。接続後すぐに2人同期で出航できます。
-            </p>
-            <div class="flex flex-wrap gap-2">
-              <button
-                id="connectBtn"
-                type="button"
-                class="btn-maritime flex-1 min-w-[130px] px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-sky-500/20"
-              >
-                合言葉で接続・待機
-              </button>
-              <button
-                id="disconnectBtn"
-                type="button"
-                disabled
-                class="btn-maritime px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-medium text-slate-300"
-              >
-                切断
-              </button>
-            </div>
-            <div id="partnerInfoBox" class="hidden pt-2 border-t border-slate-800 flex items-center justify-between text-xs">
-              <span class="text-emerald-300 font-medium">
-                パートナー接続中: <strong id="partnerNameLabel" class="text-white">---</strong>
-              </span>
-              <span id="partnerRoleLabel" class="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px]">
-                役割: ---
-              </span>
-            </div>
-          </div>
+      <div class="form-grid">
+        <div class="field-group">
+          <label class="field-label" for="player-name">1. プレイヤー名</label>
+          <input id="player-name" type="text" maxlength="20" placeholder="例：海原 カイト" />
         </div>
 
-        <!-- Right Column: Role & 5 Difficulty Tiers -->
-        <div class="lg:col-span-7 space-y-4">
-          <!-- 3. Role Selection -->
-          <div>
-            <span class="block text-xs font-semibold uppercase tracking-wider text-sky-300 mb-1.5">
-              3. 役割選択
-            </span>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <button
-                id="roleHelmsmanBtn"
-                type="button"
-                data-role="helmsman"
-                class="btn-maritime role-card text-left p-3.5 rounded-2xl border bg-slate-900/75 border-sky-400 ring-2 ring-sky-400/30 transition"
-              >
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-sm text-white flex items-center gap-1.5">
-                    <span>舵</span> 操船役
-                  </span>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-300 font-semibold">3D視点・濃霧</span>
-                </div>
-                <p class="text-[11px] text-slate-300 leading-relaxed">
-                  慣性のある船を操舵・増減速。濃霧で先が見えないため、マップ役の指示を頼りに岩礁・機雷・渦潮を避けてゴールへ進みます。
-                </p>
-              </button>
-
-              <button
-                id="roleNavigatorBtn"
-                type="button"
-                data-role="navigator"
-                class="btn-maritime role-card text-left p-3.5 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 transition"
-              >
-                <div class="flex items-center justify-between mb-1">
-                  <span class="font-bold text-sm text-white flex items-center gap-1.5">
-                    <span>地図</span> マップ役
-                  </span>
-                  <span class="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold">レーダー・スキャン</span>
-                </div>
-                <p class="text-[11px] text-slate-300 leading-relaxed">
-                  2Dレーダーで自船と障害物を把握し、声で操船役に指示を出します。「危険スキャン強調」や3D視点切替も使えます。
-                </p>
-              </button>
-            </div>
-          </div>
-
-          <!-- 4. 5-Tier Difficulty Selection -->
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <span class="block text-xs font-semibold uppercase tracking-wider text-sky-300">
-                4. 難易度選択（全5段階・長距離＆高難度）
-              </span>
-              <span class="text-[11px] text-slate-400">推定クリア目安: 2.5分〜10分</span>
-            </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
-              <button
-                type="button"
-                data-diff="normal"
-                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/75 border-sky-400 ring-2 ring-sky-400/25 text-left transition"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-sm text-sky-300">ふつう</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-200">★☆☆</span>
-                </div>
-                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行 1400m / 推定 2.5〜3.5分<br/>
-                  標準密度・濃霧視程 26m
-                </div>
-              </button>
-
-              <button
-                type="button"
-                data-diff="hard"
-                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-sm text-amber-300">むずかしい</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-200">★★☆</span>
-                </div>
-                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行 2100m / 推定 4〜5分<br/>
-                  高密度・漂流機雷＆渦潮強化
-                </div>
-              </button>
-
-              <button
-                type="button"
-                data-diff="squall"
-                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-sm text-orange-300">激流・濃霧</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-200">★★★</span>
-                </div>
-                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行 2700m / 推定 5.5〜6.5分<br/>
-                  強い潮流と深い霧（視程 21m）
-                </div>
-              </button>
-
-              <button
-                type="button"
-                data-diff="abyss"
-                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-sm text-rose-300">深海迷路</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-200">★★★★</span>
-                </div>
-                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行 3300m / 推定 7〜8分<br/>
-                  多数の渦潮＆高速機雷・重慣性
-                </div>
-              </button>
-
-              <button
-                type="button"
-                data-diff="nightmare"
-                class="btn-maritime diff-card sm:col-span-2 md:col-span-2 p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
-              >
-                <div class="flex items-center justify-between">
-                  <span class="font-bold text-sm text-fuchsia-300">悪夢の航路</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-fuchsia-500/15 text-fuchsia-200">★★★★★ 極限</span>
-                </div>
-                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行 4000m / 推定 8.5〜10分<br/>
-                  極限の濃霧（視程 17m）・高ダメージ・緻密な連携必須
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <!-- Difficulty Spec Summary -->
-          <div id="diffSpecBox" class="bg-slate-900/70 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-300 grid grid-cols-2 sm:grid-cols-4 gap-2">
-            <div>コース長: <strong id="specLength" class="text-white">1400m</strong></div>
-            <div>障害物: <strong id="specObstacles" class="text-white">48基</strong></div>
-            <div>推定クリア: <strong id="specEstTime" class="text-emerald-300">2.5〜3.5分</strong></div>
-            <div>制限時間: <strong id="specTime" class="text-amber-300">240秒</strong></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Footer Action Bar -->
-      <div class="pt-4 border-t border-slate-700/60 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div class="flex items-center gap-3 text-xs text-slate-400">
-          <button id="menuSoundBtn" type="button" class="btn-maritime px-3 py-1.5 rounded-lg bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-slate-200 flex items-center gap-1.5">
-            <span id="menuSoundIcon">🔊</span>
-            <span id="menuSoundLabel">効果音: ON</span>
-          </button>
-          <span>※ オンライン協力プレイには相手と同じ合言葉で接続してください。</span>
+        <div class="field-group">
+          <label class="field-label" for="room-code">2. 合言葉（ルームID・2人で同じ文字）</label>
+          <input id="room-code" type="text" maxlength="24" placeholder="例：mist-route-77" />
         </div>
 
-        <button
-          id="launchGameBtn"
-          type="button"
-          disabled
-          class="btn-maritime w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-gradient-to-r from-sky-400 to-cyan-300 hover:from-sky-300 hover:to-cyan-200 text-slate-950 font-bold text-sm sm:text-base shadow-xl shadow-sky-500/25"
-        >
-          パートナー接続待ち...
-        </button>
-      </div>
-    </div>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 2. ACTIVE GAME SCREEN                                     -->
-  <!-- ========================================================= -->
-  <section id="gameScreen" class="hidden fixed inset-0 w-screen h-screen flex flex-col bg-[#061018] overflow-hidden">
-    <!-- Top Shared Telemetry Bar -->
-    <header class="h-14 sm:h-16 px-3 sm:px-5 glass-panel border-b border-slate-700/70 flex items-center justify-between gap-2 z-20 shrink-0">
-      <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-        <span id="hudRoleBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-400/40 shrink-0">
-          操船役
-        </span>
-        <div class="truncate text-xs text-slate-300 hidden md:flex items-center gap-2">
-          <span class="text-slate-500">|</span>
-          <span>合言葉: <strong id="hudRoomLabel" class="text-slate-100 font-mono">---</strong></span>
-          <span class="text-slate-500">|</span>
-          <span>相棒: <strong id="hudPartnerLabel" class="text-emerald-300">---</strong></span>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-3 sm:gap-6">
-        <!-- HP -->
-        <div class="flex items-center gap-2">
-          <span class="text-[11px] text-slate-400 hidden sm:inline">船体HP</span>
-          <div class="w-20 sm:w-28 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-            <div id="hudHpBar" class="h-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-200" style="width: 100%"></div>
-          </div>
-          <span id="hudHpText" class="text-xs sm:text-sm font-bold text-emerald-300 tabular-nums w-9 text-right">100</span>
-        </div>
-
-        <!-- Remaining Distance -->
-        <div class="text-center">
-          <div class="text-[10px] text-slate-400 leading-none">ゴールまで</div>
-          <div id="hudDistText" class="text-xs sm:text-sm font-bold text-sky-300 tabular-nums mt-0.5">1400m</div>
-        </div>
-
-        <!-- Timer -->
-        <div class="text-center">
-          <div class="text-[10px] text-slate-400 leading-none">残り時間</div>
-          <div id="hudTimeText" class="text-xs sm:text-sm font-bold text-amber-300 tabular-nums mt-0.5">04:00</div>
-        </div>
-      </div>
-
-      <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-        <button id="gameSoundBtn" type="button" class="btn-maritime px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200">
-          <span id="gameSoundIcon">🔊</span>
-        </button>
-        <button id="abortToMenuBtn" type="button" class="btn-maritime px-3 py-1.5 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 border border-rose-500/40 text-xs font-medium text-rose-200">
-          帰還・メニュー
-        </button>
-      </div>
-    </header>
-
-    <!-- Main Workspace -->
-    <main class="flex-1 relative w-full h-full overflow-hidden">
-
-      <!-- HELMSMAN VIEW -->
-      <div id="helmsmanView" class="hidden w-full h-full relative">
-        <div id="threeCanvasHost"></div>
-
-        <div class="absolute top-3 left-3 sm:top-4 sm:left-4 pointer-events-none flex flex-col gap-2 z-10">
-          <div class="glass-panel px-3.5 py-2 rounded-2xl text-xs">
-            <div id="helmFogLabel" class="text-[10px] text-sky-300 font-semibold uppercase tracking-wider">濃霧視界（視程約26m）</div>
-            <div class="flex items-center gap-3 mt-1 text-slate-200 tabular-nums">
-              <span>方位: <strong id="helmHeadingText" class="text-amber-300">北 (000°)</strong></span>
-              <span>速力: <strong id="helmSpeedText" class="text-sky-300">0.0 kt</strong></span>
-            </div>
-          </div>
-          <div id="helmAlertBanner" class="hidden px-3.5 py-2 rounded-2xl bg-rose-950/85 border border-rose-400/60 text-rose-200 text-xs font-bold shadow-lg">
-            ⚠ 障害物に接触！船体が損傷しました！
-          </div>
-        </div>
-
-        <!-- Bottom Helm Controls -->
-        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 w-[95vw] max-w-2xl glass-panel rounded-2xl p-2.5 sm:p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
-            <button id="steerLeftBtn" type="button" class="btn-maritime flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-sky-500/30 border border-slate-600 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-1.5">
-              <span>◀</span> 左旋回 <span class="text-[10px] text-slate-400 hidden md:inline">(A/←)</span>
+        <div class="field-group full">
+          <label class="field-label">3. 役割選択</label>
+          <div class="choice-row">
+            <button type="button" class="choice-btn role-btn active" data-role="helmsman">
+              <span class="choice-title">操船役（3D操舵・濃霧視界）</span>
+              <span class="choice-desc">WASD / 矢印キー またはスマホのタッチパッドで前後進・旋回。慣性あり。濃い霧のため前方はほぼ見えず、マップ役の指示が命綱。</span>
             </button>
-            <button id="steerRightBtn" type="button" class="btn-maritime flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-sky-500/30 border border-slate-600 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-1.5">
-              右旋回 <span>▶</span> <span class="text-[10px] text-slate-400 hidden md:inline">(D/→)</span>
+            <button type="button" class="choice-btn role-btn" data-role="mapper">
+              <span class="choice-title">マップ役（2Dレーダー＋3D視界確認＋危険スキャン）</span>
+              <span class="choice-desc">俯瞰マップで岩礁・機雷・渦潮を把握し声で指示。拡大縮小・パン/ピンチ・操船3D視界確認・危険スキャン強調が可能。</span>
             </button>
           </div>
+        </div>
 
-          <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
-            <button id="throttleDownBtn" type="button" class="btn-maritime px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200">
-              ▼ 減速/後進 <span class="text-[10px] text-slate-400 hidden md:inline">(S/↓)</span>
+        <div class="field-group full">
+          <label class="field-label">4. 難易度選択（航行距離・推定クリア時間・危険密度・霧の濃さ）</label>
+          <div class="diff-grid">
+            <button type="button" class="choice-btn diff-btn" data-diff="normal">
+              <span class="choice-title">ふつう</span>
+              <span class="choice-desc">距離 1,400m / 制限 3:30<br/>基本の岩礁・機雷・渦潮</span>
+              <span class="diff-badge">推定 2.5〜3.5分</span>
             </button>
-            <div class="px-3 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700 text-center min-w-[92px]">
-              <div class="text-[10px] text-slate-400">機関出力</div>
-              <div id="telegraphLabel" class="text-xs font-bold text-emerald-300">停止 (0%)</div>
-            </div>
-            <button id="throttleUpBtn" type="button" class="btn-maritime px-3 py-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-400/50 text-xs font-bold text-sky-200">
-              ▲ 増速 <span class="text-[10px] text-sky-300/70 hidden md:inline">(W/↑)</span>
+            <button type="button" class="choice-btn diff-btn" data-diff="hard">
+              <span class="choice-title">むずかしい</span>
+              <span class="choice-desc">距離 2,100m / 制限 5:00<br/>高密度配置・強めの霧と慣性</span>
+              <span class="diff-badge">推定 4〜5分</span>
+            </button>
+            <button type="button" class="choice-btn diff-btn" data-diff="maelstrom">
+              <span class="choice-title">激流・濃霧</span>
+              <span class="choice-desc">距離 2,700m / 制限 6:30<br/>渦潮多発・視界限界クラスの霧</span>
+              <span class="diff-badge">推定 5.5〜6.5分</span>
+            </button>
+            <button type="button" class="choice-btn diff-btn" data-diff="abyss">
+              <span class="choice-title">深海迷路</span>
+              <span class="choice-desc">距離 3,300m / 制限 8:00<br/>長距離スラローム・機雷群</span>
+              <span class="diff-badge">推定 7〜8分</span>
+            </button>
+            <button type="button" class="choice-btn diff-btn" data-diff="nightmare">
+              <span class="choice-title">悪夢の航路</span>
+              <span class="choice-desc">距離 4,000m / 制限 10:00<br/>極限の濃霧・重慣性・高密度</span>
+              <span class="diff-badge">推定 8.5〜10分</span>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- MAP NAVIGATOR VIEW -->
-      <div id="navigatorView" class="hidden w-full h-full relative flex flex-col">
-        <div class="p-2.5 sm:p-3.5 flex flex-wrap items-center justify-between gap-2 z-10 pointer-events-none">
-          <div class="glass-panel rounded-2xl p-1.5 flex items-center gap-1.5 pointer-events-auto">
-            <button id="zoomInBtn" type="button" title="拡大" class="btn-maritime w-9 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600 font-bold text-sm text-white">
-              ＋
-            </button>
-            <button id="zoomOutBtn" type="button" title="縮小" class="btn-maritime w-9 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600 font-bold text-sm text-white">
-              －
-            </button>
-            <span id="mapZoomLabel" class="px-2 text-xs font-mono text-slate-300 tabular-nums">1.0x</span>
-            <button id="centerShipBtn" type="button" class="btn-maritime px-3 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600 text-xs font-semibold text-sky-300">
-              自船中心に戻す
-            </button>
-          </div>
-
-          <div class="flex items-center gap-2 pointer-events-auto">
-            <button
-              id="scanHazardBtn"
-              type="button"
-              class="btn-maritime px-4 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/20 flex items-center gap-2"
-            >
-              <span>📡</span>
-              <span id="scanBtnText">危険スキャン強調</span>
-            </button>
-
-            <button
-              id="toggle3DViewBtn"
-              type="button"
-              class="btn-maritime px-3.5 py-2.5 rounded-2xl bg-slate-800/95 hover:bg-slate-700 border border-sky-400/40 text-xs sm:text-sm font-semibold text-sky-200 flex items-center gap-1.5"
-            >
-              <span id="toggle3DIcon">👁</span>
-              <span id="toggle3DLabel">3D視点切替</span>
-            </button>
-          </div>
+      <div class="menu-footer">
+        <div class="save-note" id="save-status">プロフィール・設定はブラウザに自動保存されます</div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="reset-profile-btn">保存データ初期化</button>
+          <button type="button" class="btn-primary" id="start-match-btn">合言葉で接続して出航準備</button>
         </div>
-
-        <div class="flex-1 relative w-full h-full">
-          <canvas id="radarCanvas"></canvas>
-
-          <!-- Legend Card -->
-          <div class="hidden sm:flex flex-col gap-1.5 glass-panel rounded-2xl p-3 text-[11px] text-slate-300 absolute bottom-4 left-4 pointer-events-none">
-            <div class="font-bold text-sky-300 mb-0.5">レーダー凡例</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-sky-400 inline-block"></span> 自船（進行方向コーン表示）</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span> ゴール灯台</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-sm bg-stone-400 rotate-45 inline-block"></span> 岩礁（衝突ダメージ）</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> 機雷（漂流あり・高ダメージ）</div>
-            <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border-2 border-cyan-300 inline-block"></span> 渦潮（引き寄せ＋損傷）</div>
-          </div>
-
-          <!-- Scan Callout Feed -->
-          <div id="scanCalloutPanel" class="glass-panel rounded-2xl p-3 text-xs max-w-[270px] sm:max-w-xs absolute bottom-4 right-4 pointer-events-none">
-            <div class="font-bold text-amber-300 flex items-center justify-between gap-2 mb-1">
-              <span>航路情報・危険察知</span>
-              <span id="scanActiveTag" class="hidden text-[10px] px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300 border border-amber-400/40">スキャン強調中</span>
-            </div>
-            <div id="scanCalloutList" class="text-[11px] text-slate-300 space-y-1">
-              「危険スキャン強調」で前方周辺の危険をハイライト表示できます。ドラッグで地図移動、ホイールで拡大縮小が可能です。
-            </div>
-          </div>
-
-          <!-- Helmsman 3D Perspective Overlay for Map Navigator -->
-          <div id="nav3DOverlay" class="hidden absolute inset-0 bg-[#061018] z-20 flex flex-col">
-            <div class="flex-1 relative w-full h-full" id="navThreeCanvasHost"></div>
-            <div class="absolute top-3 left-3 glass-panel px-3.5 py-2 rounded-2xl text-xs text-sky-200 pointer-events-none">
-              操船役と同じ3D濃霧視界を表示中（「3D視点切替」でマップに戻ります）
-            </div>
-          </div>
-        </div>
-      </div>
-
-    </main>
-  </section>
-
-  <!-- ========================================================= -->
-  <!-- 3. CLEAR / GAME OVER RESULT MODAL                         -->
-  <!-- ========================================================= -->
-  <div id="resultModal" class="hidden fixed inset-0 z-40 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="w-full max-w-md glass-panel rounded-3xl p-6 sm:p-7 text-center space-y-5">
-      <div id="resultBadge" class="inline-block px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">
-        MISSION CLEAR
-      </div>
-      <h2 id="resultTitle" class="text-2xl sm:text-3xl font-bold text-white">濃霧の海域を突破！</h2>
-      <p id="resultSubtitle" class="text-xs sm:text-sm text-slate-300 leading-relaxed">
-        操船役とマップ役の連携により、無事ゴール灯台へ到達しました。
-      </p>
-
-      <div class="grid grid-cols-3 gap-2.5 bg-slate-900/80 border border-slate-800 rounded-2xl p-3.5 text-center">
-        <div>
-          <div class="text-[10px] text-slate-400">残りHP</div>
-          <div id="resHp" class="text-base font-bold text-emerald-300 mt-0.5">100</div>
-        </div>
-        <div>
-          <div class="text-[10px] text-slate-400">経過時間</div>
-          <div id="resTime" class="text-base font-bold text-sky-300 mt-0.5">00:00</div>
-        </div>
-        <div>
-          <div class="text-[10px] text-slate-400">クリア累計</div>
-          <div id="resClears" class="text-base font-bold text-amber-300 mt-0.5">1</div>
-        </div>
-      </div>
-
-      <div class="flex flex-col sm:flex-row gap-2.5 pt-1">
-        <button id="retryGameBtn" type="button" class="btn-maritime flex-1 py-3 rounded-2xl bg-sky-400 hover:bg-sky-300 text-slate-950 font-bold text-sm">
-          もう一度出航する
-        </button>
-        <button id="backToMenuBtn" type="button" class="btn-maritime flex-1 py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 font-semibold text-sm">
-          メニューへ戻る
-        </button>
       </div>
     </div>
   </div>
 
-  <!-- ========================================================= -->
-  <!-- 4. APPLICATION JAVASCRIPT                                 -->
-  <!-- ========================================================= -->
+  <!-- ==================== LOBBY OVERLAY ==================== -->
+  <div id="lobby-overlay">
+    <div class="lobby-box">
+      <h2 style="margin:0 0 6px; font-size:22px;">航行ルーム待機中</h2>
+      <div style="font-size:13px; color:var(--muted);">
+        合言葉: <strong id="lobby-room-label" style="color:#fff;"></strong> ／ 役割: <strong id="lobby-role-label" style="color:var(--accent);"></strong> ／ 難易度: <strong id="lobby-diff-label" style="color:var(--warn);"></strong>
+      </div>
+
+      <div class="status-pill">
+        <span class="dot" id="conn-dot"></span>
+        <span id="conn-status-text">シグナリングサーバーに接続中...</span>
+      </div>
+
+      <div id="peer-info-box" style="font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:16px;">
+        もう1台の端末または別ブラウザタブで同じ<strong>合言葉</strong>を入力し、もう一方の役割を選んでください。<br/>
+        ※ 操船役が先にルームを作成し、マップ役が参加する流れが最もスムーズです。
+      </div>
+
+      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+        <button type="button" class="btn-primary" id="launch-game-btn" disabled>出航開始！</button>
+        <button type="button" class="btn-secondary" id="cancel-lobby-btn">メニューに戻る</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== GAME SCREEN ==================== -->
+  <div id="game-screen">
+    <canvas id="three-canvas"></canvas>
+
+    <div class="hud-top">
+      <div class="hud-panel">
+        <div style="display:flex; justify-content:space-between; gap:12px; font-size:12px;">
+          <span>船体HP</span>
+          <strong id="hp-text">100 / 100</strong>
+        </div>
+        <div class="hp-bar-wrap">
+          <div class="hp-bar-fill" id="hp-bar"></div>
+        </div>
+        <div style="margin-top:6px; font-size:11px; color:var(--muted);">
+          <span id="hud-my-role"></span>・<span id="hud-partner-info">パートナー待機中</span>
+        </div>
+      </div>
+
+      <div class="hud-panel hud-metrics">
+        <div class="metric-item">
+          <span id="hud-diff-name">難易度</span>
+          <strong id="hud-progress">0m / 1400m</strong>
+        </div>
+        <div class="metric-item">
+          <span>残り時間</span>
+          <strong id="hud-timer">03:30</strong>
+        </div>
+        <div class="metric-item">
+          <span>速力</span>
+          <strong id="hud-speed">0.0 kt</strong>
+        </div>
+        <button type="button" class="btn-secondary" id="quit-to-menu-btn">中断</button>
+      </div>
+    </div>
+
+    <div id="alert-banner">⚠️ 障害物に衝突！船体HPが減少しました</div>
+
+    <!-- Helmsman desktop hint -->
+    <div id="helmsman-controls">
+      <span><kbd>W</kbd>/<kbd>↑</kbd> 前進</span>
+      <span><kbd>S</kbd>/<kbd>↓</kbd> 後進・ブレーキ</span>
+      <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> 旋回</span>
+      <span style="color:#7dd3fc;">濃霧のためマップ役の指示に従って航行してください</span>
+    </div>
+
+    <!-- Dedicated Mobile Touch Pad for Helmsman -->
+    <div id="mobile-helm-pad">
+      <div class="touch-cluster" aria-label="旋回操作">
+        <button type="button" class="touch-pad-btn" id="touch-left-btn" data-control="turnLeft">
+          <span>◀</span>
+          <small>左旋回</small>
+        </button>
+        <button type="button" class="touch-pad-btn" id="touch-right-btn" data-control="turnRight">
+          <span>▶</span>
+          <small>右旋回</small>
+        </button>
+      </div>
+
+      <div class="touch-cluster" aria-label="速力操作">
+        <button type="button" class="touch-pad-btn" id="touch-back-btn" data-control="backward">
+          <span>▼</span>
+          <small>後進/減速</small>
+        </button>
+        <button type="button" class="touch-pad-btn" id="touch-fwd-btn" data-control="forward">
+          <span>▲</span>
+          <small>前進</small>
+        </button>
+      </div>
+    </div>
+
+    <!-- Map Role UI -->
+    <div id="map-role-ui">
+      <div id="radar-container">
+        <div class="radar-header">
+          <strong>🗺️ 戦術航行レーダー</strong>
+          <div class="radar-controls">
+            <button type="button" class="mini-btn" id="scan-btn">📡 危険スキャン強調</button>
+            <button type="button" class="mini-btn" id="zoom-in-btn">＋</button>
+            <button type="button" class="mini-btn" id="zoom-out-btn">－</button>
+            <button type="button" class="mini-btn" id="center-ship-btn">自船中心</button>
+          </div>
+        </div>
+        <canvas id="radar-canvas"></canvas>
+        <div class="radar-legend">
+          <span><i class="leg-dot" style="background:#38bdf8;"></i>自船</span>
+          <span><i class="leg-dot" style="background:#34d399;"></i>ゴール灯台</span>
+          <span><i class="leg-dot" style="background:#94a3b8;"></i>岩礁</span>
+          <span><i class="leg-dot" style="background:#f87171;"></i>機雷</span>
+          <span><i class="leg-dot" style="background:#c084fc;"></i>渦潮</span>
+        </div>
+      </div>
+
+      <div id="helmsman-subview-box">
+        <div class="subview-bar">
+          <span>👁️ 操船士の3D視界モニター</span>
+          <button type="button" class="mini-btn" id="toggle-subview-btn">拡大</button>
+        </div>
+        <div id="subview-mount" style="width:100%; height:100%;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== END MODAL ==================== -->
+  <div id="end-modal">
+    <div class="end-card">
+      <h2 class="end-title" id="end-title">航行完了！</h2>
+      <p id="end-summary" style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:20px;"></p>
+      <div style="display:flex; gap:10px; justify-content:center;">
+        <button type="button" class="btn-primary" id="play-again-btn">もう一度出航</button>
+        <button type="button" class="btn-secondary" id="back-menu-btn">メニューへ</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     (() => {
       'use strict';
 
-      // -----------------------------------------------------------
-      // 1. CONSTANTS & 5-TIER DIFFICULTY CONFIGURATIONS
-      // -----------------------------------------------------------
+      // ==================== CONSTANTS & 5-TIER DIFFICULTY CONFIG ====================
       const STORAGE_KEY = 'mist_compass_profile_v2';
-      const VALID_DIFFS = ['normal', 'hard', 'squall', 'abyss', 'nightmare'];
+      const LEGACY_KEYS = ['mist_compass_profile_v1'];
 
-      const DIFFICULTY_CONFIG = {
+      const DIFFICULTIES = {
         normal: {
           label: 'ふつう',
+          estTime: '推定 2.5〜3.5分',
           courseLength: 1400,
-          corridorHalfWidth: 72,
-          timeLimit: 240,
-          estClearText: '2.5〜3.5分',
-          fogDensity: 0.044,
-          fogColor: 0x9fb8c4,
-          visRangeText: '視程約26m',
-          inertiaFactor: 1.0,
-          reefCount: 22,
-          mineCount: 15,
-          whirlpoolCount: 11,
-          driftSpeedMult: 1.0,
-          damageMult: 1.0
+          timeLimitSec: 210,
+          corridorHalfWidth: 155,
+          rockCount: 38,
+          mineCount: 28,
+          vortexCount: 16,
+          fogDensity: 0.036,
+          inertia: 0.968,
+          turnRate: 1.42,
+          maxSpeed: 28,
+          hpMax: 100
         },
         hard: {
           label: 'むずかしい',
+          estTime: '推定 4〜5分',
           courseLength: 2100,
-          corridorHalfWidth: 68,
-          timeLimit: 330,
-          estClearText: '4〜5分',
-          fogDensity: 0.049,
-          fogColor: 0x93aebc,
-          visRangeText: '視程約23m',
-          inertiaFactor: 1.12,
-          reefCount: 36,
-          mineCount: 26,
-          whirlpoolCount: 18,
-          driftSpeedMult: 1.35,
-          damageMult: 1.25
+          timeLimitSec: 300,
+          corridorHalfWidth: 138,
+          rockCount: 68,
+          mineCount: 54,
+          vortexCount: 30,
+          fogDensity: 0.046,
+          inertia: 0.975,
+          turnRate: 1.32,
+          maxSpeed: 27.5,
+          hpMax: 100
         },
-        squall: {
+        maelstrom: {
           label: '激流・濃霧',
+          estTime: '推定 5.5〜6.5分',
           courseLength: 2700,
-          corridorHalfWidth: 64,
-          timeLimit: 420,
-          estClearText: '5.5〜6.5分',
+          timeLimitSec: 390,
+          corridorHalfWidth: 126,
+          rockCount: 92,
+          mineCount: 74,
+          vortexCount: 52,
           fogDensity: 0.055,
-          fogColor: 0x84a1b0,
-          visRangeText: '視程約21m',
-          inertiaFactor: 1.24,
-          reefCount: 48,
-          mineCount: 38,
-          whirlpoolCount: 26,
-          driftSpeedMult: 1.75,
-          damageMult: 1.45
+          inertia: 0.979,
+          turnRate: 1.24,
+          maxSpeed: 27,
+          hpMax: 100
         },
         abyss: {
           label: '深海迷路',
+          estTime: '推定 7〜8分',
           courseLength: 3300,
-          corridorHalfWidth: 60,
-          timeLimit: 510,
-          estClearText: '7〜8分',
-          fogDensity: 0.061,
-          fogColor: 0x7692a1,
-          visRangeText: '視程約19m',
-          inertiaFactor: 1.35,
-          reefCount: 62,
-          mineCount: 50,
-          whirlpoolCount: 34,
-          driftSpeedMult: 2.15,
-          damageMult: 1.7
+          timeLimitSec: 480,
+          corridorHalfWidth: 116,
+          rockCount: 122,
+          mineCount: 98,
+          vortexCount: 64,
+          fogDensity: 0.062,
+          inertia: 0.982,
+          turnRate: 1.18,
+          maxSpeed: 26.5,
+          hpMax: 100
         },
         nightmare: {
           label: '悪夢の航路',
+          estTime: '推定 8.5〜10分',
           courseLength: 4000,
-          corridorHalfWidth: 56,
-          timeLimit: 600,
-          estClearText: '8.5〜10分',
-          fogDensity: 0.068,
-          fogColor: 0x678291,
-          visRangeText: '視程約17m',
-          inertiaFactor: 1.48,
-          reefCount: 78,
-          mineCount: 64,
-          whirlpoolCount: 44,
-          driftSpeedMult: 2.6,
-          damageMult: 2.0
+          timeLimitSec: 600,
+          corridorHalfWidth: 106,
+          rockCount: 156,
+          mineCount: 128,
+          vortexCount: 84,
+          fogDensity: 0.070,
+          inertia: 0.985,
+          turnRate: 1.12,
+          maxSpeed: 26,
+          hpMax: 100
         }
       };
 
-      const SCAN_COOLDOWN_SEC = 13;
-      const SCAN_HIGHLIGHT_DURATION_SEC = 6.5;
+      const VALID_DIFFS = Object.keys(DIFFICULTIES);
 
-      // -----------------------------------------------------------
-      // 2. LOCALSTORAGE AUTO-SAVE / RESTORE PROFILE
-      // -----------------------------------------------------------
-      function getDefaultProfile() {
+      // ==================== AUDIO SYNTHESIZER (WEB AUDIO) ====================
+      class SoundFX {
+        constructor() {
+          this.ctx = null;
+        }
+        ensure() {
+          try {
+            if (!this.ctx) {
+              const AC = window.AudioContext || window.webkitAudioContext;
+              if (AC) this.ctx = new AC();
+            }
+            if (this.ctx && this.ctx.state === 'suspended') {
+              this.ctx.resume().catch(() => {});
+            }
+          } catch (_) {}
+        }
+        playHit() {
+          this.ensure();
+          if (!this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(135, now);
+            osc.frequency.exponentialRampToValueAtTime(38, now + 0.35);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.36);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.37);
+          } catch (_) {}
+        }
+        playScan() {
+          this.ensure();
+          if (!this.ctx) return;
+          try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(980, now + 0.28);
+            gain.gain.setValueAtTime(0.16, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+            osc.connect(gain).connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.31);
+          } catch (_) {}
+        }
+        playGoal() {
+          this.ensure();
+          if (!this.ctx) return;
+          try {
+            const notes = [523.25, 659.25, 783.99, 1046.5];
+            notes.forEach((freq, i) => {
+              const now = this.ctx.currentTime + i * 0.11;
+              const osc = this.ctx.createOscillator();
+              const gain = this.ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(freq, now);
+              gain.gain.setValueAtTime(0.18, now);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+              osc.connect(gain).connect(this.ctx.destination);
+              osc.start(now);
+              osc.stop(now + 0.36);
+            });
+          } catch (_) {}
+        }
+      }
+      const sfx = new SoundFX();
+
+      // ==================== PROFILE & LOCAL STORAGE ====================
+      function defaultProfile() {
         return {
           playerName: '',
-          passphrase: '',
+          roomCode: '',
           role: 'helmsman',
-          difficulty: 'normal',
-          playCount: 0,
-          clearCount: 0,
-          soundEnabled: true
+          difficulty: 'hard',
+          totalPlays: 0,
+          totalClears: 0
         };
       }
 
-      let profile = loadProfile();
-
-      function normalizeDifficulty(key) {
-        if (VALID_DIFFS.includes(key)) return key;
-        if (key === 'easy') return 'normal';
-        return 'normal';
+      function normalizeDifficulty(diff) {
+        if (VALID_DIFFS.includes(diff)) return diff;
+        if (diff === 'easy') return 'normal';
+        return 'hard';
       }
 
       function loadProfile() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('mist_compass_profile_v1');
-          if (!raw) return getDefaultProfile();
+          let raw = localStorage.getItem(STORAGE_KEY);
+          if (!raw) {
+            for (const k of LEGACY_KEYS) {
+              const legacy = localStorage.getItem(k);
+              if (legacy) { raw = legacy; break; }
+            }
+          }
+          if (!raw) return defaultProfile();
           const parsed = JSON.parse(raw);
           return {
-            ...getDefaultProfile(),
-            playerName: typeof parsed.playerName === 'string' ? parsed.playerName : '',
-            passphrase: typeof parsed.passphrase === 'string' ? parsed.passphrase : '',
-            role: parsed.role === 'navigator' ? 'navigator' : 'helmsman',
+            ...defaultProfile(),
+            ...parsed,
+            role: parsed.role === 'mapper' ? 'mapper' : 'helmsman',
             difficulty: normalizeDifficulty(parsed.difficulty),
-            playCount: Number.isFinite(parsed.playCount) ? Math.max(0, Math.floor(parsed.playCount)) : 0,
-            clearCount: Number.isFinite(parsed.clearCount) ? Math.max(0, Math.floor(parsed.clearCount)) : 0,
-            soundEnabled: typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : true
+            totalPlays: Number(parsed.totalPlays) || 0,
+            totalClears: Number(parsed.totalClears) || 0
           };
-        } catch (err) {
-          console.warn('Failed to load profile from localStorage:', err);
-          return getDefaultProfile();
+        } catch {
+          return defaultProfile();
         }
       }
 
-      function saveProfile() {
+      function saveProfile(prof) {
         try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-        } catch (err) {
-          console.warn('Failed to save profile to localStorage:', err);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(prof));
+        } catch {
+          // ignore storage quota errors
         }
       }
 
-      // -----------------------------------------------------------
-      // 3. SYNTHESIZED SOUND EFFECTS (Web Audio API)
-      // -----------------------------------------------------------
-      const SoundFX = (() => {
-        let ctx = null;
+      let profile = loadProfile();
 
-        function ensureContext() {
-          if (!profile.soundEnabled) return null;
-          if (!ctx) {
-            const AudioCtx = window.AudioContext || window.webkitAudioContext;
-            if (AudioCtx) ctx = new AudioCtx();
-          }
-          if (ctx && ctx.state === 'suspended') {
-            ctx.resume().catch(() => {});
-          }
-          return ctx;
-        }
+      // ==================== DOM REFS ====================
+      const menuScreen = document.getElementById('menu-screen');
+      const lobbyOverlay = document.getElementById('lobby-overlay');
+      const gameScreen = document.getElementById('game-screen');
+      const endModal = document.getElementById('end-modal');
 
-        function playTone(freq, duration, type = 'sine', gainPeak = 0.08, delay = 0) {
-          const c = ensureContext();
-          if (!c) return;
-          try {
-            const now = c.currentTime + delay;
-            const osc = c.createOscillator();
-            const gain = c.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, now);
-            gain.gain.setValueAtTime(0.0001, now);
-            gain.gain.linearRampToValueAtTime(gainPeak, now + 0.02);
-            gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-            osc.connect(gain);
-            gain.connect(c.destination);
-            osc.start(now);
-            osc.stop(now + duration + 0.02);
-          } catch (_) {}
-        }
+      const playerNameInput = document.getElementById('player-name');
+      const roomCodeInput = document.getElementById('room-code');
+      const roleBtns = document.querySelectorAll('.role-btn');
+      const diffBtns = document.querySelectorAll('.diff-btn');
+      const statPlaysEl = document.getElementById('stat-plays');
+      const statClearsEl = document.getElementById('stat-clears');
+      const saveStatusEl = document.getElementById('save-status');
 
-        return {
-          click() { playTone(520, 0.06, 'triangle', 0.05); },
-          scanPing() {
-            playTone(880, 0.25, 'sine', 0.09, 0);
-            playTone(1318.5, 0.35, 'sine', 0.07, 0.11);
-          },
-          hit() {
-            playTone(130, 0.28, 'sawtooth', 0.14, 0);
-            playTone(75, 0.35, 'triangle', 0.14, 0.05);
-          },
-          clear() {
-            playTone(523.25, 0.18, 'triangle', 0.09, 0);
-            playTone(659.25, 0.18, 'triangle', 0.09, 0.14);
-            playTone(783.99, 0.18, 'triangle', 0.09, 0.28);
-            playTone(1046.5, 0.45, 'triangle', 0.11, 0.42);
-          },
-          gameOver() {
-            playTone(311.13, 0.22, 'sawtooth', 0.08, 0);
-            playTone(277.18, 0.22, 'sawtooth', 0.08, 0.2);
-            playTone(220.0, 0.45, 'sawtooth', 0.09, 0.4);
-          }
-        };
-      })();
+      function syncMenuFromProfile() {
+        playerNameInput.value = profile.playerName || '';
+        roomCodeInput.value = profile.roomCode || '';
+        statPlaysEl.textContent = String(profile.totalPlays);
+        statClearsEl.textContent = String(profile.totalClears);
 
-      // -----------------------------------------------------------
-      // 4. UI TOAST HELPER
-      // -----------------------------------------------------------
-      let toastTimeout = null;
-      function showToast(message, tone = 'info') {
-        const banner = document.getElementById('toastBanner');
-        const inner = document.getElementById('toastInner');
-        const dot = document.getElementById('toastDot');
-        const text = document.getElementById('toastText');
-        text.textContent = message;
-
-        dot.className = 'w-2.5 h-2.5 rounded-full ';
-        inner.className = 'px-4 py-2.5 rounded-xl glass-panel border text-sm font-medium text-slate-100 flex items-center gap-2 shadow-xl ';
-        if (tone === 'error') {
-          dot.className += 'bg-rose-400';
-          inner.className += 'border-rose-400/50';
-        } else if (tone === 'success') {
-          dot.className += 'bg-emerald-400';
-          inner.className += 'border-emerald-400/50';
-        } else if (tone === 'warn') {
-          dot.className += 'bg-amber-400';
-          inner.className += 'border-amber-400/50';
-        } else {
-          dot.className += 'bg-sky-400';
-          inner.className += 'border-sky-400/40';
-        }
-
-        banner.classList.remove('opacity-0', '-translate-y-3');
-        banner.classList.add('opacity-100', 'translate-y-0');
-
-        clearTimeout(toastTimeout);
-        toastTimeout = setTimeout(() => {
-          banner.classList.remove('opacity-100', 'translate-y-0');
-          banner.classList.add('opacity-0', '-translate-y-3');
-        }, 3200);
+        roleBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.role === profile.role);
+        });
+        diffBtns.forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.diff === profile.difficulty);
+        });
       }
 
-      // -----------------------------------------------------------
-      // 5. UNIFIED WORLD STATE (Single Source of Truth: x, z, yaw)
-      // -----------------------------------------------------------
-      function getForwardXZ(yaw) {
-        return {
-          fx: -Math.sin(yaw),
-          fz: -Math.cos(yaw)
-        };
+      function persistCurrentForm(msg = 'プロフィールを自動保存しました') {
+        profile.playerName = playerNameInput.value.trim();
+        profile.roomCode = roomCodeInput.value.trim();
+        saveProfile(profile);
+        saveStatusEl.textContent = `${msg}（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}）`;
       }
 
-      function createInitialWorldState(difficultyKey, seed = Date.now()) {
-        const normKey = normalizeDifficulty(difficultyKey);
-        const cfg = DIFFICULTY_CONFIG[normKey];
-        return {
-          difficulty: normKey,
-          seed,
-          courseLength: cfg.courseLength,
-          corridorHalfWidth: cfg.corridorHalfWidth,
-          timeLimit: cfg.timeLimit,
-          elapsedTime: 0,
-          remainingTime: cfg.timeLimit,
-          status: 'playing',
-          ship: {
-            x: 0,
-            z: 0,
-            yaw: 0,
-            vx: 0,
-            vz: 0,
-            angularVel: 0,
-            throttle: 0,
-            hp: 100,
-            maxHp: 100,
-            invulnTimer: 0,
-            hitFlashTimer: 0
-          },
-          goal: {
-            x: 0,
-            z: -cfg.courseLength,
-            radius: 26
-          },
-          hazards: [],
-          scan: {
-            activeTimer: 0,
-            cooldownTimer: 0,
-            waveProgress: 0,
-            highlightedIds: []
-          }
-        };
+      playerNameInput.addEventListener('input', () => persistCurrentForm('プレイヤー名を自動保存しました'));
+      roomCodeInput.addEventListener('input', () => persistCurrentForm('合言葉を自動保存しました'));
+
+      roleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          profile.role = btn.dataset.role;
+          roleBtns.forEach(b => b.classList.toggle('active', b === btn));
+          persistCurrentForm('役割設定を自動保存しました');
+        });
+      });
+
+      diffBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          profile.difficulty = btn.dataset.diff;
+          diffBtns.forEach(b => b.classList.toggle('active', b === btn));
+          persistCurrentForm('難易度を自動保存しました');
+        });
+      });
+
+      document.getElementById('reset-profile-btn').addEventListener('click', () => {
+        profile = defaultProfile();
+        saveProfile(profile);
+        syncMenuFromProfile();
+        saveStatusEl.textContent = '保存データを初期化しました';
+      });
+
+      // ==================== DETERMINISTIC WORLD GENERATOR ====================
+      function hashString(str) {
+        let h = 2166136261 >>> 0;
+        for (let i = 0; i < str.length; i++) {
+          h ^= str.charCodeAt(i);
+          h = Math.imul(h, 16777619);
+        }
+        return h >>> 0;
       }
 
-      function mulberry32(a) {
+      function mulberry32(seed) {
+        let a = seed >>> 0;
         return function () {
-          let t = (a += 0x6D2B79F5);
-          t = Math.imul(t ^ (t >>> 15), t | 1);
-          t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+          a |= 0;
+          a = (a + 0x6d2b79f5) | 0;
+          let t = Math.imul(a ^ (a >>> 15), 1 | a);
+          t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
           return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
         };
       }
 
-      function generateHazards(state) {
-        const cfg = DIFFICULTY_CONFIG[state.difficulty];
-        const rand = mulberry32(state.seed);
-        const hazards = [];
-        let idCounter = 1;
+      function generateCourse(roomCode, diffKey) {
+        const cfg = DIFFICULTIES[diffKey] || DIFFICULTIES.hard;
+        const rng = mulberry32(hashString(`${roomCode}::${diffKey}`));
+        const obstacles = [];
 
-        const minZ = -65;
-        const maxZ = -(state.courseLength - 65);
-        const spanZ = Math.abs(maxZ - minZ);
+        const safeStartZ = -70;
+        const goalZ = -cfg.courseLength;
+        const goalX = (rng() - 0.5) * 140;
 
-        function isTooCloseToStartOrGoal(x, z, r) {
-          const distStart = Math.hypot(x - 0, z - 0);
-          const distGoal = Math.hypot(x - state.goal.x, z - state.goal.z);
-          return distStart < 50 + r || distGoal < state.goal.radius + r + 30;
+        function isFarFromGoal(x, z, pad = 55) {
+          return Math.hypot(x - goalX, z - goalZ) > pad;
         }
 
-        function isOverlappingExisting(x, z, r) {
-          for (const h of hazards) {
-            if (Math.hypot(x - h.x, z - h.z) < r + h.radius + 14) {
-              return true;
-            }
-          }
-          return false;
+        function isFarFromStart(x, z, pad = 65) {
+          return Math.hypot(x - 0, z - safeStartZ) > pad;
         }
 
-        function placeHazard(type, radius, damage, extra = {}) {
-          for (let attempt = 0; attempt < 70; attempt++) {
-            const z = minZ - rand() * spanZ;
-            const x = (rand() * 2 - 1) * (state.corridorHalfWidth * 0.9);
-            if (!isTooCloseToStartOrGoal(x, z, radius) && !isOverlappingExisting(x, z, radius)) {
-              hazards.push({
-                id: idCounter++,
-                type,
-                x,
-                z,
-                baseX: x,
-                baseZ: z,
-                radius,
-                damage: Math.round(damage * cfg.damageMult),
-                phase: rand() * Math.PI * 2,
-                driftAmpX: extra.driftAmpX || 0,
-                driftSpeed: (extra.driftSpeed || 0) * cfg.driftSpeedMult,
-                pullRadius: extra.pullRadius || 0,
-                pullStrength: (extra.pullStrength || 0) * cfg.driftSpeedMult
-              });
-              return;
-            }
-          }
-        }
-
-        for (let i = 0; i < cfg.reefCount; i++) {
-          const r = 8.5 + rand() * 5.8;
-          placeHazard('reef', r, 22);
+        for (let i = 0; i < cfg.rockCount; i++) {
+          const z = -90 - rng() * (cfg.courseLength - 130);
+          const x = (rng() - 0.5) * cfg.corridorHalfWidth * 2;
+          if (!isFarFromStart(x, z) || !isFarFromGoal(x, z)) continue;
+          const radius = 5.5 + rng() * 7.5;
+          obstacles.push({
+            id: `r_${i}`,
+            type: 'rock',
+            x,
+            z,
+            radius,
+            height: radius * (1.2 + rng() * 1.1),
+            damage: 24,
+            phase: rng() * Math.PI * 2
+          });
         }
 
         for (let i = 0; i < cfg.mineCount; i++) {
-          const r = 6.2 + rand() * 2.4;
-          placeHazard('mine', r, 28, {
-            driftAmpX: 9 + rand() * 11,
-            driftSpeed: 0.6 + rand() * 0.6
+          const z = -110 - rng() * (cfg.courseLength - 150);
+          const x = (rng() - 0.5) * cfg.corridorHalfWidth * 2;
+          if (!isFarFromStart(x, z) || !isFarFromGoal(x, z)) continue;
+          obstacles.push({
+            id: `m_${i}`,
+            type: 'mine',
+            x,
+            z,
+            baseX: x,
+            radius: 4.0 + rng() * 1.6,
+            damage: 20,
+            phase: rng() * Math.PI * 2,
+            driftAmp: 4 + rng() * 7,
+            driftSpeed: 0.6 + rng() * 0.9
           });
         }
 
-        for (let i = 0; i < cfg.whirlpoolCount; i++) {
-          const r = 9.5 + rand() * 4.2;
-          placeHazard('whirlpool', r, 18, {
-            pullRadius: r * 2.8,
-            pullStrength: 11.0
+        for (let i = 0; i < cfg.vortexCount; i++) {
+          const z = -120 - rng() * (cfg.courseLength - 160);
+          const x = (rng() - 0.5) * cfg.corridorHalfWidth * 2;
+          if (!isFarFromStart(x, z) || !isFarFromGoal(x, z)) continue;
+          obstacles.push({
+            id: `v_${i}`,
+            type: 'vortex',
+            x,
+            z,
+            radius: 11 + rng() * 6,
+            damage: 14,
+            phase: rng() * Math.PI * 2,
+            pullStrength: 13 + rng() * 9
           });
         }
 
-        state.hazards = hazards;
+        return {
+          cfg,
+          goal: { x: goalX, z: goalZ, radius: 24 },
+          obstacles
+        };
       }
 
-      // -----------------------------------------------------------
-      // 6. SIMULATION STEP
-      // -----------------------------------------------------------
-      function stepSimulation(state, dt, helmInput) {
-        if (state.status !== 'playing') return { hit: false, outcome: null };
+      // ==================== NETWORKING (PEERJS PASSPHRASE) ====================
+      let peer = null;
+      let conn = null;
+      let isConnected = false;
+      let partnerName = 'パートナー';
+      let partnerRole = null;
 
-        const cfg = DIFFICULTY_CONFIG[state.difficulty] || DIFFICULTY_CONFIG.normal;
-        const inertia = cfg.inertiaFactor || 1.0;
+      const connDot = document.getElementById('conn-dot');
+      const connStatusText = document.getElementById('conn-status-text');
+      const launchGameBtn = document.getElementById('launch-game-btn');
+      const lobbyRoomLabel = document.getElementById('lobby-room-label');
+      const lobbyRoleLabel = document.getElementById('lobby-role-label');
+      const lobbyDiffLabel = document.getElementById('lobby-diff-label');
 
-        state.elapsedTime += dt;
-        state.remainingTime = Math.max(0, state.timeLimit - state.elapsedTime);
-
-        if (state.remainingTime <= 0) {
-          state.status = 'gameover';
-          return { hit: false, outcome: 'gameover_time' };
-        }
-
-        const ship = state.ship;
-        if (ship.invulnTimer > 0) ship.invulnTimer = Math.max(0, ship.invulnTimer - dt);
-        if (ship.hitFlashTimer > 0) ship.hitFlashTimer = Math.max(0, ship.hitFlashTimer - dt);
-
-        if (state.scan.cooldownTimer > 0) {
-          state.scan.cooldownTimer = Math.max(0, state.scan.cooldownTimer - dt);
-        }
-        if (state.scan.activeTimer > 0) {
-          state.scan.activeTimer = Math.max(0, state.scan.activeTimer - dt);
-          state.scan.waveProgress = Math.min(1, state.scan.waveProgress + dt * 0.75);
-        }
-
-        if (helmInput.throttleDelta !== 0) {
-          ship.throttle = Math.max(-0.35, Math.min(1.0, ship.throttle + helmInput.throttleDelta * dt * 0.95));
-        }
-
-        // Turning inertia scales with difficulty
-        const turnInput = (helmInput.turnLeft ? 1 : 0) - (helmInput.turnRight ? 1 : 0);
-        const speedMag = Math.hypot(ship.vx, ship.vz);
-        const steerAuthority = (0.55 + Math.min(0.65, speedMag / 24)) / Math.sqrt(inertia);
-        const targetAngVel = turnInput * 1.15 * steerAuthority;
-        const angAccel = 3.2 / inertia;
-        if (ship.angularVel < targetAngVel) {
-          ship.angularVel = Math.min(targetAngVel, ship.angularVel + angAccel * dt);
-        } else if (ship.angularVel > targetAngVel) {
-          ship.angularVel = Math.max(targetAngVel, ship.angularVel - angAccel * dt);
-        }
-        if (turnInput === 0) {
-          ship.angularVel *= Math.pow(0.18, dt / inertia);
-        }
-        ship.yaw += ship.angularVel * dt;
-
-        const { fx, fz } = getForwardXZ(ship.yaw);
-        const maxThrustAccel = ship.throttle >= 0 ? 15.5 : 10.5;
-        ship.vx += fx * ship.throttle * maxThrustAccel * dt;
-        ship.vz += fz * ship.throttle * maxThrustAccel * dt;
-
-        const rx = -fz;
-        const rz = fx;
-        const lateralSpeed = ship.vx * rx + ship.vz * rz;
-        const keelGrip = Math.min(1, (2.6 / inertia) * dt);
-        ship.vx -= rx * lateralSpeed * keelGrip;
-        ship.vz -= rz * lateralSpeed * keelGrip;
-
-        const dragFactor = Math.pow(0.56, dt / Math.sqrt(inertia));
-        ship.vx *= dragFactor;
-        ship.vz *= dragFactor;
-
-        const maxSpeed = 24.5;
-        const newSpeed = Math.hypot(ship.vx, ship.vz);
-        if (newSpeed > maxSpeed) {
-          ship.vx = (ship.vx / newSpeed) * maxSpeed;
-          ship.vz = (ship.vz / newSpeed) * maxSpeed;
-        }
-
-        let hitOccurred = false;
-        const shipRadius = 3.6;
-
-        for (const h of state.hazards) {
-          h.phase += dt * (h.driftSpeed || 1.2);
-          if (h.type === 'mine' && h.driftAmpX > 0) {
-            h.x = h.baseX + Math.sin(h.phase) * h.driftAmpX;
-          }
-
-          const dx = h.x - ship.x;
-          const dz = h.z - ship.z;
-          const dist = Math.hypot(dx, dz);
-
-          if (h.type === 'whirlpool' && dist > 0.001 && dist < h.pullRadius) {
-            const factor = 1 - dist / h.pullRadius;
-            const pullForce = h.pullStrength * (0.35 + 0.65 * factor);
-            const nx = dx / dist;
-            const nz = dz / dist;
-            const tx = -nz;
-            const tz = nx;
-            ship.vx += (nx * pullForce + tx * pullForce * 0.45) * dt;
-            ship.vz += (nz * pullForce + tz * pullForce * 0.45) * dt;
-          }
-
-          if (dist < shipRadius + h.radius * 0.85) {
-            if (ship.invulnTimer <= 0) {
-              ship.hp = Math.max(0, ship.hp - h.damage);
-              ship.invulnTimer = 1.15;
-              ship.hitFlashTimer = 0.45;
-              hitOccurred = true;
-
-              if (dist > 0.001) {
-                const pushX = -dx / dist;
-                const pushZ = -dz / dist;
-                ship.vx = pushX * 9.5;
-                ship.vz = pushZ * 9.5;
-              }
-            }
-          }
-        }
-
-        ship.x += ship.vx * dt;
-        ship.z += ship.vz * dt;
-
-        const maxX = state.corridorHalfWidth + 45;
-        if (Math.abs(ship.x) > maxX) {
-          ship.x = Math.sign(ship.x) * maxX;
-          ship.vx *= -0.4;
-        }
-        if (ship.z > 25) {
-          ship.z = 25;
-          ship.vz = Math.min(0, ship.vz * -0.3);
-        }
-
-        if (ship.hp <= 0) {
-          state.status = 'gameover';
-          return { hit: hitOccurred, outcome: 'gameover_hp' };
-        }
-
-        const distToGoal = Math.hypot(ship.x - state.goal.x, ship.z - state.goal.z);
-        if (distToGoal <= state.goal.radius + shipRadius) {
-          state.status = 'cleared';
-          return { hit: hitOccurred, outcome: 'cleared' };
-        }
-
-        return { hit: hitOccurred, outcome: null };
+      function sanitizePeerId(roomCode, diffKey) {
+        const clean = encodeURIComponent(`${roomCode.trim().toLowerCase()}__${diffKey}`)
+          .replace(/[^a-zA-Z0-9_-]/g, '')
+          .slice(0, 44);
+        return `mistcompass-${clean || 'defaultroom'}`;
       }
 
-      function triggerHazardScan(state) {
-        if (!state || state.scan.cooldownTimer > 0) return false;
-        state.scan.cooldownTimer = SCAN_COOLDOWN_SEC;
-        state.scan.activeTimer = SCAN_HIGHLIGHT_DURATION_SEC;
-        state.scan.waveProgress = 0;
-
-        const ship = state.ship;
-        const { fx, fz } = getForwardXZ(ship.yaw);
-        const scored = state.hazards
-          .map(h => {
-            const dx = h.x - ship.x;
-            const dz = h.z - ship.z;
-            const dist = Math.hypot(dx, dz);
-            const dot = dist > 0.001 ? (dx * fx + dz * fz) / dist : 0;
-            return { h, dist, dot };
-          })
-          .filter(item => item.dist <= 280)
-          .sort((a, b) => (b.dot * 80 - b.dist) - (a.dot * 80 - a.dist))
-          .slice(0, 5);
-
-        state.scan.highlightedIds = scored.map(s => s.h.id);
-        return true;
+      function setConnStatus(state, text) {
+        connDot.className = 'dot ' + (state === 'ok' ? 'ok' : state === 'err' ? 'err' : '');
+        connStatusText.textContent = text;
       }
 
-      // -----------------------------------------------------------
-      // 7. PEERJS ONLINE MULTIPLAYER BY PASSPHRASE
-      // -----------------------------------------------------------
-      const NetManager = (() => {
-        let peer = null;
-        let conn = null;
-        let isHost = false;
-        let partnerConnected = false;
-        let partnerName = '';
-        let partnerRole = '';
-        let onMessageCallback = null;
-        let onStateChangeCallback = null;
-
-        function passphraseToRoomBase(passphrase) {
-          const clean = (passphrase || '').trim().toLowerCase();
-          let hash = 2166136261;
-          for (let i = 0; i < clean.length; i++) {
-            hash ^= clean.charCodeAt(i);
-            hash = Math.imul(hash, 16777619);
-          }
-          const hex = (hash >>> 0).toString(16).padStart(8, '0');
-          const slug = clean.replace(/[^a-z0-9_-]/g, '').slice(0, 14) || 'sea';
-          return `mc-${slug}-${hex}`;
+      function teardownPeer() {
+        isConnected = false;
+        if (conn) {
+          try { conn.close(); } catch (_) {}
+          conn = null;
         }
-
-        function updateStatus(statusKey, detailText) {
-          if (onStateChangeCallback) {
-            onStateChangeCallback({
-              statusKey,
-              detailText,
-              partnerConnected,
-              partnerName,
-              partnerRole,
-              isHost
-            });
-          }
+        if (peer) {
+          try { peer.destroy(); } catch (_) {}
+          peer = null;
         }
+      }
 
-        function sendHello() {
-          if (!conn || !conn.open) return;
+      function setupDataChannel(dc) {
+        conn = dc;
+        dc.on('open', () => {
+          isConnected = true;
+          setConnStatus('ok', '相手と接続完了！出航できます');
+          launchGameBtn.disabled = false;
+          sendNet({
+            type: 'hello',
+            name: profile.playerName || '乗組員',
+            role: profile.role,
+            difficulty: profile.difficulty
+          });
+        });
+
+        dc.on('data', (msg) => {
+          handleNetMessage(msg);
+        });
+
+        dc.on('close', () => {
+          isConnected = false;
+          launchGameBtn.disabled = true;
+          setConnStatus('err', '相手との接続が切れました');
+          updatePartnerHud();
+        });
+
+        dc.on('error', () => {
+          setConnStatus('err', '通信エラーが発生しました');
+        });
+      }
+
+      function sendNet(payload) {
+        if (conn && conn.open) {
           try {
-            conn.send({
-              type: 'hello',
-              name: profile.playerName.trim() || '名無しの航海士',
-              role: profile.role,
-              difficulty: profile.difficulty
-            });
+            conn.send(payload);
           } catch (_) {}
         }
-
-        function attachConnection(c) {
-          conn = c;
-          conn.on('open', () => {
-            partnerConnected = true;
-            sendHello();
-            updateStatus('connected', 'パートナーと接続完了！役割が重複していないか確認して出航できます。');
-          });
-
-          conn.on('data', (data) => {
-            if (!data || typeof data !== 'object') return;
-            if (data.type === 'hello') {
-              partnerName = data.name || 'パートナー';
-              partnerRole = data.role || 'helmsman';
-              updateStatus('connected', `「${partnerName}」と接続しました。`);
-            }
-            if (onMessageCallback) {
-              onMessageCallback(data);
-            }
-          });
-
-          conn.on('close', () => {
-            partnerConnected = false;
-            partnerName = '';
-            partnerRole = '';
-            conn = null;
-            updateStatus('waiting', 'パートナーとの接続が切れました。再接続を待機しています...');
-          });
-
-          conn.on('error', (err) => {
-            console.warn('Peer connection error:', err);
-          });
-        }
-
-        function connectByPassphrase(passphrase) {
-          disconnect();
-          const baseId = passphraseToRoomBase(passphrase);
-          const hostPeerId = `${baseId}-host`;
-          const guestPeerId = `${baseId}-guest-${Math.random().toString(36).slice(2, 6)}`;
-
-          updateStatus('connecting', '合言葉ルームへ接続しています...');
-
-          try {
-            peer = new Peer(hostPeerId, { debug: 0 });
-          } catch (e) {
-            updateStatus('error', 'PeerJSの初期化に失敗しました。');
-            return;
-          }
-
-          peer.on('open', () => {
-            isHost = true;
-            updateStatus('waiting', 'ルームを作成しました。パートナーが同じ合言葉で接続するのを待っています...');
-            peer.on('connection', (incomingConn) => {
-              attachConnection(incomingConn);
-            });
-          });
-
-          peer.on('error', (err) => {
-            if (err && (err.type === 'unavailable-id' || String(err).includes('taken'))) {
-              if (peer) {
-                try { peer.destroy(); } catch (_) {}
-              }
-              isHost = false;
-              peer = new Peer(guestPeerId, { debug: 0 });
-              peer.on('open', () => {
-                updateStatus('connecting', 'ホストのルームへ接続中...');
-                const outConn = peer.connect(hostPeerId, { reliable: true });
-                attachConnection(outConn);
-              });
-              peer.on('error', (guestErr) => {
-                console.warn('Guest peer error:', guestErr);
-                updateStatus('error', '接続エラーが発生しました。合言葉を確認して再試行してください。');
-              });
-            } else {
-              console.warn('Peer error:', err);
-              updateStatus('error', 'ネットワーク接続に失敗しました。再試行してください。');
-            }
-          });
-        }
-
-        function send(payload) {
-          if (conn && conn.open) {
-            try { conn.send(payload); } catch (_) {}
-          }
-        }
-
-        function disconnect() {
-          partnerConnected = false;
-          partnerName = '';
-          partnerRole = '';
-          if (conn) {
-            try { conn.close(); } catch (_) {}
-            conn = null;
-          }
-          if (peer) {
-            try { peer.destroy(); } catch (_) {}
-            peer = null;
-          }
-          updateStatus('idle', '未接続。合言葉を入力して接続してください。');
-        }
-
-        return {
-          passphraseToRoomBase,
-          connectByPassphrase,
-          send,
-          sendHello,
-          disconnect,
-          isConnected: () => Boolean(partnerConnected && conn && conn.open),
-          isHost: () => isHost,
-          getPartnerInfo: () => ({ partnerConnected, partnerName, partnerRole }),
-          onMessage: (fn) => { onMessageCallback = fn; },
-          onStateChange: (fn) => { onStateChangeCallback = fn; }
-        };
-      })();
-
-      // -----------------------------------------------------------
-      // 8. THREE.JS 3D SCENE RENDERER
-      // -----------------------------------------------------------
-      function createThreeSeaView(containerEl, diffKey = 'normal') {
-        if (!containerEl || typeof THREE === 'undefined') return null;
-
-        const cfg = DIFFICULTY_CONFIG[normalizeDifficulty(diffKey)] || DIFFICULTY_CONFIG.normal;
-        const scene = new THREE.Scene();
-        const fogColor = new THREE.Color(cfg.fogColor);
-        scene.background = fogColor;
-        scene.fog = new THREE.FogExp2(cfg.fogColor, cfg.fogDensity);
-
-        const camera = new THREE.PerspectiveCamera(62, 1, 0.4, 240);
-        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        containerEl.innerHTML = '';
-        containerEl.appendChild(renderer.domElement);
-
-        const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x0f293a, 0.95);
-        scene.add(hemiLight);
-        const dirLight = new THREE.DirectionalLight(0xffffff, 0.75);
-        dirLight.position.set(25, 45, 20);
-        scene.add(dirLight);
-
-        const seaGeo = new THREE.PlaneGeometry(420, 420, 64, 64);
-        seaGeo.rotateX(-Math.PI / 2);
-        const basePos = seaGeo.attributes.position.array.slice();
-        const seaMat = new THREE.MeshStandardMaterial({
-          color: 0x0c354c,
-          roughness: 0.45,
-          metalness: 0.2,
-          flatShading: true
-        });
-        const seaMesh = new THREE.Mesh(seaGeo, seaMat);
-        scene.add(seaMesh);
-
-        const shipGroup = new THREE.Group();
-        const hullMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, flatShading: true });
-        const hull = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.4, 7.6), hullMat);
-        hull.position.y = 0.6;
-        shipGroup.add(hull);
-
-        const bowMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.55, flatShading: true });
-        const bow = new THREE.Mesh(new THREE.ConeGeometry(2.25, 3.2, 4), bowMat);
-        bow.rotation.x = -Math.PI / 2;
-        bow.rotation.y = Math.PI / 4;
-        bow.scale.set(1, 0.55, 1);
-        bow.position.set(0, 0.75, -5.1);
-        shipGroup.add(bow);
-
-        const cabinMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4, flatShading: true });
-        const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.3, 2.4), cabinMat);
-        cabin.position.set(0, 1.85, 0.5);
-        shipGroup.add(cabin);
-
-        const mast = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.12, 0.16, 4.2, 6),
-          new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 })
-        );
-        mast.position.set(0, 3.2, -0.8);
-        shipGroup.add(mast);
-
-        const lantern = new THREE.Mesh(
-          new THREE.SphereGeometry(0.32, 8, 8),
-          new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
-        );
-        lantern.position.set(0, 5.2, -0.8);
-        shipGroup.add(lantern);
-
-        scene.add(shipGroup);
-
-        const goalGroup = new THREE.Group();
-        const tower = new THREE.Mesh(
-          new THREE.CylinderGeometry(2.2, 3.8, 22, 8),
-          new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4, flatShading: true })
-        );
-        tower.position.y = 11;
-        goalGroup.add(tower);
-
-        const beaconLight = new THREE.Mesh(
-          new THREE.SphereGeometry(1.8, 12, 12),
-          new THREE.MeshBasicMaterial({ color: 0x34d399 })
-        );
-        beaconLight.position.y = 23.5;
-        goalGroup.add(beaconLight);
-        scene.add(goalGroup);
-
-        const hazardMeshes = new Map();
-
-        function createHazardMesh(h) {
-          const g = new THREE.Group();
-          if (h.type === 'reef') {
-            const rockMat = new THREE.MeshStandardMaterial({ color: 0x57534e, roughness: 0.9, flatShading: true });
-            const mainRock = new THREE.Mesh(new THREE.ConeGeometry(h.radius * 0.85, h.radius * 1.4, 6), rockMat);
-            mainRock.position.y = h.radius * 0.5;
-            g.add(mainRock);
-            const sideRock = new THREE.Mesh(new THREE.DodecahedronGeometry(h.radius * 0.55, 0), rockMat);
-            sideRock.position.set(h.radius * 0.45, h.radius * 0.25, h.radius * 0.3);
-            g.add(sideRock);
-          } else if (h.type === 'mine') {
-            const mineMat = new THREE.MeshStandardMaterial({ color: 0x18181b, metalness: 0.6, roughness: 0.35, flatShading: true });
-            const sphere = new THREE.Mesh(new THREE.SphereGeometry(h.radius * 0.65, 10, 10), mineMat);
-            sphere.position.y = 1.2;
-            g.add(sphere);
-            const spikeMat = new THREE.MeshStandardMaterial({ color: 0xe11d48, metalness: 0.4, roughness: 0.4 });
-            for (let i = 0; i < 6; i++) {
-              const spike = new THREE.Mesh(new THREE.ConeGeometry(0.32, h.radius * 0.55, 5), spikeMat);
-              const angle = (i / 6) * Math.PI * 2;
-              spike.position.set(Math.cos(angle) * h.radius * 0.6, 1.2, Math.sin(angle) * h.radius * 0.6);
-              spike.rotation.z = -Math.cos(angle) * 1.2;
-              spike.rotation.x = Math.sin(angle) * 1.2;
-              g.add(spike);
-            }
-          } else if (h.type === 'whirlpool') {
-            const ringMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, wireframe: true });
-            const outerRing = new THREE.Mesh(new THREE.TorusGeometry(h.radius * 0.85, 0.35, 6, 20), ringMat);
-            outerRing.rotation.x = Math.PI / 2;
-            outerRing.position.y = 0.35;
-            g.add(outerRing);
-
-            const innerCone = new THREE.Mesh(
-              new THREE.ConeGeometry(h.radius * 0.7, 3.2, 14, 1, true),
-              new THREE.MeshBasicMaterial({ color: 0x0284c7, wireframe: true })
-            );
-            innerCone.rotation.x = Math.PI;
-            innerCone.position.y = -1.2;
-            g.add(innerCone);
-          }
-          scene.add(g);
-          return g;
-        }
-
-        function resize() {
-          const w = containerEl.clientWidth || 1;
-          const h = containerEl.clientHeight || 1;
-          camera.aspect = w / h;
-          camera.updateProjectionMatrix();
-          renderer.setSize(w, h, false);
-        }
-
-        function render(worldState, timeSec) {
-          if (!worldState) return;
-          resize();
-
-          const ship = worldState.ship;
-
-          seaMesh.position.set(ship.x, 0, ship.z);
-          const posAttr = seaGeo.attributes.position;
-          for (let i = 0; i < posAttr.count; i++) {
-            const bx = basePos[i * 3];
-            const bz = basePos[i * 3 + 2];
-            const wx = bx + ship.x;
-            const wz = bz + ship.z;
-            posAttr.array[i * 3 + 1] =
-              Math.sin(wx * 0.08 + timeSec * 2.1) * 0.45 +
-              Math.cos(wz * 0.09 + timeSec * 1.7) * 0.45;
-          }
-          posAttr.needsUpdate = true;
-          seaGeo.computeVertexNormals();
-
-          const bobY = Math.sin(timeSec * 3.0) * 0.14;
-          const roll = -ship.angularVel * 0.12 + Math.sin(timeSec * 2.2) * 0.03;
-          const pitch = Math.cos(timeSec * 2.5) * 0.025;
-          shipGroup.position.set(ship.x, bobY, ship.z);
-          shipGroup.rotation.set(pitch, ship.yaw, roll);
-          hullMat.color.setHex(ship.hitFlashTimer > 0 ? 0xf43f5e : 0x1e293b);
-
-          goalGroup.position.set(worldState.goal.x, 0, worldState.goal.z);
-          beaconLight.rotation.y = timeSec * 2;
-
-          const activeIds = new Set(worldState.hazards.map(h => h.id));
-          for (const [id, mesh] of hazardMeshes.entries()) {
-            if (!activeIds.has(id)) {
-              scene.remove(mesh);
-              hazardMeshes.delete(id);
-            }
-          }
-          for (const h of worldState.hazards) {
-            let mesh = hazardMeshes.get(h.id);
-            if (!mesh) {
-              mesh = createHazardMesh(h);
-              hazardMeshes.set(h.id, mesh);
-            }
-            mesh.position.set(h.x, 0, h.z);
-            if (h.type === 'whirlpool') {
-              mesh.rotation.y = timeSec * 2.4;
-            } else if (h.type === 'mine') {
-              mesh.position.y = Math.sin(timeSec * 2.5 + h.phase) * 0.35;
-              mesh.rotation.y = timeSec * 0.6;
-            }
-          }
-
-          const { fx, fz } = getForwardXZ(ship.yaw);
-          const camDist = 11.5;
-          const camHeight = 5.8;
-          camera.position.set(
-            ship.x - fx * camDist,
-            camHeight + bobY * 0.5,
-            ship.z - fz * camDist
-          );
-          camera.lookAt(
-            ship.x + fx * 14,
-            2.2,
-            ship.z + fz * 14
-          );
-
-          renderer.render(scene, camera);
-        }
-
-        function dispose() {
-          renderer.dispose();
-          containerEl.innerHTML = '';
-        }
-
-        return { render, resize, dispose };
       }
 
-      // -----------------------------------------------------------
-      // 9. 2D TOP-DOWN RADAR / MAP RENDERER
-      // -----------------------------------------------------------
-      const RadarMap = (() => {
-        const canvas = document.getElementById('radarCanvas');
-        const ctx = canvas.getContext('2d');
+      function startMatchmaking() {
+        persistCurrentForm();
+        const code = profile.roomCode;
+        if (!code) {
+          showAlert('合言葉（ルームID）を入力してください。2人で同じ合言葉を使うと接続できます。');
+          roomCodeInput.focus();
+          return;
+        }
 
-        let zoom = 1.0;
-        let panX = 0;
-        let panZ = 0;
-        let followShip = true;
-        let isDragging = false;
-        let lastPointerX = 0;
-        let lastPointerY = 0;
+        if (typeof Peer === 'undefined') {
+          showAlert('通信ライブラリの読み込みに失敗しました。再読み込みしてください。');
+          return;
+        }
 
-        function resetView(ship) {
-          zoom = 1.0;
-          followShip = true;
-          if (ship) {
-            panX = ship.x;
-            panZ = ship.z - 60;
+        teardownPeer();
+        const cfg = DIFFICULTIES[profile.difficulty];
+        lobbyRoomLabel.textContent = code;
+        lobbyRoleLabel.textContent = profile.role === 'helmsman' ? '操船役' : 'マップ役';
+        lobbyDiffLabel.textContent = `${cfg.label}（${cfg.courseLength}m / ${cfg.estTime}）`;
+        launchGameBtn.disabled = true;
+        lobbyOverlay.style.display = 'flex';
+        setConnStatus('wait', 'ルームIDを登録中...');
+
+        const roomPeerId = sanitizePeerId(code, profile.difficulty);
+        try {
+          peer = new Peer(roomPeerId, { debug: 0 });
+        } catch (_) {
+          setConnStatus('err', 'Peer接続の初期化に失敗しました');
+          return;
+        }
+
+        peer.on('open', () => {
+          setConnStatus('wait', `合言葉「${code}」で待機中... もう1人の参加を待っています`);
+        });
+
+        peer.on('connection', (incoming) => {
+          if (conn && conn.open) {
+            incoming.close();
+            return;
+          }
+          setupDataChannel(incoming);
+        });
+
+        peer.on('error', (err) => {
+          if (err && err.type === 'unavailable-id') {
+            setConnStatus('wait', `合言葉「${code}」のルームに参加中...`);
+            if (peer) {
+              try { peer.destroy(); } catch (_) {}
+            }
+            peer = new Peer(undefined, { debug: 0 });
+            peer.on('open', () => {
+              const outConn = peer.connect(roomPeerId, { reliable: true });
+              setupDataChannel(outConn);
+            });
+            peer.on('error', () => {
+              setConnStatus('err', 'ルームへの接続に失敗しました。合言葉を確認してください。');
+            });
           } else {
-            panX = 0;
-            panZ = -80;
+            setConnStatus('err', `接続エラー: ${(err && err.type) || '不明'}`);
           }
-          updateZoomLabel();
-        }
-
-        function setZoom(newZoom) {
-          zoom = Math.max(0.45, Math.min(3.2, newZoom));
-          updateZoomLabel();
-        }
-
-        function updateZoomLabel() {
-          const el = document.getElementById('mapZoomLabel');
-          if (el) el.textContent = `${zoom.toFixed(1)}x`;
-        }
-
-        canvas.addEventListener('pointerdown', (e) => {
-          isDragging = true;
-          followShip = false;
-          lastPointerX = e.clientX;
-          lastPointerY = e.clientY;
-          canvas.setPointerCapture(e.pointerId);
         });
+      }
 
-        canvas.addEventListener('pointermove', (e) => {
-          if (!isDragging) return;
-          const dx = e.clientX - lastPointerX;
-          const dy = e.clientY - lastPointerY;
-          lastPointerX = e.clientX;
-          lastPointerY = e.clientY;
+      function handleNetMessage(msg) {
+        if (!msg || !msg.type) return;
 
-          const scale = 2.1 * zoom;
-          panX -= dx / scale;
-          panZ -= dy / scale;
-        });
+        if (msg.type === 'hello') {
+          partnerName = msg.name || 'パートナー';
+          partnerRole = msg.role;
+          updatePartnerHud();
+          if (msg.role === profile.role) {
+            showAlert(`⚠️ 注意: パートナーも同じ「${msg.role === 'helmsman' ? '操船役' : 'マップ役'}」を選択中です！`);
+          }
+        } else if (msg.type === 'start_game') {
+          if (gameScreen.style.display !== 'block') {
+            enterGameScene(false);
+          }
+        } else if (msg.type === 'ship_state') {
+          if (profile.role === 'mapper' && gameState.active) {
+            gameState.ship.x = msg.x;
+            gameState.ship.z = msg.z;
+            gameState.ship.yaw = msg.yaw;
+            gameState.ship.speed = msg.speed;
+            gameState.ship.hp = msg.hp;
+            gameState.elapsed = msg.elapsed;
+          }
+        } else if (msg.type === 'scan_pulse') {
+          triggerScanHighlight(false);
+        } else if (msg.type === 'game_end') {
+          if (gameState.active) {
+            finishGame(msg.victory, msg.reason, false);
+          }
+        }
+      }
 
-        canvas.addEventListener('pointerup', (e) => {
-          isDragging = false;
-          try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
-        });
+      document.getElementById('start-match-btn').addEventListener('click', startMatchmaking);
+      document.getElementById('cancel-lobby-btn').addEventListener('click', () => {
+        teardownPeer();
+        lobbyOverlay.style.display = 'none';
+      });
+      launchGameBtn.addEventListener('click', () => {
+        sendNet({ type: 'start_game' });
+        enterGameScene(true);
+      });
 
-        canvas.addEventListener('wheel', (e) => {
+      // ==================== THREE.JS 3D SCENE & RADAR ====================
+      let scene, camera, renderer, shipMesh, waterMesh, goalGroup;
+      let subRenderer, subCamera;
+      const obstacleMeshes = new Map();
+
+      const gameState = {
+        active: false,
+        diffKey: 'hard',
+        course: null,
+        ship: { x: 0, z: -70, yaw: 0, speed: 0, hp: 100, invulnTimer: 0 },
+        elapsed: 0,
+        scanActiveUntil: 0,
+        scanCooldownUntil: 0,
+        radarZoom: 1.0,
+        radarPanX: 0,
+        radarPanZ: 0,
+        subviewExpanded: false
+      };
+
+      const keys = new Set();
+      const touchControls = {
+        forward: false,
+        backward: false,
+        turnLeft: false,
+        turnRight: false
+      };
+
+      // Prevent double-tap zoom on touch devices outside text inputs
+      let lastTouchEndTime = 0;
+      document.addEventListener('touchend', (e) => {
+        const target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+        const now = Date.now();
+        if (now - lastTouchEndTime <= 320) {
           e.preventDefault();
-          const factor = e.deltaY < 0 ? 1.15 : 0.87;
-          setZoom(zoom * factor);
-        }, { passive: false });
-
-        function resize() {
-          const parent = canvas.parentElement;
-          if (!parent) return;
-          const dpr = Math.min(window.devicePixelRatio || 1, 2);
-          const w = parent.clientWidth || 1;
-          const h = parent.clientHeight || 1;
-          if (canvas.width !== Math.floor(w * dpr) || canvas.height !== Math.floor(h * dpr)) {
-            canvas.width = Math.floor(w * dpr);
-            canvas.height = Math.floor(h * dpr);
-          }
-          return { w, h, dpr };
         }
+        lastTouchEndTime = now;
+      }, { passive: false });
 
-        function render(worldState, timeSec) {
-          if (!worldState) return;
-          const dims = resize();
-          if (!dims) return;
-          const { w, h, dpr } = dims;
+      // Prevent context menu / long-press callout outside text inputs
+      document.addEventListener('contextmenu', (e) => {
+        const target = e.target;
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
+        e.preventDefault();
+      });
 
-          ctx.save();
-          ctx.scale(dpr, dpr);
+      function isMobileTouchLayout() {
+        return window.matchMedia('(max-width: 768px)').matches || ('ontouchstart' in window && window.innerWidth <= 900);
+      }
 
-          ctx.fillStyle = '#061522';
-          ctx.fillRect(0, 0, w, h);
-
-          const ship = worldState.ship;
-          if (followShip) {
-            panX += (ship.x - panX) * 0.14;
-            panZ += ((ship.z - 55) - panZ) * 0.14;
-          }
-
-          const pxPerMeter = 2.15 * zoom;
-          const centerX = w * 0.5;
-          const centerY = h * 0.56;
-
-          function worldToScreen(wx, wz) {
-            return {
-              sx: centerX + (wx - panX) * pxPerMeter,
-              sy: centerY + (wz - panZ) * pxPerMeter
-            };
-          }
-
-          const gridStep = 50;
-          const startX = Math.floor((panX - w / (2 * pxPerMeter)) / gridStep) * gridStep;
-          const endX = Math.ceil((panX + w / (2 * pxPerMeter)) / gridStep) * gridStep;
-          const startZ = Math.floor((panZ - h / (2 * pxPerMeter)) / gridStep) * gridStep;
-          const endZ = Math.ceil((panZ + h / (2 * pxPerMeter)) / gridStep) * gridStep;
-
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.08)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          for (let gx = startX; gx <= endX; gx += gridStep) {
-            const p1 = worldToScreen(gx, startZ);
-            const p2 = worldToScreen(gx, endZ);
-            ctx.moveTo(p1.sx, p1.sy);
-            ctx.lineTo(p2.sx, p2.sy);
-          }
-          for (let gz = startZ; gz <= endZ; gz += gridStep) {
-            const p1 = worldToScreen(startX, gz);
-            const p2 = worldToScreen(endX, gz);
-            ctx.moveTo(p1.sx, p1.sy);
-            ctx.lineTo(p2.sx, p2.sy);
-          }
-          ctx.stroke();
-
-          const leftCorridor = worldToScreen(-worldState.corridorHalfWidth, 20);
-          const rightCorridor = worldToScreen(worldState.corridorHalfWidth, -worldState.courseLength - 20);
-          ctx.save();
-          ctx.strokeStyle = 'rgba(148, 163, 184, 0.16)';
-          ctx.setLineDash([6, 6]);
-          ctx.strokeRect(
-            leftCorridor.sx,
-            rightCorridor.sy,
-            (worldState.corridorHalfWidth * 2) * pxPerMeter,
-            (worldState.courseLength + 40) * pxPerMeter
-          );
-          ctx.restore();
-
-          const goalPos = worldToScreen(worldState.goal.x, worldState.goal.z);
-          const goalRadiusPx = Math.max(10, worldState.goal.radius * pxPerMeter);
-          ctx.save();
-          ctx.fillStyle = 'rgba(52, 211, 153, 0.16)';
-          ctx.strokeStyle = '#34d399';
-          ctx.lineWidth = 2.5;
-          ctx.beginPath();
-          ctx.arc(goalPos.sx, goalPos.sy, goalRadiusPx, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.stroke();
-
-          ctx.fillStyle = '#a7f3d0';
-          ctx.font = 'bold 12px "Noto Sans JP", sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText('GOAL 灯台', goalPos.sx, goalPos.sy - goalRadiusPx - 8);
-          ctx.restore();
-
-          const scanActive = worldState.scan.activeTimer > 0;
-          const highlightedSet = new Set(worldState.scan.highlightedIds || []);
-
-          for (const h of worldState.hazards) {
-            const hp = worldToScreen(h.x, h.z);
-            const rPx = Math.max(6, h.radius * pxPerMeter);
-            const isHighlighted = scanActive && highlightedSet.has(h.id);
-
-            ctx.save();
-            if (h.type === 'whirlpool') {
-              const pullPx = Math.max(rPx * 1.5, (h.pullRadius || h.radius * 2.5) * pxPerMeter);
-              ctx.strokeStyle = isHighlighted ? 'rgba(251, 191, 36, 0.55)' : 'rgba(34, 211, 238, 0.25)';
-              ctx.lineWidth = 1.2;
-              ctx.setLineDash([4, 4]);
-              ctx.beginPath();
-              ctx.arc(hp.sx, hp.sy, pullPx, timeSec * 1.2, timeSec * 1.2 + Math.PI * 2);
-              ctx.stroke();
-              ctx.setLineDash([]);
-
-              ctx.strokeStyle = '#22d3ee';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.arc(hp.sx, hp.sy, rPx, 0, Math.PI * 2);
-              ctx.stroke();
-            } else if (h.type === 'mine') {
-              ctx.fillStyle = 'rgba(244, 63, 94, 0.28)';
-              ctx.strokeStyle = '#fb7185';
-              ctx.lineWidth = 2;
-              ctx.beginPath();
-              ctx.arc(hp.sx, hp.sy, rPx, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.stroke();
-            } else {
-              ctx.fillStyle = 'rgba(168, 162, 158, 0.35)';
-              ctx.strokeStyle = '#d6d3d1';
-              ctx.lineWidth = 1.8;
-              ctx.beginPath();
-              ctx.arc(hp.sx, hp.sy, rPx, 0, Math.PI * 2);
-              ctx.fill();
-              ctx.stroke();
-            }
-
-            if (isHighlighted) {
-              const pulse = 1 + 0.22 * Math.sin(timeSec * 9);
-              ctx.strokeStyle = '#fbbf24';
-              ctx.lineWidth = 2.8;
-              ctx.beginPath();
-              ctx.arc(hp.sx, hp.sy, rPx * 1.55 * pulse, 0, Math.PI * 2);
-              ctx.stroke();
-
-              const typeLabel = h.type === 'mine' ? '機雷' : (h.type === 'whirlpool' ? '渦潮' : '岩礁');
-              const distMeters = Math.round(Math.hypot(h.x - ship.x, h.z - ship.z));
-              ctx.fillStyle = '#fde68a';
-              ctx.font = 'bold 11px "Noto Sans JP", sans-serif';
-              ctx.textAlign = 'center';
-              ctx.fillText(`⚠${typeLabel} ${distMeters}m`, hp.sx, hp.sy - rPx * 1.75);
-            }
-            ctx.restore();
-          }
-
-          if (scanActive) {
-            const sPos = worldToScreen(ship.x, ship.z);
-            const waveRadiusPx = worldState.scan.waveProgress * 280 * pxPerMeter;
-            ctx.save();
-            ctx.strokeStyle = `rgba(251, 191, 36, ${Math.max(0, 1 - worldState.scan.waveProgress)})`;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(sPos.sx, sPos.sy, waveRadiusPx, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-          }
-
-          const sPos = worldToScreen(ship.x, ship.z);
-          const screenAngle = -Math.PI / 2 - ship.yaw;
-
-          ctx.save();
-          ctx.translate(sPos.sx, sPos.sy);
-
-          const coneLen = 78 * zoom;
-          const grad = ctx.createRadialGradient(0, 0, 4, 0, 0, coneLen);
-          grad.addColorStop(0, 'rgba(56, 189, 248, 0.36)');
-          grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
-          ctx.fillStyle = grad;
-          ctx.beginPath();
-          ctx.moveTo(0, 0);
-          ctx.arc(0, 0, coneLen, screenAngle - 0.36, screenAngle + 0.36);
-          ctx.closePath();
-          ctx.fill();
-
-          const speed = Math.hypot(ship.vx, ship.vz);
-          if (speed > 0.5) {
-            const velAngle = Math.atan2(ship.vz, ship.vx);
-            const vLen = Math.min(60, speed * 2.1 * zoom);
-            ctx.strokeStyle = '#38bdf8';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.lineTo(Math.cos(velAngle) * vLen, Math.sin(velAngle) * vLen);
-            ctx.stroke();
-          }
-
-          ctx.rotate(screenAngle);
-          ctx.fillStyle = ship.hitFlashTimer > 0 ? '#fb7185' : '#38bdf8';
-          ctx.strokeStyle = '#ffffff';
-          ctx.lineWidth = 1.8;
-          ctx.beginPath();
-          ctx.moveTo(14, 0);
-          ctx.lineTo(-10, -9);
-          ctx.lineTo(-6, 0);
-          ctx.lineTo(-10, 9);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke();
-          ctx.restore();
-
-          ctx.restore();
+      function refreshHelmsmanControlsVisibility() {
+        if (!gameState.active || profile.role !== 'helmsman') {
+          document.getElementById('helmsman-controls').style.display = 'none';
+          document.getElementById('mobile-helm-pad').style.display = 'none';
+          return;
         }
+        const mobilePad = isMobileTouchLayout();
+        document.getElementById('helmsman-controls').style.display = mobilePad ? 'none' : 'flex';
+        document.getElementById('mobile-helm-pad').style.display = mobilePad ? 'flex' : 'none';
+      }
 
-        return {
-          render,
-          resetView,
-          setZoom,
-          getZoom: () => zoom
-        };
-      })();
-
-      // -----------------------------------------------------------
-      // 10. GAME CONTROLLER & MENU BINDINGS
-      // -----------------------------------------------------------
-      const AppController = (() => {
-        let worldState = null;
-        let lastFrameTime = 0;
-        let animFrameId = null;
-        let syncSendAccum = 0;
-        let isInGame = false;
-        let nav3DVisible = false;
-
-        let helmsmanThree = null;
-        let navigatorThree = null;
-
-        const helmInput = {
-          turnLeft: false,
-          turnRight: false,
-          throttleDelta: 0
-        };
-
-        const menuScreen = document.getElementById('menuScreen');
-        const gameScreen = document.getElementById('gameScreen');
-        const helmsmanView = document.getElementById('helmsmanView');
-        const navigatorView = document.getElementById('navigatorView');
-        const nav3DOverlay = document.getElementById('nav3DOverlay');
-        const resultModal = document.getElementById('resultModal');
-
-        const playerNameInput = document.getElementById('playerNameInput');
-        const passphraseInput = document.getElementById('passphraseInput');
-        const roomIdPreview = document.getElementById('roomIdPreview');
-        const launchGameBtn = document.getElementById('launchGameBtn');
-        const connectBtn = document.getElementById('connectBtn');
-        const disconnectBtn = document.getElementById('disconnectBtn');
-
-        function syncProfileToMenuUI() {
-          profile.difficulty = normalizeDifficulty(profile.difficulty);
-          playerNameInput.value = profile.playerName;
-          passphraseInput.value = profile.passphrase;
-          roomIdPreview.textContent = `ルーム識別子: ${NetManager.passphraseToRoomBase(profile.passphrase)}`;
-
-          document.getElementById('statPlayCount').textContent = String(profile.playCount);
-          document.getElementById('statClearCount').textContent = String(profile.clearCount);
-
-          document.querySelectorAll('.role-card').forEach(btn => {
-            const active = btn.dataset.role === profile.role;
-            btn.classList.toggle('border-sky-400', active);
-            btn.classList.toggle('ring-2', active);
-            btn.classList.toggle('ring-sky-400/30', active);
-            btn.classList.toggle('bg-slate-900/85', active);
-            btn.classList.toggle('border-slate-700', !active);
-          });
-
-          const activeColors = {
-            normal: 'border-sky-400',
-            hard: 'border-amber-400',
-            squall: 'border-orange-400',
-            abyss: 'border-rose-400',
-            nightmare: 'border-fuchsia-400'
+      function bindTouchPadButtons() {
+        const buttons = document.querySelectorAll('.touch-pad-btn[data-control]');
+        buttons.forEach(btn => {
+          const ctrl = btn.dataset.control;
+          const pressStart = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            touchControls[ctrl] = true;
+            btn.classList.add('pressed');
+          };
+          const pressEnd = (e) => {
+            if (e) {
+              e.preventDefault();
+              e.stopPropagation();
+            }
+            touchControls[ctrl] = false;
+            btn.classList.remove('pressed');
           };
 
-          document.querySelectorAll('.diff-card').forEach(btn => {
-            const d = btn.dataset.diff;
-            const active = d === profile.difficulty;
-            Object.values(activeColors).forEach(cls => btn.classList.remove(cls));
-            btn.classList.toggle('ring-2', active);
-            btn.classList.toggle('ring-sky-400/25', active);
-            btn.classList.toggle('border-slate-700', !active);
-            if (active && activeColors[d]) {
-              btn.classList.add(activeColors[d]);
+          btn.addEventListener('touchstart', pressStart, { passive: false });
+          btn.addEventListener('touchend', pressEnd, { passive: false });
+          btn.addEventListener('touchcancel', pressEnd, { passive: false });
+          btn.addEventListener('pointerdown', (e) => {
+            if (e.pointerType !== 'touch') {
+              e.preventDefault();
+              touchControls[ctrl] = true;
+              btn.classList.add('pressed');
             }
           });
+          btn.addEventListener('pointerup', (e) => {
+            if (e.pointerType !== 'touch') {
+              touchControls[ctrl] = false;
+              btn.classList.remove('pressed');
+            }
+          });
+          btn.addEventListener('pointerleave', () => {
+            touchControls[ctrl] = false;
+            btn.classList.remove('pressed');
+          });
+        });
+      }
+      bindTouchPadButtons();
 
-          const cfg = DIFFICULTY_CONFIG[profile.difficulty];
-          const totalObs = cfg.reefCount + cfg.mineCount + cfg.whirlpoolCount;
-          document.getElementById('specLength').textContent = `${cfg.courseLength}m`;
-          document.getElementById('specObstacles').textContent = `${totalObs}基`;
-          document.getElementById('specEstTime').textContent = cfg.estClearText;
-          document.getElementById('specTime').textContent = `${cfg.timeLimit}秒`;
-
-          updateSoundLabels();
-          refreshLaunchButtonState();
+      window.addEventListener('keydown', (e) => {
+        keys.add(e.code);
+        if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Space'].includes(e.code)) {
+          if (gameState.active) e.preventDefault();
         }
-
-        function updateSoundLabels() {
-          const icon = profile.soundEnabled ? '🔊' : '🔇';
-          const text = profile.soundEnabled ? '効果音: ON' : '効果音: OFF';
-          document.getElementById('menuSoundIcon').textContent = icon;
-          document.getElementById('menuSoundLabel').textContent = text;
-          document.getElementById('gameSoundIcon').textContent = icon;
-        }
-
-        function refreshLaunchButtonState() {
-          const pInfo = NetManager.getPartnerInfo();
-          const connected = NetManager.isConnected();
-
-          if (!connected) {
-            launchGameBtn.disabled = true;
-            launchGameBtn.textContent = 'パートナー接続待ち...';
-            return;
-          }
-
-          if (pInfo.partnerRole === profile.role) {
-            launchGameBtn.disabled = true;
-            launchGameBtn.textContent = '相手と同じ役割が選択されています（役割を変更してください）';
-            return;
-          }
-
-          launchGameBtn.disabled = false;
-          launchGameBtn.textContent = '2人で出航開始！';
-        }
-
-        function updateConnectionUI(info) {
-          const badge = document.getElementById('connStatusBadge');
-          const dot = document.getElementById('connDot');
-          const statusText = document.getElementById('connStatusText');
-          const detailText = document.getElementById('connDetailText');
-          const partnerBox = document.getElementById('partnerInfoBox');
-
-          detailText.textContent = info.detailText || '';
-          disconnectBtn.disabled = info.statusKey === 'idle';
-
-          if (info.statusKey === 'connected') {
-            badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/15 text-emerald-300 border border-emerald-500/40';
-            dot.className = 'w-2 h-2 rounded-full bg-emerald-400';
-            statusText.textContent = '接続完了';
-            partnerBox.classList.remove('hidden');
-            document.getElementById('partnerNameLabel').textContent = info.partnerName || 'パートナー';
-            document.getElementById('partnerRoleLabel').textContent =
-              info.partnerRole === 'helmsman' ? '役割: 操船役' : '役割: マップ役';
-          } else if (info.statusKey === 'connecting' || info.statusKey === 'waiting') {
-            badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/15 text-amber-300 border border-amber-500/40';
-            dot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
-            statusText.textContent = info.statusKey === 'connecting' ? '接続中' : '待機中';
-            partnerBox.classList.add('hidden');
-          } else if (info.statusKey === 'error') {
-            badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/15 text-rose-300 border border-rose-500/40';
-            dot.className = 'w-2 h-2 rounded-full bg-rose-400';
-            statusText.textContent = 'エラー・再試行';
-            partnerBox.classList.add('hidden');
-          } else {
-            badge.className = 'inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-600';
-            dot.className = 'w-2 h-2 rounded-full bg-slate-400';
-            statusText.textContent = '未接続';
-            partnerBox.classList.add('hidden');
-          }
-
-          refreshLaunchButtonState();
-        }
-
-        function startMatch(overrideSeed = null, overrideDiff = null) {
-          const diff = normalizeDifficulty(overrideDiff || profile.difficulty);
-          const cfg = DIFFICULTY_CONFIG[diff];
-          const seed = overrideSeed || (Date.now() & 0x7fffffff);
-
-          worldState = createInitialWorldState(diff, seed);
-          generateHazards(worldState);
-
-          profile.playCount += 1;
-          saveProfile();
-          document.getElementById('statPlayCount').textContent = String(profile.playCount);
-
-          menuScreen.classList.add('hidden');
-          resultModal.classList.add('hidden');
-          gameScreen.classList.remove('hidden');
-          isInGame = true;
-
-          const isHelmsman = profile.role === 'helmsman';
-          helmsmanView.classList.toggle('hidden', !isHelmsman);
-          navigatorView.classList.toggle('hidden', isHelmsman);
-
-          nav3DVisible = false;
-          nav3DOverlay.classList.add('hidden');
-          document.getElementById('toggle3DLabel').textContent = '3D視点切替';
-
-          if (helmsmanThree) { helmsmanThree.dispose(); helmsmanThree = null; }
-          if (navigatorThree) { navigatorThree.dispose(); navigatorThree = null; }
-
-          if (isHelmsman) {
-            helmsmanThree = createThreeSeaView(document.getElementById('threeCanvasHost'), diff);
-          } else {
-            RadarMap.resetView(worldState.ship);
-            navigatorThree = createThreeSeaView(document.getElementById('navThreeCanvasHost'), diff);
-          }
-
-          document.getElementById('helmFogLabel').textContent = `濃霧視界（${cfg.visRangeText}・${cfg.label}）`;
-
-          const pInfo = NetManager.getPartnerInfo();
-          document.getElementById('hudRoleBadge').textContent = isHelmsman ? '操船役（3D濃霧）' : 'マップ役（レーダー）';
-          document.getElementById('hudRoomLabel').textContent = profile.passphrase.trim() || '---';
-          document.getElementById('hudPartnerLabel').textContent = pInfo.partnerName || 'パートナー';
-
-          document.getElementById('scanCalloutList').textContent =
-            '「危険スキャン強調」で前方周辺の危険をハイライト表示できます。ドラッグで地図移動、ホイールで拡大縮小が可能です。';
-
-          lastFrameTime = performance.now();
-          if (animFrameId) cancelAnimationFrame(animFrameId);
-          animFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function returnToMenu() {
-          isInGame = false;
-          if (animFrameId) {
-            cancelAnimationFrame(animFrameId);
-            animFrameId = null;
-          }
-          if (helmsmanThree) { helmsmanThree.dispose(); helmsmanThree = null; }
-          if (navigatorThree) { navigatorThree.dispose(); navigatorThree = null; }
-
-          gameScreen.classList.add('hidden');
-          resultModal.classList.add('hidden');
-          menuScreen.classList.remove('hidden');
-          syncProfileToMenuUI();
-        }
-
-        function handleMatchEnd(outcome) {
-          if (!worldState || worldState._resultShown) return;
-          worldState._resultShown = true;
-
-          const isClear = outcome === 'cleared';
-          if (isClear) {
-            profile.clearCount += 1;
-            saveProfile();
-            SoundFX.clear();
-          } else {
-            SoundFX.gameOver();
-          }
-
-          const badge = document.getElementById('resultBadge');
-          const title = document.getElementById('resultTitle');
-          const subtitle = document.getElementById('resultSubtitle');
-
-          if (isClear) {
-            badge.textContent = 'NAVIGATION CLEAR';
-            badge.className = 'inline-block px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/40';
-            title.textContent = 'ゴール灯台に到達！';
-            subtitle.textContent = '濃霧の海域を操船役とマップ役の連携で突破しました。';
-          } else if (outcome === 'gameover_hp') {
-            badge.textContent = 'HULL BREACHED';
-            badge.className = 'inline-block px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-rose-500/20 text-rose-300 border border-rose-400/40';
-            title.textContent = '船体HPが0になりました';
-            subtitle.textContent = '障害物への衝突が重なり航行不能となりました。マップ役と進路を再確認しましょう。';
-          } else {
-            badge.textContent = 'TIME UP';
-            badge.className = 'inline-block px-3.5 py-1 rounded-full text-xs font-bold tracking-wider uppercase bg-amber-500/20 text-amber-300 border border-amber-400/40';
-            title.textContent = '制限時間切れ';
-            subtitle.textContent = '制限時間内にゴールへ到達できませんでした。速度調整と最短ルートの指示が鍵になります。';
-          }
-
-          const elapsedSec = Math.floor(worldState.elapsedTime);
-          const mm = String(Math.floor(elapsedSec / 60)).padStart(2, '0');
-          const ss = String(elapsedSec % 60).padStart(2, '0');
-
-          document.getElementById('resHp').textContent = String(Math.round(worldState.ship.hp));
-          document.getElementById('resTime').textContent = `${mm}:${ss}`;
-          document.getElementById('resClears').textContent = String(profile.clearCount);
-          document.getElementById('statClearCount').textContent = String(profile.clearCount);
-
-          resultModal.classList.remove('hidden');
-        }
-
-        function updateHUD() {
-          if (!worldState) return;
-          const ship = worldState.ship;
-
-          const hpPct = Math.max(0, Math.min(100, (ship.hp / ship.maxHp) * 100));
-          const hpBar = document.getElementById('hudHpBar');
-          const hpText = document.getElementById('hudHpText');
-          hpBar.style.width = `${hpPct}%`;
-          hpText.textContent = String(Math.ceil(ship.hp));
-          if (hpPct > 50) {
-            hpBar.className = 'h-full bg-gradient-to-r from-emerald-400 to-teal-300 transition-all duration-200';
-            hpText.className = 'text-xs sm:text-sm font-bold text-emerald-300 tabular-nums w-9 text-right';
-          } else if (hpPct > 25) {
-            hpBar.className = 'h-full bg-gradient-to-r from-amber-400 to-yellow-300 transition-all duration-200';
-            hpText.className = 'text-xs sm:text-sm font-bold text-amber-300 tabular-nums w-9 text-right';
-          } else {
-            hpBar.className = 'h-full bg-gradient-to-r from-rose-500 to-red-400 transition-all duration-200';
-            hpText.className = 'text-xs sm:text-sm font-bold text-rose-400 tabular-nums w-9 text-right';
-          }
-
-          const remDist = Math.max(0, Math.round(Math.hypot(worldState.goal.x - ship.x, worldState.goal.z - ship.z)));
-          document.getElementById('hudDistText').textContent = `${remDist}m`;
-
-          const remTime = Math.ceil(worldState.remainingTime);
-          const mins = String(Math.floor(remTime / 60)).padStart(2, '0');
-          const secs = String(remTime % 60).padStart(2, '0');
-          const timeEl = document.getElementById('hudTimeText');
-          timeEl.textContent = `${mins}:${secs}`;
-          timeEl.className = remTime <= 25
-            ? 'text-xs sm:text-sm font-bold text-rose-400 tabular-nums mt-0.5 animate-pulse'
-            : 'text-xs sm:text-sm font-bold text-amber-300 tabular-nums mt-0.5';
-
-          if (profile.role === 'helmsman') {
-            const deg = (((-ship.yaw * 180 / Math.PI) % 360) + 360) % 360;
-            const dirs = ['北', '北東', '東', '南東', '南', '南西', '西', '北西'];
-            const dirLabel = dirs[Math.round(deg / 45) % 8];
-            document.getElementById('helmHeadingText').textContent = `${dirLabel} (${String(Math.round(deg)).padStart(3, '0')}°)`;
-
-            const speedKnots = (Math.hypot(ship.vx, ship.vz) * 0.85).toFixed(1);
-            document.getElementById('helmSpeedText').textContent = `${speedKnots} kt`;
-
-            const tPct = Math.round(ship.throttle * 100);
-            const tEl = document.getElementById('telegraphLabel');
-            if (tPct > 15) tEl.textContent = `前進 ${tPct}%`;
-            else if (tPct < -5) tEl.textContent = `後進 ${Math.abs(tPct)}%`;
-            else tEl.textContent = `停止 (${tPct}%)`;
-
-            const alertBanner = document.getElementById('helmAlertBanner');
-            alertBanner.classList.toggle('hidden', ship.hitFlashTimer <= 0);
-          }
-
-          if (profile.role === 'navigator') {
-            const scanBtn = document.getElementById('scanHazardBtn');
-            const scanBtnText = document.getElementById('scanBtnText');
-            const activeTag = document.getElementById('scanActiveTag');
-
-            activeTag.classList.toggle('hidden', worldState.scan.activeTimer <= 0);
-
-            if (worldState.scan.cooldownTimer > 0) {
-              scanBtn.disabled = true;
-              scanBtnText.textContent = `スキャン再充電 (${Math.ceil(worldState.scan.cooldownTimer)}s)`;
-            } else {
-              scanBtn.disabled = false;
-              scanBtnText.textContent = '危険スキャン強調';
-            }
-          }
-        }
-
-        function updateScanCalloutText() {
-          if (!worldState) return;
-          const ship = worldState.ship;
-          const listEl = document.getElementById('scanCalloutList');
-          const ids = worldState.scan.highlightedIds || [];
-          if (ids.length === 0) {
-            listEl.textContent = 'スキャン範囲（280m以内）に危険は検知されませんでした。このまま前進を指示してください。';
-            return;
-          }
-
-          const items = ids
-            .map(id => worldState.hazards.find(h => h.id === id))
-            .filter(Boolean)
-            .slice(0, 4)
-            .map(h => {
-              const dx = h.x - ship.x;
-              const dz = h.z - ship.z;
-              const dist = Math.round(Math.hypot(dx, dz));
-              const relSide = dx < -8 ? '左舷(西)' : (dx > 8 ? '右舷(東)' : '正面付近');
-              const label = h.type === 'mine' ? '機雷' : (h.type === 'whirlpool' ? '渦潮' : '岩礁');
-              return `• ${label}：${relSide} 約${dist}m`;
-            });
-
-          listEl.innerHTML = items.map(line => `<div>${line}</div>`).join('');
-        }
-
-        function gameLoop(nowMs) {
-          if (!isInGame || !worldState) return;
-          const dt = Math.min(0.05, Math.max(0.001, (nowMs - lastFrameTime) / 1000));
-          lastFrameTime = nowMs;
-          const timeSec = nowMs / 1000;
-
-          if (profile.role === 'helmsman') {
-            const stepRes = stepSimulation(worldState, dt, helmInput);
-            if (stepRes.hit) {
-              SoundFX.hit();
-              showToast('障害物に衝突しました！', 'error');
-            }
-            if (stepRes.outcome) {
-              NetManager.send({ type: 'outcome', outcome: stepRes.outcome, state: worldState });
-              handleMatchEnd(stepRes.outcome);
-            }
-
-            syncSendAccum += dt;
-            if (syncSendAccum >= 0.05) {
-              syncSendAccum = 0;
-              NetManager.send({
-                type: 'state_sync',
-                state: {
-                  elapsedTime: worldState.elapsedTime,
-                  remainingTime: worldState.remainingTime,
-                  status: worldState.status,
-                  ship: worldState.ship,
-                  hazards: worldState.hazards.map(h => ({ id: h.id, x: h.x, z: h.z, phase: h.phase }))
-                }
-              });
-            }
-          } else {
-            if (worldState.scan.cooldownTimer > 0) {
-              worldState.scan.cooldownTimer = Math.max(0, worldState.scan.cooldownTimer - dt);
-            }
-            if (worldState.scan.activeTimer > 0) {
-              worldState.scan.activeTimer = Math.max(0, worldState.scan.activeTimer - dt);
-              worldState.scan.waveProgress = Math.min(1, worldState.scan.waveProgress + dt * 0.75);
-            }
-            if (worldState.ship.hitFlashTimer > 0) {
-              worldState.ship.hitFlashTimer = Math.max(0, worldState.ship.hitFlashTimer - dt);
-            }
-          }
-
-          if (profile.role === 'helmsman' && helmsmanThree) {
-            helmsmanThree.render(worldState, timeSec);
-          } else if (profile.role === 'navigator') {
-            RadarMap.render(worldState, timeSec);
-            if (nav3DVisible && navigatorThree) {
-              navigatorThree.render(worldState, timeSec);
-            }
-          }
-
-          updateHUD();
-          animFrameId = requestAnimationFrame(gameLoop);
-        }
-
-        function bindEvents() {
-          playerNameInput.addEventListener('input', (e) => {
-            profile.playerName = e.target.value;
-            saveProfile();
-          });
-
-          passphraseInput.addEventListener('input', (e) => {
-            profile.passphrase = e.target.value;
-            roomIdPreview.textContent = `ルーム識別子: ${NetManager.passphraseToRoomBase(profile.passphrase)}`;
-            saveProfile();
-          });
-
-          document.getElementById('randomPassBtn').addEventListener('click', () => {
-            SoundFX.click();
-            const words = ['mist', 'compass', 'reef', 'beacon', 'tide', 'harbor', 'fog', 'drift'];
-            const w1 = words[Math.floor(Math.random() * words.length)];
-            const w2 = words[Math.floor(Math.random() * words.length)];
-            const num = Math.floor(10 + Math.random() * 89);
-            profile.passphrase = `${w1}-${w2}-${num}`;
-            passphraseInput.value = profile.passphrase;
-            roomIdPreview.textContent = `ルーム識別子: ${NetManager.passphraseToRoomBase(profile.passphrase)}`;
-            saveProfile();
-            showToast(`合言葉「${profile.passphrase}」を生成しました`, 'info');
-          });
-
-          document.querySelectorAll('.role-card').forEach(btn => {
-            btn.addEventListener('click', () => {
-              SoundFX.click();
-              profile.role = btn.dataset.role;
-              saveProfile();
-              syncProfileToMenuUI();
-              if (NetManager.isConnected()) {
-                NetManager.sendHello();
-              }
-            });
-          });
-
-          document.querySelectorAll('.diff-card').forEach(btn => {
-            btn.addEventListener('click', () => {
-              SoundFX.click();
-              profile.difficulty = normalizeDifficulty(btn.dataset.diff);
-              saveProfile();
-              syncProfileToMenuUI();
-            });
-          });
-
-          document.getElementById('resetStatsBtn').addEventListener('click', () => {
-            SoundFX.click();
-            profile.playCount = 0;
-            profile.clearCount = 0;
-            saveProfile();
-            syncProfileToMenuUI();
-            showToast('累計プレイ・クリア回数をリセットしました', 'info');
-          });
-
-          function toggleSound() {
-            profile.soundEnabled = !profile.soundEnabled;
-            saveProfile();
-            updateSoundLabels();
-            if (profile.soundEnabled) SoundFX.click();
-          }
-          document.getElementById('menuSoundBtn').addEventListener('click', toggleSound);
-          document.getElementById('gameSoundBtn').addEventListener('click', toggleSound);
-
-          connectBtn.addEventListener('click', () => {
-            SoundFX.click();
-            const pass = passphraseInput.value.trim();
-            if (!pass) {
-              showToast('合言葉（ルームID）を入力してください', 'warn');
-              passphraseInput.focus();
-              return;
-            }
-            profile.passphrase = pass;
-            profile.playerName = playerNameInput.value.trim() || '航海士';
-            saveProfile();
-            NetManager.connectByPassphrase(pass);
-          });
-
-          disconnectBtn.addEventListener('click', () => {
-            SoundFX.click();
-            NetManager.disconnect();
-          });
-
-          launchGameBtn.addEventListener('click', () => {
-            SoundFX.click();
-            if (!NetManager.isConnected()) {
-              showToast('先にパートナーと接続してください', 'warn');
-              return;
-            }
-            const seed = Date.now() & 0x7fffffff;
-            NetManager.send({
-              type: 'start_match',
-              seed,
-              difficulty: profile.difficulty
-            });
-            startMatch(seed, profile.difficulty);
-          });
-
-          document.getElementById('abortToMenuBtn').addEventListener('click', () => {
-            SoundFX.click();
-            NetManager.send({ type: 'peer_abort' });
-            returnToMenu();
-          });
-
-          document.getElementById('retryGameBtn').addEventListener('click', () => {
-            SoundFX.click();
-            const seed = Date.now() & 0x7fffffff;
-            NetManager.send({
-              type: 'start_match',
-              seed,
-              difficulty: profile.difficulty
-            });
-            startMatch(seed, profile.difficulty);
-          });
-
-          document.getElementById('backToMenuBtn').addEventListener('click', () => {
-            SoundFX.click();
-            returnToMenu();
-          });
-
-          function bindHoldButton(btnId, onDown, onUp) {
-            const el = document.getElementById(btnId);
-            if (!el) return;
-            const downHandler = (e) => { e.preventDefault(); onDown(); };
-            const upHandler = (e) => { e.preventDefault(); onUp(); };
-            el.addEventListener('pointerdown', downHandler);
-            el.addEventListener('pointerup', upHandler);
-            el.addEventListener('pointerleave', upHandler);
-            el.addEventListener('pointercancel', upHandler);
-          }
-
-          bindHoldButton('steerLeftBtn', () => { helmInput.turnLeft = true; }, () => { helmInput.turnLeft = false; });
-          bindHoldButton('steerRightBtn', () => { helmInput.turnRight = true; }, () => { helmInput.turnRight = false; });
-          bindHoldButton('throttleUpBtn', () => { helmInput.throttleDelta = 1; }, () => { helmInput.throttleDelta = 0; });
-          bindHoldButton('throttleDownBtn', () => { helmInput.throttleDelta = -1; }, () => { helmInput.throttleDelta = 0; });
-
-          window.addEventListener('keydown', (e) => {
-            if (!isInGame || profile.role !== 'helmsman') return;
-            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') helmInput.turnLeft = true;
-            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') helmInput.turnRight = true;
-            if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') helmInput.throttleDelta = 1;
-            if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') helmInput.throttleDelta = -1;
-          });
-
-          window.addEventListener('keyup', (e) => {
-            if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') helmInput.turnLeft = false;
-            if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') helmInput.turnRight = false;
-            if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp' || e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') {
-              helmInput.throttleDelta = 0;
-            }
-          });
-
-          document.getElementById('zoomInBtn').addEventListener('click', () => {
-            SoundFX.click();
-            RadarMap.setZoom(RadarMap.getZoom() * 1.25);
-          });
-
-          document.getElementById('zoomOutBtn').addEventListener('click', () => {
-            SoundFX.click();
-            RadarMap.setZoom(RadarMap.getZoom() * 0.8);
-          });
-
-          document.getElementById('centerShipBtn').addEventListener('click', () => {
-            SoundFX.click();
-            if (worldState) RadarMap.resetView(worldState.ship);
-          });
-
-          document.getElementById('scanHazardBtn').addEventListener('click', () => {
-            if (!worldState) return;
-            const ok = triggerHazardScan(worldState);
-            if (ok) {
-              SoundFX.scanPing();
-              updateScanCalloutText();
-              NetManager.send({
-                type: 'scan_triggered',
-                highlightedIds: worldState.scan.highlightedIds,
-                activeTimer: worldState.scan.activeTimer,
-                cooldownTimer: worldState.scan.cooldownTimer
-              });
-              showToast('危険スキャン強調を発動しました！', 'warn');
-            }
-          });
-
-          document.getElementById('toggle3DViewBtn').addEventListener('click', () => {
-            SoundFX.click();
-            nav3DVisible = !nav3DVisible;
-            nav3DOverlay.classList.toggle('hidden', !nav3DVisible);
-            document.getElementById('toggle3DLabel').textContent = nav3DVisible ? '2Dマップへ戻る' : '3D視点切替';
-            if (nav3DVisible && navigatorThree) {
-              navigatorThree.resize();
-            }
-          });
-
-          NetManager.onStateChange(updateConnectionUI);
-          NetManager.onMessage((msg) => {
-            if (msg.type === 'start_match') {
-              startMatch(msg.seed, msg.difficulty);
-            } else if (msg.type === 'state_sync' && worldState && profile.role === 'navigator') {
-              const prevHp = worldState.ship.hp;
-              worldState.elapsedTime = msg.state.elapsedTime;
-              worldState.remainingTime = msg.state.remainingTime;
-              worldState.status = msg.state.status;
-              Object.assign(worldState.ship, msg.state.ship);
-              if (msg.state.ship.hp < prevHp) {
-                worldState.ship.hitFlashTimer = 0.45;
-                SoundFX.hit();
-              }
-              if (Array.isArray(msg.state.hazards)) {
-                for (const sh of msg.state.hazards) {
-                  const localH = worldState.hazards.find(h => h.id === sh.id);
-                  if (localH) {
-                    localH.x = sh.x;
-                    localH.z = sh.z;
-                    localH.phase = sh.phase;
-                  }
-                }
-              }
-            } else if (msg.type === 'scan_triggered' && worldState) {
-              worldState.scan.activeTimer = msg.activeTimer;
-              worldState.scan.cooldownTimer = msg.cooldownTimer;
-              worldState.scan.waveProgress = 0;
-              worldState.scan.highlightedIds = msg.highlightedIds || [];
-              updateScanCalloutText();
-            } else if (msg.type === 'outcome') {
-              if (msg.state && worldState) {
-                Object.assign(worldState.ship, msg.state.ship);
-                worldState.elapsedTime = msg.state.elapsedTime;
-              }
-              handleMatchEnd(msg.outcome);
-            } else if (msg.type === 'peer_abort') {
-              showToast('パートナーがメニューへ戻りました', 'warn');
-              returnToMenu();
-            }
-          });
-        }
-
-        function init() {
-          bindEvents();
-          syncProfileToMenuUI();
-          updateConnectionUI({
-            statusKey: 'idle',
-            detailText: '同じ合言葉を入力したパートナーとP2P接続します。接続後すぐに2人同期で出航できます。'
-          });
-        }
-
-        return { init };
-      })();
-
-      window.addEventListener('DOMContentLoaded', () => {
-        AppController.init();
       });
+      window.addEventListener('keyup', (e) => keys.delete(e.code));
+
+      function initThreeIfNeeded() {
+        if (renderer || typeof THREE === 'undefined') return;
+        const canvas = document.getElementById('three-canvas');
+        renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setSize(window.innerWidth, window.innerHeight);
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x0b1924);
+
+        camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.5, 450);
+
+        const hemi = new THREE.HemisphereLight(0x93c5fd, 0x0f172a, 0.9);
+        scene.add(hemi);
+        const dirLight = new THREE.DirectionalLight(0xe0f2fe, 1.1);
+        dirLight.position.set(40, 80, 30);
+        scene.add(dirLight);
+
+        const waterGeo = new THREE.PlaneGeometry(1800, 5200, 64, 160);
+        waterGeo.rotateX(-Math.PI / 2);
+        const waterMat = new THREE.MeshStandardMaterial({
+          color: 0x0b354d,
+          roughness: 0.35,
+          metalness: 0.55,
+          flatShading: true
+        });
+        waterMesh = new THREE.Mesh(waterGeo, waterMat);
+        waterMesh.position.set(0, 0, -2000);
+        scene.add(waterMesh);
+
+        shipMesh = new THREE.Group();
+        const hullGeo = new THREE.ConeGeometry(2.3, 9.5, 6);
+        hullGeo.rotateX(-Math.PI / 2);
+        const hullMat = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
+        const hull = new THREE.Mesh(hullGeo, hullMat);
+        hull.position.y = 1.1;
+        shipMesh.add(hull);
+
+        const cabinGeo = new THREE.BoxGeometry(2.1, 1.5, 3.2);
+        const cabinMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 });
+        const cabin = new THREE.Mesh(cabinGeo, cabinMat);
+        cabin.position.set(0, 2.2, 0.5);
+        shipMesh.add(cabin);
+
+        const lanternGeo = new THREE.SphereGeometry(0.45, 10, 10);
+        const lanternMat = new THREE.MeshBasicMaterial({ color: 0xfef08a });
+        const lantern = new THREE.Mesh(lanternGeo, lanternMat);
+        lantern.position.set(0, 3.3, -1.8);
+        shipMesh.add(lantern);
+
+        const deckLight = new THREE.PointLight(0xfef08a, 1.8, 26);
+        deckLight.position.set(0, 4.5, -1.5);
+        shipMesh.add(deckLight);
+
+        scene.add(shipMesh);
+
+        goalGroup = new THREE.Group();
+        const towerGeo = new THREE.CylinderGeometry(3.2, 5.5, 28, 12);
+        const towerMat = new THREE.MeshStandardMaterial({ color: 0x34d399, emissive: 0x065f46 });
+        const tower = new THREE.Mesh(towerGeo, towerMat);
+        tower.position.y = 14;
+        goalGroup.add(tower);
+
+        const beaconGeo = new THREE.SphereGeometry(3.0, 14, 14);
+        const beaconMat = new THREE.MeshBasicMaterial({ color: 0x6ee7b7 });
+        const beacon = new THREE.Mesh(beaconGeo, beaconMat);
+        beacon.position.y = 30;
+        goalGroup.add(beacon);
+
+        scene.add(goalGroup);
+
+        const subMount = document.getElementById('subview-mount');
+        subRenderer = new THREE.WebGLRenderer({ antialias: true });
+        subRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        subRenderer.setSize(subMount.clientWidth || 380, subMount.clientHeight || 230);
+        subMount.appendChild(subRenderer.domElement);
+
+        subCamera = new THREE.PerspectiveCamera(64, (subMount.clientWidth || 380) / (subMount.clientHeight || 230), 0.5, 450);
+
+        window.addEventListener('resize', () => {
+          if (!renderer) return;
+          renderer.setSize(window.innerWidth, window.innerHeight);
+          camera.aspect = window.innerWidth / window.innerHeight;
+          camera.updateProjectionMatrix();
+          resizeSubView();
+          resizeRadarCanvas();
+          refreshHelmsmanControlsVisibility();
+        });
+      }
+
+      function resizeSubView() {
+        if (!subRenderer || !subCamera) return;
+        const box = document.getElementById('helmsman-subview-box');
+        const w = Math.max(1, box.clientWidth);
+        const h = Math.max(1, box.clientHeight);
+        subRenderer.setSize(w, h);
+        subCamera.aspect = w / h;
+        subCamera.updateProjectionMatrix();
+      }
+
+      function rebuildObstacles3D(course) {
+        if (!scene) return;
+        for (const mesh of obstacleMeshes.values()) {
+          scene.remove(mesh);
+        }
+        obstacleMeshes.clear();
+
+        for (const obs of course.obstacles) {
+          let obj;
+          if (obs.type === 'rock') {
+            const geo = new THREE.DodecahedronGeometry(obs.radius, 0);
+            const mat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85, flatShading: true });
+            obj = new THREE.Mesh(geo, mat);
+            obj.scale.set(1, obs.height / obs.radius, 1);
+            obj.position.set(obs.x, obs.height * 0.35, obs.z);
+          } else if (obs.type === 'mine') {
+            const geo = new THREE.OctahedronGeometry(obs.radius, 0);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xef4444, emissive: 0x7f1d1d, roughness: 0.4 });
+            obj = new THREE.Mesh(geo, mat);
+            obj.position.set(obs.x, obs.radius * 0.8, obs.z);
+          } else {
+            const geo = new THREE.TorusGeometry(obs.radius * 0.75, 1.1, 8, 24);
+            geo.rotateX(Math.PI / 2);
+            const mat = new THREE.MeshStandardMaterial({ color: 0xc084fc, emissive: 0x581c87, roughness: 0.3 });
+            obj = new THREE.Mesh(geo, mat);
+            obj.position.set(obs.x, 0.6, obs.z);
+          }
+          scene.add(obj);
+          obstacleMeshes.set(obs.id, obj);
+        }
+
+        goalGroup.position.set(course.goal.x, 0, course.goal.z);
+      }
+
+      // ==================== ENTER & RUN GAME ====================
+      function enterGameScene(countedAsPlay) {
+        initThreeIfNeeded();
+        lobbyOverlay.style.display = 'none';
+        menuScreen.style.display = 'none';
+        endModal.style.display = 'none';
+        gameScreen.style.display = 'block';
+
+        if (countedAsPlay) {
+          profile.totalPlays += 1;
+          saveProfile(profile);
+          syncMenuFromProfile();
+        }
+
+        const diffKey = profile.difficulty;
+        const course = generateCourse(profile.roomCode, diffKey);
+        const cfg = course.cfg;
+
+        if (scene) {
+          scene.fog = new THREE.FogExp2(0x0d2233, cfg.fogDensity);
+          rebuildObstacles3D(course);
+        }
+
+        gameState.active = true;
+        gameState.diffKey = diffKey;
+        gameState.course = course;
+        gameState.ship = {
+          x: 0,
+          z: -70,
+          yaw: 0,
+          speed: 0,
+          hp: cfg.hpMax,
+          invulnTimer: 0
+        };
+        gameState.elapsed = 0;
+        gameState.scanActiveUntil = 0;
+        gameState.scanCooldownUntil = 0;
+        gameState.radarZoom = 1.0;
+        gameState.radarPanX = 0;
+        gameState.radarPanZ = 0;
+
+        const isHelmsman = profile.role === 'helmsman';
+        refreshHelmsmanControlsVisibility();
+        document.getElementById('map-role-ui').style.display = isHelmsman ? 'none' : 'block';
+        document.getElementById('hud-my-role').textContent = isHelmsman ? '操船役' : 'マップ役';
+        document.getElementById('hud-diff-name').textContent = `難易度: ${cfg.label}`;
+
+        updatePartnerHud();
+        resizeRadarCanvas();
+        resizeSubView();
+      }
+
+      function updatePartnerHud() {
+        const el = document.getElementById('hud-partner-info');
+        if (!el) return;
+        if (isConnected) {
+          const pRoleLabel = partnerRole === 'helmsman' ? '操船役' : partnerRole === 'mapper' ? 'マップ役' : '乗組員';
+          el.textContent = `接続中: ${partnerName}（${pRoleLabel}）`;
+          el.style.color = '#34d399';
+        } else {
+          el.textContent = 'パートナー未接続（単独航行中）';
+          el.style.color = '#fbbf24';
+        }
+      }
+
+      let alertTimer = null;
+      function showAlert(text) {
+        const banner = document.getElementById('alert-banner');
+        banner.textContent = text;
+        banner.style.display = 'block';
+        clearTimeout(alertTimer);
+        alertTimer = setTimeout(() => {
+          banner.style.display = 'none';
+        }, 2200);
+      }
+
+      function triggerScanHighlight(broadcast) {
+        const now = performance.now();
+        gameState.scanActiveUntil = now + 5500;
+        gameState.scanCooldownUntil = now + 10000;
+        sfx.playScan();
+        if (broadcast) {
+          sendNet({ type: 'scan_pulse' });
+        }
+      }
+
+      document.getElementById('scan-btn').addEventListener('click', () => {
+        if (performance.now() < gameState.scanCooldownUntil) return;
+        triggerScanHighlight(true);
+      });
+
+      document.getElementById('zoom-in-btn').addEventListener('click', () => {
+        gameState.radarZoom = Math.min(3.2, gameState.radarZoom * 1.25);
+      });
+      document.getElementById('zoom-out-btn').addEventListener('click', () => {
+        gameState.radarZoom = Math.max(0.45, gameState.radarZoom / 1.25);
+      });
+      document.getElementById('center-ship-btn').addEventListener('click', () => {
+        gameState.radarPanX = 0;
+        gameState.radarPanZ = 0;
+      });
+
+      document.getElementById('toggle-subview-btn').addEventListener('click', (e) => {
+        gameState.subviewExpanded = !gameState.subviewExpanded;
+        const box = document.getElementById('helmsman-subview-box');
+        box.classList.toggle('expanded', gameState.subviewExpanded);
+        e.target.textContent = gameState.subviewExpanded ? '縮小' : '拡大';
+        setTimeout(resizeSubView, 240);
+      });
+
+      // Radar Panning, Pinch Zoom & Wheel
+      const radarCanvas = document.getElementById('radar-canvas');
+      const radarCtx = radarCanvas.getContext('2d');
+      let isDraggingRadar = false;
+      let dragStartX = 0, dragStartY = 0;
+      let pinchStartDist = 0;
+      let pinchStartZoom = 1.0;
+
+      function resizeRadarCanvas() {
+        const parent = radarCanvas.parentElement;
+        if (!parent) return;
+        const headerHeight = parent.querySelector('.radar-header')?.offsetHeight || 38;
+        const legendHeight = parent.querySelector('.radar-legend')?.offsetHeight || 28;
+        const w = parent.clientWidth;
+        const h = Math.max(120, parent.clientHeight - headerHeight - legendHeight);
+        const dpr = Math.min(window.devicePixelRatio || 1, 2);
+        radarCanvas.width = Math.floor(w * dpr);
+        radarCanvas.height = Math.floor(h * dpr);
+      }
+
+      radarCanvas.addEventListener('mousedown', (e) => {
+        isDraggingRadar = true;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+      });
+      window.addEventListener('mouseup', () => { isDraggingRadar = false; });
+      window.addEventListener('mousemove', (e) => {
+        if (!isDraggingRadar || !gameState.active) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        const scale = 2.4 * gameState.radarZoom;
+        gameState.radarPanX -= dx / scale;
+        gameState.radarPanZ -= dy / scale;
+      });
+
+      radarCanvas.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        if (e.touches.length === 1) {
+          isDraggingRadar = true;
+          pinchStartDist = 0;
+          dragStartX = e.touches[0].clientX;
+          dragStartY = e.touches[0].clientY;
+        } else if (e.touches.length >= 2) {
+          isDraggingRadar = false;
+          pinchStartDist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          pinchStartZoom = gameState.radarZoom;
+        }
+      }, { passive: false });
+
+      radarCanvas.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!gameState.active) return;
+        if (e.touches.length === 1 && isDraggingRadar) {
+          const dx = e.touches[0].clientX - dragStartX;
+          const dy = e.touches[0].clientY - dragStartY;
+          dragStartX = e.touches[0].clientX;
+          dragStartY = e.touches[0].clientY;
+          const scale = 2.4 * gameState.radarZoom;
+          gameState.radarPanX -= dx / scale;
+          gameState.radarPanZ -= dy / scale;
+        } else if (e.touches.length >= 2 && pinchStartDist > 0) {
+          const dist = Math.hypot(
+            e.touches[0].clientX - e.touches[1].clientX,
+            e.touches[0].clientY - e.touches[1].clientY
+          );
+          const factor = dist / pinchStartDist;
+          gameState.radarZoom = Math.max(0.45, Math.min(3.2, pinchStartZoom * factor));
+        }
+      }, { passive: false });
+
+      radarCanvas.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        if (e.touches.length < 2) pinchStartDist = 0;
+        if (e.touches.length === 0) isDraggingRadar = false;
+      }, { passive: false });
+
+      radarCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (e.deltaY < 0) gameState.radarZoom = Math.min(3.2, gameState.radarZoom * 1.15);
+        else gameState.radarZoom = Math.max(0.45, gameState.radarZoom / 1.15);
+      }, { passive: false });
+
+      function drawRadar() {
+        if (!gameState.course) return;
+        const cw = radarCanvas.width;
+        const ch = radarCanvas.height;
+        const ctx = radarCtx;
+        ctx.clearRect(0, 0, cw, ch);
+
+        ctx.fillStyle = '#06131f';
+        ctx.fillRect(0, 0, cw, ch);
+
+        const scale = 2.2 * gameState.radarZoom;
+        const centerX = gameState.ship.x + gameState.radarPanX;
+        const centerZ = gameState.ship.z + gameState.radarPanZ;
+
+        function worldToRadar(wx, wz) {
+          return {
+            x: cw / 2 + (wx - centerX) * scale,
+            y: ch / 2 + (wz - centerZ) * scale
+          };
+        }
+
+        ctx.strokeStyle = 'rgba(125, 211, 252, 0.08)';
+        ctx.lineWidth = 1;
+        const gridStep = 100;
+        const startGridX = Math.floor((centerX - (cw / 2) / scale) / gridStep) * gridStep;
+        const endGridX = Math.ceil((centerX + (cw / 2) / scale) / gridStep) * gridStep;
+        const startGridZ = Math.floor((centerZ - (ch / 2) / scale) / gridStep) * gridStep;
+        const endGridZ = Math.ceil((centerZ + (ch / 2) / scale) / gridStep) * gridStep;
+
+        for (let gx = startGridX; gx <= endGridX; gx += gridStep) {
+          const p1 = worldToRadar(gx, startGridZ);
+          const p2 = worldToRadar(gx, endGridZ);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+        for (let gz = startGridZ; gz <= endGridZ; gz += gridStep) {
+          const p1 = worldToRadar(startGridX, gz);
+          const p2 = worldToRadar(endGridX, gz);
+          ctx.beginPath();
+          ctx.moveTo(p1.x, p1.y);
+          ctx.lineTo(p2.x, p2.y);
+          ctx.stroke();
+        }
+
+        const now = performance.now();
+        const scanBoost = now < gameState.scanActiveUntil;
+
+        const goalPos = worldToRadar(gameState.course.goal.x, gameState.course.goal.z);
+        ctx.save();
+        ctx.fillStyle = 'rgba(52, 211, 153, 0.22)';
+        ctx.strokeStyle = '#34d399';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.arc(goalPos.x, goalPos.y, Math.max(8, gameState.course.goal.radius * scale), 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#a7f3d0';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.fillText('GOAL', goalPos.x + 10, goalPos.y + 4);
+        ctx.restore();
+
+        for (const obs of gameState.course.obstacles) {
+          const p = worldToRadar(obs.x, obs.z);
+          if (p.x < -30 || p.x > cw + 30 || p.y < -30 || p.y > ch + 30) continue;
+
+          const r = Math.max(4, obs.radius * scale);
+          ctx.save();
+          if (obs.type === 'rock') {
+            ctx.fillStyle = scanBoost ? '#cbd5e1' : '#64748b';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.fill();
+          } else if (obs.type === 'mine') {
+            ctx.fillStyle = scanBoost ? '#ff6b6b' : '#f87171';
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.strokeStyle = scanBoost ? '#e879f9' : '#c084fc';
+            ctx.lineWidth = scanBoost ? 2.5 : 1.6;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+
+          if (scanBoost) {
+            ctx.strokeStyle = 'rgba(52, 211, 153, 0.85)';
+            ctx.lineWidth = 1.6;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, r + 6 + Math.sin(now * 0.01) * 2, 0, Math.PI * 2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        const sp = worldToRadar(gameState.ship.x, gameState.ship.z);
+        ctx.save();
+        ctx.translate(sp.x, sp.y);
+        ctx.rotate(-gameState.ship.yaw);
+        ctx.fillStyle = '#38bdf8';
+        ctx.strokeStyle = '#f8fafc';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(0, -13);
+        ctx.lineTo(9, 10);
+        ctx.lineTo(0, 6);
+        ctx.lineTo(-9, 10);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        const scanBtn = document.getElementById('scan-btn');
+        if (now < gameState.scanCooldownUntil) {
+          const rem = ((gameState.scanCooldownUntil - now) / 1000).toFixed(1);
+          scanBtn.disabled = true;
+          scanBtn.classList.remove('scan-ready');
+          scanBtn.textContent = `📡 スキャン ${rem}s`;
+        } else {
+          scanBtn.disabled = false;
+          scanBtn.classList.add('scan-ready');
+          scanBtn.textContent = '📡 危険スキャン強調';
+        }
+      }
+
+      function finishGame(victory, reason, broadcast) {
+        if (!gameState.active) return;
+        gameState.active = false;
+        refreshHelmsmanControlsVisibility();
+        if (broadcast) {
+          sendNet({ type: 'game_end', victory, reason });
+        }
+
+        if (victory) {
+          sfx.playGoal();
+          profile.totalClears += 1;
+          saveProfile(profile);
+          syncMenuFromProfile();
+        } else {
+          sfx.playHit();
+        }
+
+        const cfg = gameState.course.cfg;
+        const distDone = Math.min(cfg.courseLength, Math.max(0, Math.round(-gameState.ship.z - 70)));
+
+        document.getElementById('end-title').textContent = victory ? '🎉 ゴール突破！' : '💥 航行失敗...';
+        document.getElementById('end-title').style.color = victory ? '#34d399' : '#f87171';
+        document.getElementById('end-summary').innerHTML =
+          `${reason}<br/>難易度: <strong>${cfg.label}</strong> ／ 到達距離: <strong>${distDone}m / ${cfg.courseLength}m</strong><br/>経過時間: <strong>${gameState.elapsed.toFixed(1)}秒</strong> ／ 残りHP: <strong>${Math.max(0, Math.round(gameState.ship.hp))}</strong>`;
+        endModal.style.display = 'flex';
+      }
+
+      // ==================== MAIN LOOP ====================
+      let lastFrameTime = performance.now();
+      let lastNetSendTime = 0;
+
+      function updateSimulation(dt, now) {
+        if (!gameState.active || !gameState.course) return;
+        const course = gameState.course;
+        const cfg = course.cfg;
+        const ship = gameState.ship;
+
+        gameState.elapsed += dt;
+        const remaining = Math.max(0, cfg.timeLimitSec - gameState.elapsed);
+        if (remaining <= 0) {
+          finishGame(false, '制限時間内にゴールへ到達できませんでした。', true);
+          return;
+        }
+
+        for (const obs of course.obstacles) {
+          if (obs.type === 'mine') {
+            obs.x = obs.baseX + Math.sin(gameState.elapsed * obs.driftSpeed + obs.phase) * obs.driftAmp;
+          }
+          const mesh = obstacleMeshes.get(obs.id);
+          if (mesh) {
+            mesh.position.x = obs.x;
+            mesh.position.z = obs.z;
+            if (obs.type === 'mine') mesh.rotation.y += dt * 1.4;
+            if (obs.type === 'vortex') mesh.rotation.y -= dt * 2.8;
+          }
+        }
+
+        if (profile.role === 'helmsman') {
+          const forwardInput = (keys.has('KeyW') || keys.has('ArrowUp') || touchControls.forward ? 1 : 0)
+                             - (keys.has('KeyS') || keys.has('ArrowDown') || touchControls.backward ? 1 : 0);
+          const turnInput = (keys.has('KeyA') || keys.has('ArrowLeft') || touchControls.turnLeft ? 1 : 0)
+                          - (keys.has('KeyD') || keys.has('ArrowRight') || touchControls.turnRight ? 1 : 0);
+
+          const accel = forwardInput >= 0 ? 22 : 16;
+          ship.speed += forwardInput * accel * dt;
+          ship.speed *= Math.pow(cfg.inertia, dt * 60);
+          ship.speed = Math.max(-10, Math.min(cfg.maxSpeed, ship.speed));
+
+          const turnFactor = Math.min(1, Math.abs(ship.speed) / 6 + 0.35);
+          ship.yaw += turnInput * cfg.turnRate * turnFactor * dt;
+
+          for (const obs of course.obstacles) {
+            if (obs.type === 'vortex') {
+              const dx = obs.x - ship.x;
+              const dz = obs.z - ship.z;
+              const dist = Math.hypot(dx, dz);
+              if (dist < obs.radius * 2.1 && dist > 0.1) {
+                const pull = (1 - dist / (obs.radius * 2.1)) * obs.pullStrength * dt;
+                ship.x += (dx / dist) * pull;
+                ship.z += (dz / dist) * pull;
+                ship.yaw += 0.55 * dt;
+              }
+            }
+          }
+
+          ship.x += -Math.sin(ship.yaw) * ship.speed * dt;
+          ship.z += -Math.cos(ship.yaw) * ship.speed * dt;
+
+          const maxX = cfg.corridorHalfWidth + 60;
+          if (Math.abs(ship.x) > maxX) {
+            ship.x = Math.sign(ship.x) * maxX;
+            ship.speed *= 0.6;
+          }
+
+          if (ship.invulnTimer > 0) {
+            ship.invulnTimer = Math.max(0, ship.invulnTimer - dt);
+          } else {
+            for (const obs of course.obstacles) {
+              const dist = Math.hypot(ship.x - obs.x, ship.z - obs.z);
+              if (dist < obs.radius + 2.4) {
+                ship.hp -= obs.damage;
+                ship.invulnTimer = 1.1;
+                ship.speed *= 0.45;
+                sfx.playHit();
+                const label = obs.type === 'rock' ? '岩礁' : obs.type === 'mine' ? '機雷' : '渦潮';
+                showAlert(`💥 ${label}に接触！HP -${obs.damage}`);
+                if (ship.hp <= 0) {
+                  finishGame(false, `${label}の衝撃で船体が大破しました。`, true);
+                  return;
+                }
+                break;
+              }
+            }
+          }
+
+          const goalDist = Math.hypot(ship.x - course.goal.x, ship.z - course.goal.z);
+          if (goalDist < course.goal.radius + 4) {
+            finishGame(true, '濃霧を突破し、ゴール灯台に無事到達しました！', true);
+            return;
+          }
+
+          if (now - lastNetSendTime > 55) {
+            lastNetSendTime = now;
+            sendNet({
+              type: 'ship_state',
+              x: ship.x,
+              z: ship.z,
+              yaw: ship.yaw,
+              speed: ship.speed,
+              hp: ship.hp,
+              elapsed: gameState.elapsed
+            });
+          }
+        }
+
+        if (shipMesh) {
+          shipMesh.position.set(ship.x, Math.sin(gameState.elapsed * 2.2) * 0.22, ship.z);
+          shipMesh.rotation.set(0, ship.yaw, Math.cos(gameState.elapsed * 1.8) * 0.04);
+        }
+
+        const camBack = 12;
+        const camHeight = 6.2;
+        const cx = ship.x + Math.sin(ship.yaw) * camBack;
+        const cz = ship.z + Math.cos(ship.yaw) * camBack;
+        if (camera) {
+          camera.position.set(cx, camHeight, cz);
+          camera.lookAt(ship.x - Math.sin(ship.yaw) * 18, 2.2, ship.z - Math.cos(ship.yaw) * 18);
+        }
+        if (subCamera) {
+          subCamera.position.set(cx, camHeight, cz);
+          subCamera.lookAt(ship.x - Math.sin(ship.yaw) * 18, 2.2, ship.z - Math.cos(ship.yaw) * 18);
+        }
+
+        const hpPct = Math.max(0, Math.min(100, (ship.hp / cfg.hpMax) * 100));
+        document.getElementById('hp-text').textContent = `${Math.max(0, Math.round(ship.hp))} / ${cfg.hpMax}`;
+        const hpBar = document.getElementById('hp-bar');
+        hpBar.style.width = `${hpPct}%`;
+        hpBar.style.background = hpPct > 50
+          ? 'linear-gradient(90deg, #34d399, #38bdf8)'
+          : hpPct > 25
+            ? 'linear-gradient(90deg, #fbbf24, #f97316)'
+            : 'linear-gradient(90deg, #ef4444, #dc2626)';
+
+        const distDone = Math.min(cfg.courseLength, Math.max(0, Math.round(-ship.z - 70)));
+        document.getElementById('hud-progress').textContent = `${distDone}m / ${cfg.courseLength}m`;
+
+        const remSec = Math.ceil(remaining);
+        const mm = String(Math.floor(remSec / 60)).padStart(2, '0');
+        const ss = String(remSec % 60).padStart(2, '0');
+        document.getElementById('hud-timer').textContent = `${mm}:${ss}`;
+
+        const knots = (ship.speed * 0.85).toFixed(1);
+        document.getElementById('hud-speed').textContent = `${knots} kt`;
+      }
+
+      function animate(now) {
+        requestAnimationFrame(animate);
+        const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+        lastFrameTime = now;
+
+        if (gameState.active) {
+          updateSimulation(dt, now);
+          if (renderer && scene && camera) {
+            renderer.render(scene, camera);
+          }
+          if (profile.role === 'mapper') {
+            drawRadar();
+            if (subRenderer && scene && subCamera) {
+              subRenderer.render(scene, subCamera);
+            }
+          }
+        }
+      }
+
+      document.getElementById('quit-to-menu-btn').addEventListener('click', () => {
+        gameState.active = false;
+        refreshHelmsmanControlsVisibility();
+        teardownPeer();
+        gameScreen.style.display = 'none';
+        menuScreen.style.display = 'flex';
+      });
+
+      document.getElementById('play-again-btn').addEventListener('click', () => {
+        endModal.style.display = 'none';
+        enterGameScene(true);
+      });
+
+      document.getElementById('back-menu-btn').addEventListener('click', () => {
+        gameState.active = false;
+        refreshHelmsmanControlsVisibility();
+        teardownPeer();
+        endModal.style.display = 'none';
+        gameScreen.style.display = 'none';
+        menuScreen.style.display = 'flex';
+      });
+
+      syncMenuFromProfile();
+      requestAnimationFrame(animate);
     })();
   </script>
 </body>
