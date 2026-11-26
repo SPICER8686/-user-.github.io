@@ -938,12 +938,13 @@
       </div>
 
       <div id="peer-info-box" style="font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:16px;">
-        もう1台の端末または別ブラウザタブで同じ<strong>合言葉</strong>を入力し、もう一方の役割を選んでください。<br/>
-        ※ 操船役が先にルームを作成し、マップ役が参加する流れが最もスムーズです。
+        もう1台の端末または別ブラウザタブで同じ<strong>合言葉</strong>と<strong>難易度</strong>を選び、もう一方の役割で参加してください。<br/>
+        接続が安定しない場合は「再接続」を押すか、合言葉の前後空白を確認してください。
       </div>
 
       <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
         <button type="button" class="btn-primary" id="launch-game-btn" disabled>出航開始！</button>
+        <button type="button" class="btn-secondary" id="retry-conn-btn">再接続</button>
         <button type="button" class="btn-secondary" id="cancel-lobby-btn">メニューに戻る</button>
       </div>
     </div>
@@ -1438,6 +1439,19 @@
       let isConnected = false;
       let partnerName = 'パートナー';
       let partnerRole = null;
+      let retryTimer = null;
+      let matchSessionId = 0;
+
+      const PEER_CONFIG = {
+        debug: 0,
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' }
+          ]
+        }
+      };
 
       const connDot = document.getElementById('conn-dot');
       const connStatusText = document.getElementById('conn-status-text');
@@ -1446,11 +1460,25 @@
       const lobbyRoleLabel = document.getElementById('lobby-role-label');
       const lobbyDiffLabel = document.getElementById('lobby-diff-label');
 
+      function normalizePassphrase(roomCode) {
+        return String(roomCode || '')
+          .trim()
+          .toLowerCase()
+          .replace(/\s+/g, '-');
+      }
+
       function sanitizePeerId(roomCode, diffKey) {
-        const clean = encodeURIComponent(`${roomCode.trim().toLowerCase()}__${diffKey}`)
+        const norm = normalizePassphrase(roomCode);
+        let hash = 0;
+        const keyStr = `${norm}__${diffKey}`;
+        for (let i = 0; i < keyStr.length; i++) {
+          hash = ((hash << 5) - hash + keyStr.charCodeAt(i)) | 0;
+        }
+        const safeAscii = encodeURIComponent(keyStr)
           .replace(/[^a-zA-Z0-9_-]/g, '')
-          .slice(0, 44);
-        return `mistcompass-${clean || 'defaultroom'}`;
+          .slice(0, 26);
+        const hashHex = (hash >>> 0).toString(16);
+        return `mc-${safeAscii || 'room'}-${hashHex}`;
       }
 
       function setConnStatus(state, text) {
@@ -1459,6 +1487,11 @@
       }
 
       function teardownPeer() {
+        matchSessionId += 1;
+        if (retryTimer) {
+          clearTimeout(retryTimer);
+          retryTimer = null;
+        }
         isConnected = false;
         if (conn) {
           try { conn.close(); } catch (_) {}
@@ -1470,10 +1503,20 @@
         }
       }
 
-      function setupDataChannel(dc) {
+      function setupDataChannel(dc, sessionId) {
+        if (sessionId !== matchSessionId) return;
+        if (conn && conn !== dc) {
+          try { conn.close(); } catch (_) {}
+        }
         conn = dc;
-        dc.on('open', () => {
+
+        const onReady = () => {
+          if (sessionId !== matchSessionId || isConnected) return;
           isConnected = true;
+          if (retryTimer) {
+            clearTimeout(retryTimer);
+            retryTimer = null;
+          }
           setConnStatus('ok', '相手と接続完了！出航できます');
           launchGameBtn.disabled = false;
           sendNet({
@@ -1482,40 +1525,98 @@
             role: profile.role,
             difficulty: profile.difficulty
           });
-        });
+        };
+
+        if (dc.open) {
+          onReady();
+        } else {
+          dc.on('open', onReady);
+        }
 
         dc.on('data', (msg) => {
+          if (sessionId !== matchSessionId) return;
           handleNetMessage(msg);
         });
 
         dc.on('close', () => {
+          if (sessionId !== matchSessionId) return;
           isConnected = false;
           launchGameBtn.disabled = true;
-          setConnStatus('err', '相手との接続が切れました');
+          setConnStatus('err', '相手との接続が切れました。「再接続」を押してください');
           updatePartnerHud();
         });
 
         dc.on('error', () => {
-          setConnStatus('err', '通信エラーが発生しました');
+          if (sessionId !== matchSessionId) return;
+          setConnStatus('err', 'データ通信中にエラーが発生しました');
         });
       }
 
-      function sendNet(payload) {
-        if (conn && conn.open) {
-          try {
-            conn.send(payload);
-          } catch (_) {}
+      function connectAsGuest(roomPeerId, code, sessionId, attempt = 1) {
+        if (sessionId !== matchSessionId || isConnected) return;
+        setConnStatus('wait', `合言葉「${code}」のルームに接続中...（試行 ${attempt}）`);
+
+        if (peer) {
+          try { peer.destroy(); } catch (_) {}
+          peer = null;
         }
+
+        let guestPeer;
+        try {
+          guestPeer = new Peer(undefined, PEER_CONFIG);
+        } catch (_) {
+          setConnStatus('err', '接続クライアントの初期化に失敗しました');
+          return;
+        }
+        peer = guestPeer;
+
+        guestPeer.on('open', () => {
+          if (sessionId !== matchSessionId || isConnected) return;
+          try {
+            const outConn = guestPeer.connect(roomPeerId, {
+              reliable: true,
+              serialization: 'json'
+            });
+            setupDataChannel(outConn, sessionId);
+          } catch (_) {
+            scheduleGuestRetry(roomPeerId, code, sessionId, attempt);
+          }
+        });
+
+        guestPeer.on('error', (err) => {
+          if (sessionId !== matchSessionId || isConnected) return;
+          const errType = (err && err.type) || '';
+          if (errType === 'peer-unavailable' || errType === 'network' || errType === 'socket-error') {
+            scheduleGuestRetry(roomPeerId, code, sessionId, attempt);
+          } else {
+            setConnStatus('err', `接続エラー: ${errType || '不明'}。「再接続」をお試しください`);
+          }
+        });
+      }
+
+      function scheduleGuestRetry(roomPeerId, code, sessionId, attempt) {
+        if (sessionId !== matchSessionId || isConnected) return;
+        if (attempt >= 8) {
+          setConnStatus('err', '相手ルームが見つかりません。合言葉と難易度を確認し「再接続」を押してください');
+          return;
+        }
+        if (retryTimer) clearTimeout(retryTimer);
+        retryTimer = setTimeout(() => {
+          connectAsGuest(roomPeerId, code, sessionId, attempt + 1);
+        }, 1200);
       }
 
       function startMatchmaking() {
         persistCurrentForm();
-        const code = profile.roomCode;
+        const code = normalizePassphrase(profile.roomCode);
         if (!code) {
           showAlert('合言葉（ルームID）を入力してください。2人で同じ合言葉を使うと接続できます。');
           roomCodeInput.focus();
           return;
         }
+        profile.roomCode = code;
+        roomCodeInput.value = code;
+        saveProfile(profile);
 
         if (typeof Peer === 'undefined') {
           showAlert('通信ライブラリの読み込みに失敗しました。再読み込みしてください。');
@@ -1523,53 +1624,61 @@
         }
 
         teardownPeer();
+        const sessionId = matchSessionId;
         const cfg = DIFFICULTIES[profile.difficulty];
         lobbyRoomLabel.textContent = code;
         lobbyRoleLabel.textContent = profile.role === 'helmsman' ? '操船役' : 'マップ役';
         lobbyDiffLabel.textContent = `${cfg.label}（${cfg.courseLength}m / ${cfg.estTime}）`;
         launchGameBtn.disabled = true;
         lobbyOverlay.style.display = 'flex';
-        setConnStatus('wait', 'ルームIDを登録中...');
+        setConnStatus('wait', '合言葉ルームを準備中...');
 
         const roomPeerId = sanitizePeerId(code, profile.difficulty);
+        let hostPeer;
         try {
-          peer = new Peer(roomPeerId, { debug: 0 });
+          hostPeer = new Peer(roomPeerId, PEER_CONFIG);
         } catch (_) {
           setConnStatus('err', 'Peer接続の初期化に失敗しました');
           return;
         }
+        peer = hostPeer;
 
-        peer.on('open', () => {
+        hostPeer.on('open', () => {
+          if (sessionId !== matchSessionId || isConnected) return;
           setConnStatus('wait', `合言葉「${code}」で待機中... もう1人の参加を待っています`);
         });
 
-        peer.on('connection', (incoming) => {
+        hostPeer.on('connection', (incoming) => {
+          if (sessionId !== matchSessionId) return;
           if (conn && conn.open) {
-            incoming.close();
+            try { incoming.close(); } catch (_) {}
             return;
           }
-          setupDataChannel(incoming);
+          setupDataChannel(incoming, sessionId);
         });
 
-        peer.on('error', (err) => {
-          if (err && err.type === 'unavailable-id') {
-            setConnStatus('wait', `合言葉「${code}」のルームに参加中...`);
-            if (peer) {
-              try { peer.destroy(); } catch (_) {}
-            }
-            peer = new Peer(undefined, { debug: 0 });
-            peer.on('open', () => {
-              const outConn = peer.connect(roomPeerId, { reliable: true });
-              setupDataChannel(outConn);
-            });
-            peer.on('error', () => {
-              setConnStatus('err', 'ルームへの接続に失敗しました。合言葉を確認してください。');
-            });
+        hostPeer.on('error', (err) => {
+          if (sessionId !== matchSessionId || isConnected) return;
+          const errType = (err && err.type) || '';
+          if (errType === 'unavailable-id') {
+            connectAsGuest(roomPeerId, code, sessionId, 1);
+          } else if (errType === 'network' || errType === 'server-error' || errType === 'socket-error') {
+            setConnStatus('wait', 'ネットワーク再試行中...');
+            if (retryTimer) clearTimeout(retryTimer);
+            retryTimer = setTimeout(() => {
+              if (sessionId === matchSessionId && !isConnected) {
+                startMatchmaking();
+              }
+            }, 1500);
           } else {
-            setConnStatus('err', `接続エラー: ${(err && err.type) || '不明'}`);
+            setConnStatus('err', `接続エラー: ${errType || '不明'}。「再接続」を押してください`);
           }
         });
       }
+
+      document.getElementById('retry-conn-btn').addEventListener('click', () => {
+        startMatchmaking();
+      });
 
       function handleNetMessage(msg) {
         if (!msg || !msg.type) return;
