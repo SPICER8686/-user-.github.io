@@ -9,7 +9,7 @@
   <style>
     :root {
       --bg-dark: #07111a;
-      --panel-bg: rgba(10, 22, 34, 0.88);
+      --panel-bg: rgba(10, 22, 34, 0.9);
       --panel-border: rgba(125, 211, 252, 0.24);
       --accent: #38bdf8;
       --accent-2: #34d399;
@@ -19,7 +19,7 @@
       --muted: #8aa4b8;
     }
 
-    /* Disable long-press text selection and callouts globally; keep inputs usable */
+    /* スマホ長押し選択・コールアウト防止（入力欄は除外） */
     * {
       box-sizing: border-box;
       -webkit-user-select: none;
@@ -57,9 +57,9 @@
       inset: 0;
       z-index: 50;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      padding: 18px;
+      padding: 14px;
       background:
         radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.16), transparent 45%),
         radial-gradient(circle at 80% 75%, rgba(52, 211, 153, 0.12), transparent 50%),
@@ -69,13 +69,13 @@
 
     .menu-card {
       width: 100%;
-      max-width: 840px;
+      max-width: 820px;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      border-radius: 18px;
-      padding: 24px 28px;
-      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.65);
-      backdrop-filter: blur(12px);
+      border-radius: 16px;
+      padding: 22px 26px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(10px);
       margin: auto;
     }
 
@@ -83,17 +83,17 @@
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 16px;
+      align-items: center;
+      gap: 12px;
       border-bottom: 1px solid rgba(148, 163, 184, 0.18);
-      padding-bottom: 16px;
-      margin-bottom: 20px;
+      padding-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .brand-title {
-      font-size: 30px;
+      font-size: 26px;
       font-weight: 800;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       margin: 0;
       background: linear-gradient(90deg, #e0f2fe, #38bdf8, #34d399);
       -webkit-background-clip: text;
@@ -101,57 +101,48 @@
     }
 
     .brand-sub {
-      margin: 6px 0 0;
+      margin: 4px 0 0;
       color: var(--muted);
-      font-size: 13px;
-      line-height: 1.5;
+      font-size: 12px;
+      line-height: 1.45;
     }
 
     .profile-stats {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       background: rgba(15, 33, 49, 0.85);
       border: 1px solid rgba(125, 211, 252, 0.18);
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 12px;
+      border-radius: 10px;
+      padding: 8px 12px;
+      font-size: 11px;
     }
 
     .stat-box {
       text-align: center;
-      min-width: 68px;
+      min-width: 56px;
     }
 
     .stat-val {
-      font-size: 18px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--accent);
     }
 
     .stat-label {
       color: var(--muted);
-      font-size: 11px;
+      font-size: 10px;
     }
 
     .form-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
-    }
-
-    @media (max-width: 680px) {
-      .form-grid {
-        grid-template-columns: 1fr;
-      }
-      .menu-card {
-        padding: 18px;
-      }
+      gap: 14px;
     }
 
     .field-group {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .field-group.full {
@@ -159,156 +150,136 @@
     }
 
     label.field-label {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       color: #bae6fd;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
     }
 
     input[type="text"] {
       width: 100%;
-      padding: 11px 14px;
-      border-radius: 10px;
+      padding: 9px 12px;
+      border-radius: 9px;
       border: 1px solid rgba(148, 163, 184, 0.3);
-      background: rgba(5, 14, 23, 0.85);
+      background: rgba(5, 14, 23, 0.88);
       color: var(--text);
-      font-size: 15px;
+      font-size: 14px;
       outline: none;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     input[type="text"]:focus {
       border-color: var(--accent);
-      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
     }
 
     .choice-row {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
-
-    @media (max-width: 560px) {
-      .choice-row {
-        grid-template-columns: 1fr;
-      }
+      gap: 10px;
     }
 
     .diff-grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
-    }
-
-    @media (max-width: 760px) {
-      .diff-grid {
-        grid-template-columns: repeat(2, 1fr);
-      }
+      gap: 8px;
     }
 
     .choice-btn {
-      background: rgba(8, 20, 32, 0.85);
+      background: rgba(8, 20, 32, 0.88);
       border: 1px solid rgba(148, 163, 184, 0.25);
-      border-radius: 12px;
-      padding: 12px 10px;
+      border-radius: 10px;
+      padding: 10px;
       color: var(--text);
       cursor: pointer;
       text-align: left;
-      min-height: 44px;
       touch-action: manipulation;
-      transition: all 0.18s ease;
+      transition: all 0.15s ease;
     }
 
     .choice-btn:hover {
       border-color: rgba(56, 189, 248, 0.55);
-      transform: translateY(-1px);
     }
 
     .choice-btn.active {
       border-color: var(--accent);
-      background: rgba(14, 48, 72, 0.9);
-      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.25);
+      background: rgba(14, 48, 72, 0.92);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.22);
     }
 
     .choice-title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 700;
       display: block;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     .choice-desc {
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--muted);
-      line-height: 1.38;
+      line-height: 1.35;
       display: block;
     }
 
     .diff-badge {
       display: inline-block;
-      margin-top: 6px;
+      margin-top: 5px;
       padding: 2px 6px;
-      border-radius: 6px;
+      border-radius: 5px;
       font-size: 10px;
       font-weight: 700;
-      background: rgba(56, 189, 248, 0.14);
+      background: rgba(56, 189, 248, 0.15);
       color: #bae6fd;
     }
 
     .diff-btn[data-diff="maelstrom"].active {
       border-color: #fb923c;
-      background: rgba(69, 34, 14, 0.9);
-      box-shadow: 0 0 0 2px rgba(251, 146, 60, 0.28);
+      background: rgba(69, 34, 14, 0.92);
     }
 
     .diff-btn[data-diff="abyss"].active {
       border-color: #c084fc;
-      background: rgba(46, 18, 69, 0.9);
-      box-shadow: 0 0 0 2px rgba(192, 132, 252, 0.28);
+      background: rgba(46, 18, 69, 0.92);
     }
 
     .diff-btn[data-diff="nightmare"].active {
       border-color: #f87171;
-      background: rgba(69, 18, 26, 0.9);
-      box-shadow: 0 0 0 2px rgba(248, 113, 113, 0.28);
+      background: rgba(69, 18, 26, 0.92);
     }
 
     .menu-footer {
-      margin-top: 20px;
-      padding-top: 16px;
+      margin-top: 16px;
+      padding-top: 14px;
       border-top: 1px solid rgba(148, 163, 184, 0.18);
       display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
-      gap: 14px;
+      gap: 10px;
     }
 
     .save-note {
-      font-size: 12px;
-      color: var(--accent-2);
+      font-size: 11px;
+      color: var(--muted);
     }
 
     .btn-primary {
       background: linear-gradient(135deg, #0284c7, #0ea5e9);
       color: #fff;
       border: none;
-      border-radius: 12px;
-      padding: 12px 24px;
-      min-height: 44px;
-      font-size: 15px;
+      border-radius: 10px;
+      padding: 10px 20px;
+      min-height: 40px;
+      font-size: 14px;
       font-weight: 700;
       cursor: pointer;
       touch-action: manipulation;
-      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.35);
-      transition: transform 0.15s, filter 0.15s;
+      box-shadow: 0 6px 18px rgba(14, 165, 233, 0.3);
+      transition: transform 0.12s, filter 0.12s;
     }
 
     .btn-primary:hover:not(:disabled) {
       transform: translateY(-1px);
-      filter: brightness(1.08);
+      filter: brightness(1.06);
     }
 
     .btn-primary:disabled {
@@ -320,9 +291,9 @@
       background: rgba(15, 33, 49, 0.9);
       color: var(--text);
       border: 1px solid rgba(148, 163, 184, 0.3);
-      border-radius: 10px;
-      padding: 8px 14px;
-      min-height: 44px;
+      border-radius: 9px;
+      padding: 7px 12px;
+      min-height: 36px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
@@ -333,6 +304,86 @@
       border-color: var(--accent);
     }
 
+    /* スマホ向けコンパクトメニュー調整 */
+    @media (max-width: 640px) {
+      #menu-screen {
+        padding: 8px;
+      }
+      .menu-card {
+        padding: 12px 13px;
+        border-radius: 12px;
+      }
+      .menu-header {
+        padding-bottom: 10px;
+        margin-bottom: 11px;
+        gap: 8px;
+      }
+      .brand-title {
+        font-size: 20px;
+      }
+      .brand-sub {
+        font-size: 10.5px;
+      }
+      .profile-stats {
+        padding: 5px 9px;
+        gap: 8px;
+      }
+      .stat-box {
+        min-width: 44px;
+      }
+      .stat-val {
+        font-size: 13px;
+      }
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 9px;
+      }
+      input[type="text"] {
+        padding: 7px 10px;
+        font-size: 13px;
+      }
+      .choice-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 7px;
+      }
+      .diff-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 6px;
+      }
+      .choice-btn {
+        padding: 7px 8px;
+        border-radius: 8px;
+      }
+      .choice-title {
+        font-size: 11.5px;
+        margin-bottom: 2px;
+      }
+      .choice-desc {
+        font-size: 9.5px;
+        line-height: 1.28;
+      }
+      .diff-badge {
+        margin-top: 3px;
+        padding: 1px 5px;
+        font-size: 9px;
+      }
+      .menu-footer {
+        margin-top: 11px;
+        padding-top: 10px;
+        gap: 8px;
+      }
+      .btn-primary {
+        padding: 8px 14px;
+        min-height: 36px;
+        font-size: 12.5px;
+      }
+      .btn-secondary {
+        padding: 6px 10px;
+        min-height: 34px;
+        font-size: 11px;
+      }
+    }
+
     /* ==================== LOBBY OVERLAY ==================== */
     #lobby-overlay {
       position: fixed;
@@ -341,37 +392,37 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(4, 11, 18, 0.86);
+      background: rgba(4, 11, 18, 0.88);
       backdrop-filter: blur(8px);
-      padding: 20px;
+      padding: 14px;
     }
 
     .lobby-box {
-      max-width: 480px;
+      max-width: 460px;
       width: 100%;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      border-radius: 16px;
-      padding: 26px;
+      border-radius: 14px;
+      padding: 20px;
       text-align: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65);
     }
 
     .status-pill {
       display: inline-flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 999px;
       background: rgba(56, 189, 248, 0.14);
       border: 1px solid rgba(56, 189, 248, 0.35);
-      font-size: 13px;
-      margin: 12px 0;
+      font-size: 12px;
+      margin: 10px 0;
     }
 
     .dot {
-      width: 9px;
-      height: 9px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
       background: var(--warn);
       animation: pulse 1.3s infinite;
@@ -410,15 +461,15 @@
     /* Top HUD */
     .hud-top {
       position: fixed;
-      top: 14px;
-      left: 14px;
-      right: 14px;
+      top: 10px;
+      left: 10px;
+      right: 10px;
       z-index: 20;
       display: flex;
       flex-wrap: wrap;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 10px;
+      align-items: center;
+      gap: 8px;
       pointer-events: none;
     }
 
@@ -426,19 +477,19 @@
       pointer-events: auto;
       background: rgba(8, 19, 30, 0.84);
       border: 1px solid rgba(125, 211, 252, 0.22);
-      border-radius: 12px;
-      padding: 10px 14px;
+      border-radius: 10px;
+      padding: 7px 11px;
       backdrop-filter: blur(8px);
-      font-size: 13px;
+      font-size: 12px;
     }
 
     .hp-bar-wrap {
-      width: 170px;
-      height: 10px;
+      width: 130px;
+      height: 7px;
       background: rgba(255, 255, 255, 0.12);
       border-radius: 999px;
       overflow: hidden;
-      margin-top: 5px;
+      margin-top: 4px;
     }
 
     .hp-bar-fill {
@@ -450,36 +501,36 @@
 
     .hud-metrics {
       display: flex;
-      gap: 16px;
+      gap: 12px;
       align-items: center;
     }
 
     .metric-item strong {
       display: block;
-      font-size: 16px;
+      font-size: 13.5px;
       color: #f0f9ff;
     }
 
     .metric-item span {
-      font-size: 11px;
+      font-size: 10px;
       color: var(--muted);
     }
 
-    /* Helmsman Desktop Hint & Mobile Touch Pad */
+    /* Helmsman Desktop Hint & Compact Mobile Touch Pad */
     #helmsman-controls {
       position: fixed;
-      bottom: 14px;
+      bottom: 12px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 20;
       background: rgba(8, 19, 30, 0.88);
       border: 1px solid rgba(125, 211, 252, 0.24);
-      border-radius: 14px;
-      padding: 10px 16px;
+      border-radius: 12px;
+      padding: 8px 14px;
       font-size: 12px;
       color: #cbd5e1;
       display: none;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
       backdrop-filter: blur(8px);
       white-space: nowrap;
@@ -488,14 +539,14 @@
 
     #mobile-helm-pad {
       position: fixed;
-      left: 12px;
-      right: 12px;
-      bottom: 12px;
+      left: 8px;
+      right: 8px;
+      bottom: 8px;
       z-index: 24;
       display: none;
       justify-content: space-between;
       align-items: flex-end;
-      gap: 12px;
+      gap: 8px;
       pointer-events: none;
       touch-action: none;
     }
@@ -503,55 +554,51 @@
     .touch-cluster {
       pointer-events: auto;
       display: flex;
-      gap: 10px;
+      gap: 6px;
       align-items: center;
-      background: rgba(8, 19, 30, 0.86);
-      border: 1px solid rgba(125, 211, 252, 0.28);
-      border-radius: 18px;
-      padding: 10px;
-      backdrop-filter: blur(10px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+      background: rgba(8, 19, 30, 0.82);
+      border: 1px solid rgba(125, 211, 252, 0.25);
+      border-radius: 12px;
+      padding: 6px;
+      backdrop-filter: blur(8px);
       touch-action: none;
     }
 
     .touch-pad-btn {
-      min-width: 64px;
-      min-height: 58px;
-      padding: 0 14px;
-      border-radius: 14px;
-      border: 1px solid rgba(125, 211, 252, 0.35);
+      min-width: 46px;
+      min-height: 44px;
+      padding: 0 8px;
+      border-radius: 9px;
+      border: 1px solid rgba(125, 211, 252, 0.32);
       background: rgba(15, 35, 54, 0.92);
       color: #f0f9ff;
-      font-size: 14px;
+      font-size: 12px;
       font-weight: 800;
       cursor: pointer;
       display: inline-flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 2px;
+      gap: 1px;
       touch-action: none;
-      transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
     }
 
     .touch-pad-btn small {
-      font-size: 10px;
+      font-size: 8.5px;
       font-weight: 600;
       color: var(--muted);
     }
 
     .touch-pad-btn.pressed {
-      transform: scale(0.95);
       background: rgba(2, 132, 199, 0.75);
       border-color: #7dd3fc;
-      box-shadow: 0 0 16px rgba(56, 189, 248, 0.45);
     }
 
     kbd {
       background: rgba(30, 41, 59, 0.95);
       border: 1px solid rgba(148, 163, 184, 0.4);
-      border-radius: 5px;
-      padding: 2px 6px;
+      border-radius: 4px;
+      padding: 1px 5px;
       font-size: 11px;
       color: #f8fafc;
       font-family: monospace;
@@ -569,14 +616,14 @@
 
     #radar-container {
       position: absolute;
-      top: 84px;
-      left: 14px;
-      width: min(520px, calc(100vw - 28px));
-      height: min(520px, calc(100vh - 175px));
+      top: 72px;
+      left: 12px;
+      width: min(460px, calc(100vw - 24px));
+      height: min(440px, calc(100vh - 165px));
       background: rgba(5, 15, 24, 0.92);
       border: 1px solid rgba(56, 189, 248, 0.35);
-      border-radius: 16px;
-      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.65);
+      border-radius: 14px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6);
       overflow: hidden;
       pointer-events: auto;
       display: flex;
@@ -588,17 +635,17 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 12px;
+      padding: 6px 10px;
       background: rgba(12, 28, 44, 0.95);
       border-bottom: 1px solid rgba(125, 211, 252, 0.18);
-      font-size: 12px;
+      font-size: 11.5px;
       gap: 6px;
       flex-wrap: wrap;
     }
 
     .radar-controls {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       align-items: center;
       flex-wrap: wrap;
     }
@@ -607,10 +654,10 @@
       background: rgba(20, 44, 66, 0.9);
       border: 1px solid rgba(125, 211, 252, 0.3);
       color: var(--text);
-      border-radius: 7px;
-      padding: 6px 10px;
-      min-height: 36px;
-      font-size: 11px;
+      border-radius: 6px;
+      padding: 4px 8px;
+      min-height: 28px;
+      font-size: 10.5px;
       font-weight: 700;
       cursor: pointer;
       touch-action: manipulation;
@@ -640,50 +687,45 @@
       touch-action: none;
     }
 
-    #radar-canvas:active {
-      cursor: grabbing;
-    }
-
     .radar-legend {
       display: flex;
       flex-wrap: wrap;
-      gap: 10px;
-      padding: 6px 12px;
+      gap: 8px;
+      padding: 5px 10px;
       background: rgba(8, 19, 30, 0.95);
       border-top: 1px solid rgba(125, 211, 252, 0.15);
-      font-size: 11px;
+      font-size: 10px;
       color: var(--muted);
     }
 
     .leg-dot {
       display: inline-block;
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      margin-right: 4px;
+      margin-right: 3px;
     }
 
-    /* Map Role Sub-View (3D Helmsman Cam) */
     #helmsman-subview-box {
       position: fixed;
-      right: 14px;
-      bottom: 14px;
-      width: min(380px, calc(100vw - 28px));
-      height: 230px;
+      right: 12px;
+      bottom: 12px;
+      width: min(330px, calc(100vw - 24px));
+      height: 190px;
       background: rgba(6, 15, 24, 0.9);
       border: 1px solid rgba(52, 211, 153, 0.4);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       pointer-events: auto;
-      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.55);
       z-index: 22;
-      transition: all 0.22s ease;
+      transition: all 0.2s ease;
       touch-action: none;
     }
 
     #helmsman-subview-box.expanded {
-      width: min(680px, calc(100vw - 28px));
-      height: min(430px, calc(100vh - 110px));
+      width: min(620px, calc(100vw - 24px));
+      height: min(380px, calc(100vh - 96px));
     }
 
     .subview-bar {
@@ -695,107 +737,92 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 6px 10px;
+      padding: 4px 8px;
       background: linear-gradient(180deg, rgba(4, 12, 20, 0.88), rgba(4, 12, 20, 0));
-      font-size: 11px;
+      font-size: 10.5px;
       color: #a7f3d0;
     }
 
-    /* Mobile / Narrow Screen Layout Adjustments */
+    /* スマホ画面のコンパクト化 */
     @media (max-width: 768px) {
       .hud-top {
-        top: 8px;
-        left: 8px;
-        right: 8px;
-        gap: 6px;
+        top: 6px;
+        left: 6px;
+        right: 6px;
+        gap: 4px;
       }
-
       .hud-panel {
-        padding: 8px 10px;
-        border-radius: 10px;
+        padding: 5px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+      }
+      .hp-bar-wrap {
+        width: 82px;
+        height: 5px;
+        margin-top: 2px;
+      }
+      .hud-metrics {
+        gap: 7px;
+      }
+      .metric-item strong {
         font-size: 11px;
       }
-
-      .hp-bar-wrap {
-        width: 110px;
-        height: 8px;
+      .metric-item span {
+        font-size: 9px;
       }
-
-      .hud-metrics {
-        gap: 10px;
+      .hud-panel .btn-secondary {
+        min-height: 28px;
+        padding: 3px 8px;
+        font-size: 10px;
       }
-
-      .metric-item strong {
-        font-size: 13px;
-      }
-
       #helmsman-controls {
         display: none !important;
       }
-
       #radar-container {
-        top: 122px;
-        left: 8px;
-        right: 8px;
-        width: calc(100vw - 16px);
-        height: calc(100vh - 122px - 176px);
-        min-height: 170px;
-        border-radius: 14px;
+        top: 96px;
+        left: 6px;
+        right: 6px;
+        width: calc(100vw - 12px);
+        height: calc(100vh - 96px - 126px);
+        min-height: 140px;
+        border-radius: 10px;
       }
-
       #helmsman-subview-box {
-        left: 8px;
-        right: 8px;
-        bottom: 8px;
-        width: calc(100vw - 16px);
-        height: 158px;
-        border-radius: 12px;
+        left: 6px;
+        right: 6px;
+        bottom: 6px;
+        width: calc(100vw - 12px);
+        height: 114px;
+        border-radius: 10px;
       }
-
       #helmsman-subview-box.expanded {
-        left: 8px;
-        right: 8px;
-        top: 122px;
-        bottom: 8px;
-        width: calc(100vw - 16px);
-        height: calc(100vh - 130px);
+        left: 6px;
+        right: 6px;
+        top: 96px;
+        bottom: 6px;
+        width: calc(100vw - 12px);
+        height: calc(100vh - 102px);
       }
-
       #alert-banner {
-        top: 126px;
-        font-size: 12px;
-        padding: 6px 14px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .touch-pad-btn {
-        min-width: 54px;
-        min-height: 52px;
-        padding: 0 10px;
-        font-size: 13px;
-      }
-
-      .touch-cluster {
-        gap: 7px;
-        padding: 8px;
-        border-radius: 15px;
+        top: 100px;
+        font-size: 11px;
+        padding: 5px 12px;
       }
     }
 
     /* Alert Toast */
     #alert-banner {
       position: fixed;
-      top: 78px;
+      top: 68px;
       left: 50%;
       transform: translateX(-50%);
       z-index: 30;
       background: rgba(127, 29, 29, 0.92);
       border: 1px solid #fca5a5;
       color: #fef2f2;
-      padding: 8px 18px;
+      padding: 6px 14px;
       border-radius: 999px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 700;
       display: none;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -812,24 +839,24 @@
       justify-content: center;
       background: rgba(4, 10, 16, 0.85);
       backdrop-filter: blur(8px);
-      padding: 20px;
+      padding: 16px;
     }
 
     .end-card {
-      max-width: 440px;
+      max-width: 420px;
       width: 100%;
       background: var(--panel-bg);
       border: 1px solid var(--panel-border);
-      border-radius: 18px;
-      padding: 28px;
+      border-radius: 16px;
+      padding: 22px;
       text-align: center;
       box-shadow: 0 24px 64px rgba(0, 0, 0, 0.7);
     }
 
     .end-title {
-      font-size: 28px;
+      font-size: 24px;
       font-weight: 800;
-      margin: 0 0 10px;
+      margin: 0 0 8px;
     }
   </style>
 </head>
@@ -865,7 +892,7 @@
 
         <div class="field-group">
           <label class="field-label" for="room-code">2. 合言葉（ルームID・2人で同じ文字）</label>
-          <input id="room-code" type="text" maxlength="24" placeholder="例：mist-route-77" />
+          <input id="room-code" type="text" maxlength="24" placeholder="例：mist-route-77（空欄なら自動設定）" />
         </div>
 
         <div class="field-group full">
@@ -873,11 +900,11 @@
           <div class="choice-row">
             <button type="button" class="choice-btn role-btn active" data-role="helmsman">
               <span class="choice-title">操船役（3D操舵・濃霧視界）</span>
-              <span class="choice-desc">WASD / 矢印キー またはスマホのタッチパッドで前後進・旋回。慣性あり。濃い霧のため前方はほぼ見えず、マップ役の指示が命綱。</span>
+              <span class="choice-desc">WASD / 矢印キー またはスマホのタッチ操作で前後進・旋回。慣性あり。</span>
             </button>
             <button type="button" class="choice-btn role-btn" data-role="mapper">
-              <span class="choice-title">マップ役（2Dレーダー＋3D視界確認＋危険スキャン）</span>
-              <span class="choice-desc">俯瞰マップで岩礁・機雷・渦潮を把握し声で指示。拡大縮小・パン/ピンチ・操船3D視界確認・危険スキャン強調が可能。</span>
+              <span class="choice-title">マップ役（2Dレーダー＋3D視界確認＋スキャン）</span>
+              <span class="choice-desc">俯瞰マップで危険を把握し声で指示。拡大縮小・パン/ピンチ・操船3D視界確認・危険スキャン。</span>
             </button>
           </div>
         </div>
@@ -892,22 +919,22 @@
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="hard">
               <span class="choice-title">むずかしい</span>
-              <span class="choice-desc">距離 2,100m / 制限 5:00<br/>高密度配置・強めの霧と慣性</span>
+              <span class="choice-desc">距離 2,100m / 制限 5:00<br/>高密度・強めの霧と慣性</span>
               <span class="diff-badge">推定 4〜5分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="maelstrom">
               <span class="choice-title">激流・濃霧</span>
-              <span class="choice-desc">距離 2,700m / 制限 6:30<br/>渦潮多発・視界限界クラスの霧</span>
+              <span class="choice-desc">距離 2,700m / 制限 6:30<br/>渦潮多発・視界限界の霧</span>
               <span class="diff-badge">推定 5.5〜6.5分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="abyss">
               <span class="choice-title">深海迷路</span>
-              <span class="choice-desc">距離 3,300m / 制限 8:00<br/>長距離スラローム・機雷群</span>
+              <span class="choice-desc">距離 3,300m / 制限 8:00<br/>長距離・機雷群</span>
               <span class="diff-badge">推定 7〜8分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="nightmare">
               <span class="choice-title">悪夢の航路</span>
-              <span class="choice-desc">距離 4,000m / 制限 10:00<br/>極限の濃霧・重慣性・高密度</span>
+              <span class="choice-desc">距離 4,000m / 制限 10:00<br/>極限の濃霧・重慣性</span>
               <span class="diff-badge">推定 8.5〜10分</span>
             </button>
           </div>
@@ -915,10 +942,10 @@
       </div>
 
       <div class="menu-footer">
-        <div class="save-note" id="save-status">プロフィール・設定はブラウザに自動保存されます</div>
-        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-          <button type="button" class="btn-secondary" id="reset-profile-btn">保存データ初期化</button>
-          <button type="button" class="btn-primary" id="start-match-btn">合言葉で接続して出航準備</button>
+        <div class="save-note" id="save-status">設定・戦績はブラウザに自動保存されます</div>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button type="button" class="btn-secondary" id="reset-profile-btn">戦績リセット</button>
+          <button type="button" class="btn-primary" id="start-match-btn">マッチング開始</button>
         </div>
       </div>
     </div>
@@ -927,25 +954,25 @@
   <!-- ==================== LOBBY OVERLAY ==================== -->
   <div id="lobby-overlay">
     <div class="lobby-box">
-      <h2 style="margin:0 0 6px; font-size:22px;">航行ルーム待機中</h2>
-      <div style="font-size:13px; color:var(--muted);">
+      <h2 style="margin:0 0 6px; font-size:19px;">航行ルーム待機中</h2>
+      <div style="font-size:12px; color:var(--muted);">
         合言葉: <strong id="lobby-room-label" style="color:#fff;"></strong> ／ 役割: <strong id="lobby-role-label" style="color:var(--accent);"></strong> ／ 難易度: <strong id="lobby-diff-label" style="color:var(--warn);"></strong>
       </div>
 
       <div class="status-pill">
         <span class="dot" id="conn-dot"></span>
-        <span id="conn-status-text">シグナリングサーバーに接続中...</span>
+        <span id="conn-status-text">ルームに接続中...</span>
       </div>
 
-      <div id="peer-info-box" style="font-size:12px; color:var(--muted); line-height:1.6; margin-bottom:16px;">
-        もう1台の端末または別ブラウザタブで同じ<strong>合言葉</strong>と<strong>難易度</strong>を選び、もう一方の役割で参加してください。<br/>
-        接続が安定しない場合は「再接続」を押すか、合言葉の前後空白を確認してください。
+      <div style="font-size:11.5px; color:var(--muted); line-height:1.55; margin-bottom:14px;">
+        2人で同じ<strong>合言葉</strong>と<strong>難易度</strong>を選び、異なる役割で開くと自動接続されます。<br/>
+        相手がまだ接続していない場合でも「出航開始」からすぐ航行を始められます。
       </div>
 
-      <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-        <button type="button" class="btn-primary" id="launch-game-btn" disabled>出航開始！</button>
+      <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+        <button type="button" class="btn-primary" id="launch-game-btn">出航開始</button>
         <button type="button" class="btn-secondary" id="retry-conn-btn">再接続</button>
-        <button type="button" class="btn-secondary" id="cancel-lobby-btn">メニューに戻る</button>
+        <button type="button" class="btn-secondary" id="cancel-lobby-btn">戻る</button>
       </div>
     </div>
   </div>
@@ -956,15 +983,15 @@
 
     <div class="hud-top">
       <div class="hud-panel">
-        <div style="display:flex; justify-content:space-between; gap:12px; font-size:12px;">
+        <div style="display:flex; justify-content:space-between; gap:10px;">
           <span>船体HP</span>
           <strong id="hp-text">100 / 100</strong>
         </div>
         <div class="hp-bar-wrap">
           <div class="hp-bar-fill" id="hp-bar"></div>
         </div>
-        <div style="margin-top:6px; font-size:11px; color:var(--muted);">
-          <span id="hud-my-role"></span>・<span id="hud-partner-info">パートナー待機中</span>
+        <div style="margin-top:4px; font-size:10px; color:var(--muted);">
+          <span id="hud-my-role"></span>・<span id="hud-partner-info">待機中</span>
         </div>
       </div>
 
@@ -995,7 +1022,7 @@
       <span style="color:#7dd3fc;">濃霧のためマップ役の指示に従って航行してください</span>
     </div>
 
-    <!-- Dedicated Mobile Touch Pad for Helmsman -->
+    <!-- Compact Mobile Touch Pad for Helmsman -->
     <div id="mobile-helm-pad">
       <div class="touch-cluster" aria-label="旋回操作">
         <button type="button" class="touch-pad-btn" id="touch-left-btn" data-control="turnLeft">
@@ -1011,7 +1038,7 @@
       <div class="touch-cluster" aria-label="速力操作">
         <button type="button" class="touch-pad-btn" id="touch-back-btn" data-control="backward">
           <span>▼</span>
-          <small>後進/減速</small>
+          <small>後進</small>
         </button>
         <button type="button" class="touch-pad-btn" id="touch-fwd-btn" data-control="forward">
           <span>▲</span>
@@ -1024,7 +1051,7 @@
     <div id="map-role-ui">
       <div id="radar-container">
         <div class="radar-header">
-          <strong>🗺️ 戦術航行レーダー</strong>
+          <strong>🗺️ 航行レーダー</strong>
           <div class="radar-controls">
             <button type="button" class="mini-btn" id="scan-btn">📡 危険スキャン強調</button>
             <button type="button" class="mini-btn" id="zoom-in-btn">＋</button>
@@ -1044,7 +1071,7 @@
 
       <div id="helmsman-subview-box">
         <div class="subview-bar">
-          <span>👁️ 操船士の3D視界モニター</span>
+          <span>👁️ 操船士の3D視界</span>
           <button type="button" class="mini-btn" id="toggle-subview-btn">拡大</button>
         </div>
         <div id="subview-mount" style="width:100%; height:100%;"></div>
@@ -1056,7 +1083,7 @@
   <div id="end-modal">
     <div class="end-card">
       <h2 class="end-title" id="end-title">航行完了！</h2>
-      <p id="end-summary" style="color:var(--muted); font-size:14px; line-height:1.6; margin-bottom:20px;"></p>
+      <p id="end-summary" style="color:var(--muted); font-size:13.5px; line-height:1.6; margin-bottom:18px;"></p>
       <div style="display:flex; gap:10px; justify-content:center;">
         <button type="button" class="btn-primary" id="play-again-btn">もう一度出航</button>
         <button type="button" class="btn-secondary" id="back-menu-btn">メニューへ</button>
@@ -1068,9 +1095,9 @@
     (() => {
       'use strict';
 
-      // ==================== CONSTANTS & 5-TIER DIFFICULTY CONFIG ====================
-      const STORAGE_KEY = 'mist_compass_profile_v2';
-      const LEGACY_KEYS = ['mist_compass_profile_v1'];
+      // ==================== 5段階の難易度設定 ====================
+      const STORAGE_KEY = 'mist_compass_profile_v3';
+      const LEGACY_KEYS = ['mist_compass_profile_v2', 'mist_compass_profile_v1'];
 
       const DIFFICULTIES = {
         normal: {
@@ -1152,7 +1179,7 @@
 
       const VALID_DIFFS = Object.keys(DIFFICULTIES);
 
-      // ==================== AUDIO SYNTHESIZER (WEB AUDIO) ====================
+      // ==================== 効果音（Web Audio API） ====================
       class SoundFX {
         constructor() {
           this.ctx = null;
@@ -1224,11 +1251,11 @@
       }
       const sfx = new SoundFX();
 
-      // ==================== PROFILE & LOCAL STORAGE ====================
+      // ==================== ローカルストレージ自動保存・復元 ====================
       function defaultProfile() {
         return {
           playerName: '',
-          roomCode: '',
+          roomCode: 'mist-sea-01',
           role: 'helmsman',
           difficulty: 'hard',
           totalPlays: 0,
@@ -1256,6 +1283,7 @@
           return {
             ...defaultProfile(),
             ...parsed,
+            roomCode: (parsed && typeof parsed.roomCode === 'string' && parsed.roomCode.trim()) ? parsed.roomCode.trim() : 'mist-sea-01',
             role: parsed.role === 'mapper' ? 'mapper' : 'helmsman',
             difficulty: normalizeDifficulty(parsed.difficulty),
             totalPlays: Number(parsed.totalPlays) || 0,
@@ -1269,14 +1297,12 @@
       function saveProfile(prof) {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(prof));
-        } catch {
-          // ignore storage quota errors
-        }
+        } catch {}
       }
 
       let profile = loadProfile();
 
-      // ==================== DOM REFS ====================
+      // ==================== メニューUIバインディング ====================
       const menuScreen = document.getElementById('menu-screen');
       const lobbyOverlay = document.getElementById('lobby-overlay');
       const gameScreen = document.getElementById('game-screen');
@@ -1292,7 +1318,7 @@
 
       function syncMenuFromProfile() {
         playerNameInput.value = profile.playerName || '';
-        roomCodeInput.value = profile.roomCode || '';
+        roomCodeInput.value = profile.roomCode || 'mist-sea-01';
         statPlaysEl.textContent = String(profile.totalPlays);
         statClearsEl.textContent = String(profile.totalClears);
 
@@ -1304,21 +1330,22 @@
         });
       }
 
-      function persistCurrentForm(msg = 'プロフィールを自動保存しました') {
+      function saveFormSilently() {
         profile.playerName = playerNameInput.value.trim();
-        profile.roomCode = roomCodeInput.value.trim();
+        const rawRoom = roomCodeInput.value.trim();
+        profile.roomCode = rawRoom || 'mist-sea-01';
         saveProfile(profile);
-        saveStatusEl.textContent = `${msg}（${new Date().toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}）`;
+        saveStatusEl.textContent = '設定・戦績は自動保存されます';
       }
 
-      playerNameInput.addEventListener('input', () => persistCurrentForm('プレイヤー名を自動保存しました'));
-      roomCodeInput.addEventListener('input', () => persistCurrentForm('合言葉を自動保存しました'));
+      playerNameInput.addEventListener('input', saveFormSilently);
+      roomCodeInput.addEventListener('input', saveFormSilently);
 
       roleBtns.forEach(btn => {
         btn.addEventListener('click', () => {
           profile.role = btn.dataset.role;
           roleBtns.forEach(b => b.classList.toggle('active', b === btn));
-          persistCurrentForm('役割設定を自動保存しました');
+          saveFormSilently();
         });
       });
 
@@ -1326,18 +1353,18 @@
         btn.addEventListener('click', () => {
           profile.difficulty = btn.dataset.diff;
           diffBtns.forEach(b => b.classList.toggle('active', b === btn));
-          persistCurrentForm('難易度を自動保存しました');
+          saveFormSilently();
         });
       });
 
       document.getElementById('reset-profile-btn').addEventListener('click', () => {
-        profile = defaultProfile();
+        profile.totalPlays = 0;
+        profile.totalClears = 0;
         saveProfile(profile);
         syncMenuFromProfile();
-        saveStatusEl.textContent = '保存データを初期化しました';
       });
 
-      // ==================== DETERMINISTIC WORLD GENERATOR ====================
+      // ==================== 共通ワールド座標系（x, z, yaw）コース生成 ====================
       function hashString(str) {
         let h = 2166136261 >>> 0;
         for (let i = 0; i < str.length; i++) {
@@ -1433,7 +1460,7 @@
         };
       }
 
-      // ==================== NETWORKING (PEERJS PASSPHRASE) ====================
+      // ==================== オンラインマッチング（PeerJS） ====================
       let peer = null;
       let conn = null;
       let isConnected = false;
@@ -1447,8 +1474,7 @@
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' }
+            { urls: 'stun:stun1.l.google.com:19302' }
           ]
         }
       };
@@ -1461,10 +1487,11 @@
       const lobbyDiffLabel = document.getElementById('lobby-diff-label');
 
       function normalizePassphrase(roomCode) {
-        return String(roomCode || '')
+        const cleaned = String(roomCode || '')
           .trim()
           .toLowerCase()
           .replace(/\s+/g, '-');
+        return cleaned || 'mist-sea-01';
       }
 
       function sanitizePeerId(roomCode, diffKey) {
@@ -1476,7 +1503,7 @@
         }
         const safeAscii = encodeURIComponent(keyStr)
           .replace(/[^a-zA-Z0-9_-]/g, '')
-          .slice(0, 26);
+          .slice(0, 24);
         const hashHex = (hash >>> 0).toString(16);
         return `mc-${safeAscii || 'room'}-${hashHex}`;
       }
@@ -1517,14 +1544,14 @@
             clearTimeout(retryTimer);
             retryTimer = null;
           }
-          setConnStatus('ok', '相手と接続完了！出航できます');
-          launchGameBtn.disabled = false;
+          setConnStatus('ok', 'パートナーと接続完了！');
           sendNet({
             type: 'hello',
             name: profile.playerName || '乗組員',
             role: profile.role,
             difficulty: profile.difficulty
           });
+          updatePartnerHud();
         };
 
         if (dc.open) {
@@ -1541,20 +1568,19 @@
         dc.on('close', () => {
           if (sessionId !== matchSessionId) return;
           isConnected = false;
-          launchGameBtn.disabled = true;
-          setConnStatus('err', '相手との接続が切れました。「再接続」を押してください');
+          setConnStatus('err', '接続が切れました。「再接続」を押してください');
           updatePartnerHud();
         });
 
         dc.on('error', () => {
           if (sessionId !== matchSessionId) return;
-          setConnStatus('err', 'データ通信中にエラーが発生しました');
+          setConnStatus('err', '通信エラーが発生しました');
         });
       }
 
       function connectAsGuest(roomPeerId, code, sessionId, attempt = 1) {
         if (sessionId !== matchSessionId || isConnected) return;
-        setConnStatus('wait', `合言葉「${code}」のルームに接続中...（試行 ${attempt}）`);
+        setConnStatus('wait', `合言葉「${code}」へ接続中...（${attempt}回目）`);
 
         if (peer) {
           try { peer.destroy(); } catch (_) {}
@@ -1565,7 +1591,7 @@
         try {
           guestPeer = new Peer(undefined, PEER_CONFIG);
         } catch (_) {
-          setConnStatus('err', '接続クライアントの初期化に失敗しました');
+          setConnStatus('err', '接続の初期化に失敗しました');
           return;
         }
         peer = guestPeer;
@@ -1589,39 +1615,29 @@
           if (errType === 'peer-unavailable' || errType === 'network' || errType === 'socket-error') {
             scheduleGuestRetry(roomPeerId, code, sessionId, attempt);
           } else {
-            setConnStatus('err', `接続エラー: ${errType || '不明'}。「再接続」をお試しください`);
+            setConnStatus('err', `接続エラー（${errType || '不明'}）`);
           }
         });
       }
 
       function scheduleGuestRetry(roomPeerId, code, sessionId, attempt) {
         if (sessionId !== matchSessionId || isConnected) return;
-        if (attempt >= 8) {
-          setConnStatus('err', '相手ルームが見つかりません。合言葉と難易度を確認し「再接続」を押してください');
+        if (attempt >= 10) {
+          setConnStatus('err', '相手が見つかりません。「再接続」を押すかそのまま出航できます');
           return;
         }
         if (retryTimer) clearTimeout(retryTimer);
         retryTimer = setTimeout(() => {
           connectAsGuest(roomPeerId, code, sessionId, attempt + 1);
-        }, 1200);
+        }, 1000);
       }
 
       function startMatchmaking() {
-        persistCurrentForm();
+        saveFormSilently();
         const code = normalizePassphrase(profile.roomCode);
-        if (!code) {
-          showAlert('合言葉（ルームID）を入力してください。2人で同じ合言葉を使うと接続できます。');
-          roomCodeInput.focus();
-          return;
-        }
         profile.roomCode = code;
         roomCodeInput.value = code;
         saveProfile(profile);
-
-        if (typeof Peer === 'undefined') {
-          showAlert('通信ライブラリの読み込みに失敗しました。再読み込みしてください。');
-          return;
-        }
 
         teardownPeer();
         const sessionId = matchSessionId;
@@ -1629,23 +1645,29 @@
         lobbyRoomLabel.textContent = code;
         lobbyRoleLabel.textContent = profile.role === 'helmsman' ? '操船役' : 'マップ役';
         lobbyDiffLabel.textContent = `${cfg.label}（${cfg.courseLength}m / ${cfg.estTime}）`;
-        launchGameBtn.disabled = true;
+        launchGameBtn.disabled = false;
         lobbyOverlay.style.display = 'flex';
-        setConnStatus('wait', '合言葉ルームを準備中...');
 
+        if (typeof Peer === 'undefined') {
+          setConnStatus('err', 'PeerJS未読み込み：そのまま出航できます');
+          return;
+        }
+
+        setConnStatus('wait', `合言葉「${code}」で待機中...`);
         const roomPeerId = sanitizePeerId(code, profile.difficulty);
+
         let hostPeer;
         try {
           hostPeer = new Peer(roomPeerId, PEER_CONFIG);
         } catch (_) {
-          setConnStatus('err', 'Peer接続の初期化に失敗しました');
+          connectAsGuest(roomPeerId, code, sessionId, 1);
           return;
         }
         peer = hostPeer;
 
         hostPeer.on('open', () => {
           if (sessionId !== matchSessionId || isConnected) return;
-          setConnStatus('wait', `合言葉「${code}」で待機中... もう1人の参加を待っています`);
+          setConnStatus('wait', `合言葉「${code}」で相手を待機中...`);
         });
 
         hostPeer.on('connection', (incoming) => {
@@ -1663,15 +1685,15 @@
           if (errType === 'unavailable-id') {
             connectAsGuest(roomPeerId, code, sessionId, 1);
           } else if (errType === 'network' || errType === 'server-error' || errType === 'socket-error') {
-            setConnStatus('wait', 'ネットワーク再試行中...');
+            setConnStatus('wait', '再試行中...');
             if (retryTimer) clearTimeout(retryTimer);
             retryTimer = setTimeout(() => {
               if (sessionId === matchSessionId && !isConnected) {
                 startMatchmaking();
               }
-            }, 1500);
+            }, 1200);
           } else {
-            setConnStatus('err', `接続エラー: ${errType || '不明'}。「再接続」を押してください`);
+            setConnStatus('err', `接続エラー（${errType || '不明'}）`);
           }
         });
       }
@@ -1688,7 +1710,7 @@
           partnerRole = msg.role;
           updatePartnerHud();
           if (msg.role === profile.role) {
-            showAlert(`⚠️ 注意: パートナーも同じ「${msg.role === 'helmsman' ? '操船役' : 'マップ役'}」を選択中です！`);
+            showAlert(`⚠️ パートナーも同じ「${msg.role === 'helmsman' ? '操船役' : 'マップ役'}」です`);
           }
         } else if (msg.type === 'start_game') {
           if (gameScreen.style.display !== 'block') {
@@ -1722,7 +1744,7 @@
         enterGameScene(true);
       });
 
-      // ==================== THREE.JS 3D SCENE & RADAR ====================
+      // ==================== THREE.JS 3Dシーン & 2Dレーダー ====================
       let scene, camera, renderer, shipMesh, waterMesh, goalGroup;
       let subRenderer, subCamera;
       const obstacleMeshes = new Map();
@@ -1749,7 +1771,7 @@
         turnRight: false
       };
 
-      // Prevent double-tap zoom on touch devices outside text inputs
+      // ダブルタップズーム防止
       let lastTouchEndTime = 0;
       document.addEventListener('touchend', (e) => {
         const target = e.target;
@@ -1761,7 +1783,7 @@
         lastTouchEndTime = now;
       }, { passive: false });
 
-      // Prevent context menu / long-press callout outside text inputs
+      // 長押しコンテキストメニュー防止
       document.addEventListener('contextmenu', (e) => {
         const target = e.target;
         if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) return;
@@ -1908,10 +1930,10 @@
         const subMount = document.getElementById('subview-mount');
         subRenderer = new THREE.WebGLRenderer({ antialias: true });
         subRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-        subRenderer.setSize(subMount.clientWidth || 380, subMount.clientHeight || 230);
+        subRenderer.setSize(subMount.clientWidth || 330, subMount.clientHeight || 190);
         subMount.appendChild(subRenderer.domElement);
 
-        subCamera = new THREE.PerspectiveCamera(64, (subMount.clientWidth || 380) / (subMount.clientHeight || 230), 0.5, 450);
+        subCamera = new THREE.PerspectiveCamera(64, (subMount.clientWidth || 330) / (subMount.clientHeight || 190), 0.5, 450);
 
         window.addEventListener('resize', () => {
           if (!renderer) return;
@@ -1968,7 +1990,7 @@
         goalGroup.position.set(course.goal.x, 0, course.goal.z);
       }
 
-      // ==================== ENTER & RUN GAME ====================
+      // ==================== ゲーム開始・進行 ====================
       function enterGameScene(countedAsPlay) {
         initThreeIfNeeded();
         lobbyOverlay.style.display = 'none';
@@ -2028,7 +2050,7 @@
           el.textContent = `接続中: ${partnerName}（${pRoleLabel}）`;
           el.style.color = '#34d399';
         } else {
-          el.textContent = 'パートナー未接続（単独航行中）';
+          el.textContent = '単独／待機中';
           el.style.color = '#fbbf24';
         }
       }
@@ -2075,10 +2097,10 @@
         const box = document.getElementById('helmsman-subview-box');
         box.classList.toggle('expanded', gameState.subviewExpanded);
         e.target.textContent = gameState.subviewExpanded ? '縮小' : '拡大';
-        setTimeout(resizeSubView, 240);
+        setTimeout(resizeSubView, 220);
       });
 
-      // Radar Panning, Pinch Zoom & Wheel
+      // レーダー操作（パン・ピンチズーム・ホイール）
       const radarCanvas = document.getElementById('radar-canvas');
       const radarCtx = radarCanvas.getContext('2d');
       let isDraggingRadar = false;
@@ -2089,10 +2111,10 @@
       function resizeRadarCanvas() {
         const parent = radarCanvas.parentElement;
         if (!parent) return;
-        const headerHeight = parent.querySelector('.radar-header')?.offsetHeight || 38;
-        const legendHeight = parent.querySelector('.radar-legend')?.offsetHeight || 28;
+        const headerHeight = parent.querySelector('.radar-header')?.offsetHeight || 34;
+        const legendHeight = parent.querySelector('.radar-legend')?.offsetHeight || 24;
         const w = parent.clientWidth;
-        const h = Math.max(120, parent.clientHeight - headerHeight - legendHeight);
+        const h = Math.max(100, parent.clientHeight - headerHeight - legendHeight);
         const dpr = Math.min(window.devicePixelRatio || 1, 2);
         radarCanvas.width = Math.floor(w * dpr);
         radarCanvas.height = Math.floor(h * dpr);
@@ -2319,7 +2341,7 @@
         endModal.style.display = 'flex';
       }
 
-      // ==================== MAIN LOOP ====================
+      // ==================== メインループ ====================
       let lastFrameTime = performance.now();
       let lastNetSendTime = 0;
 
