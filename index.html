@@ -16,12 +16,8 @@
   <style>
     :root {
       --bg-deep: #07111a;
-      --panel-bg: rgba(10, 23, 36, 0.82);
+      --panel-bg: rgba(10, 23, 36, 0.84);
       --panel-border: rgba(125, 211, 252, 0.18);
-      --accent-cyan: #38bdf8;
-      --accent-amber: #fbbf24;
-      --accent-rose: #fb7185;
-      --accent-emerald: #34d399;
     }
 
     * {
@@ -40,7 +36,6 @@
       min-height: 100vh;
     }
 
-    /* Subtle animated maritime mist backdrop for menu & overlays */
     .mist-backdrop {
       background:
         radial-gradient(circle at 20% 20%, rgba(56, 189, 248, 0.12), transparent 45%),
@@ -70,15 +65,16 @@
       cursor: not-allowed;
     }
 
-    /* Canvas containers */
-    #threeCanvasHost {
+    #threeCanvasHost,
+    #navThreeCanvasHost {
       position: relative;
       width: 100%;
       height: 100%;
       overflow: hidden;
     }
 
-    #threeCanvasHost canvas {
+    #threeCanvasHost canvas,
+    #navThreeCanvasHost canvas {
       display: block;
       width: 100% !important;
       height: 100% !important;
@@ -95,16 +91,6 @@
       cursor: grabbing;
     }
 
-    /* Subtle pulse animation for scan wave & status */
-    @keyframes radarPulse {
-      0% { transform: scale(0.95); opacity: 0.85; }
-      100% { transform: scale(1.08); opacity: 0; }
-    }
-    .scan-ring-anim {
-      animation: radarPulse 1.4s ease-out infinite;
-    }
-
-    /* Custom thin scrollbar */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -120,7 +106,7 @@
 </head>
 <body class="mist-backdrop text-slate-100">
 
-  <!-- Toast / Status Message Banner (replaces alert/confirm) -->
+  <!-- Toast / Status Banner -->
   <div id="toastBanner" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-3 max-w-[92vw]">
     <div id="toastInner" class="px-4 py-2.5 rounded-xl glass-panel border border-sky-400/40 text-sm font-medium text-slate-100 flex items-center gap-2 shadow-xl">
       <span id="toastDot" class="w-2.5 h-2.5 rounded-full bg-sky-400"></span>
@@ -132,7 +118,7 @@
   <!-- 1. TITLE & MENU SCREEN                                    -->
   <!-- ========================================================= -->
   <section id="menuScreen" class="min-h-screen w-full flex items-center justify-center p-4 sm:p-6">
-    <div class="w-full max-w-4xl glass-panel rounded-3xl p-5 sm:p-8 space-y-6">
+    <div class="w-full max-w-5xl glass-panel rounded-3xl p-5 sm:p-8 space-y-6">
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 border-b border-slate-700/60 pb-5">
         <div>
@@ -153,7 +139,7 @@
         </div>
 
         <!-- Profile Stats (Auto-saved in localStorage) -->
-        <div class="bg-slate-900/75 border border-slate-700/70 rounded-2xl p-3.5 min-w-[210px] shrink-0">
+        <div class="bg-slate-900/75 border border-slate-700/70 rounded-2xl p-3.5 min-w-[220px] shrink-0">
           <div class="flex items-center justify-between text-[11px] text-slate-400 mb-2">
             <span class="flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -176,8 +162,8 @@
 
       <!-- Main Form Grid -->
       <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        <!-- Left Column: Player Name & Passphrase -->
-        <div class="lg:col-span-6 space-y-4">
+        <!-- Left Column: Player Name, Passphrase, Connection -->
+        <div class="lg:col-span-5 space-y-4">
           <div>
             <label for="playerNameInput" class="block text-xs font-semibold uppercase tracking-wider text-sky-300 mb-1.5">
               1. プレイヤー名
@@ -257,8 +243,8 @@
           </div>
         </div>
 
-        <!-- Right Column: Role & Difficulty -->
-        <div class="lg:col-span-6 space-y-4">
+        <!-- Right Column: Role & 5 Difficulty Tiers -->
+        <div class="lg:col-span-7 space-y-4">
           <!-- 3. Role Selection -->
           <div>
             <span class="block text-xs font-semibold uppercase tracking-wider text-sky-300 mb-1.5">
@@ -301,31 +287,27 @@
             </div>
           </div>
 
-          <!-- 4. Difficulty Selection -->
+          <!-- 4. 5-Tier Difficulty Selection -->
           <div>
-            <span class="block text-xs font-semibold uppercase tracking-wider text-sky-300 mb-1.5">
-              4. 難易度選択
-            </span>
-            <div class="grid grid-cols-3 gap-2.5">
-              <button
-                type="button"
-                data-diff="easy"
-                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/75 border-emerald-400 ring-2 ring-emerald-400/25 text-left transition"
-              >
-                <div class="font-bold text-sm text-emerald-300">かんたん</div>
-                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行距離 短め<br/>障害物 少なめ<br/>制限時間 余裕あり
-                </div>
-              </button>
-
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="block text-xs font-semibold uppercase tracking-wider text-sky-300">
+                4. 難易度選択（全5段階・長距離＆高難度）
+              </span>
+              <span class="text-[11px] text-slate-400">推定クリア目安: 2.5分〜10分</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
               <button
                 type="button"
                 data-diff="normal"
-                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
+                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/75 border-sky-400 ring-2 ring-sky-400/25 text-left transition"
               >
-                <div class="font-bold text-sm text-sky-300">ふつう</div>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-sky-300">ふつう</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-500/15 text-sky-200">★☆☆</span>
+                </div>
                 <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行距離 標準<br/>障害物 標準密度<br/>漂流ギミックあり
+                  航行 1400m / 推定 2.5〜3.5分<br/>
+                  標準密度・濃霧視程 26m
                 </div>
               </button>
 
@@ -334,19 +316,69 @@
                 data-diff="hard"
                 class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
               >
-                <div class="font-bold text-sm text-rose-300">むずかしい</div>
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-amber-300">むずかしい</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-200">★★☆</span>
+                </div>
                 <div class="text-[10px] text-slate-300 mt-1 leading-snug">
-                  航行距離 長め<br/>障害物 高密度・高速<br/>厳しい制限時間
+                  航行 2100m / 推定 4〜5分<br/>
+                  高密度・漂流機雷＆渦潮強化
+                </div>
+              </button>
+
+              <button
+                type="button"
+                data-diff="squall"
+                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-orange-300">激流・濃霧</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-500/15 text-orange-200">★★★</span>
+                </div>
+                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
+                  航行 2700m / 推定 5.5〜6.5分<br/>
+                  強い潮流と深い霧（視程 21m）
+                </div>
+              </button>
+
+              <button
+                type="button"
+                data-diff="abyss"
+                class="btn-maritime diff-card p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-rose-300">深海迷路</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/15 text-rose-200">★★★★</span>
+                </div>
+                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
+                  航行 3300m / 推定 7〜8分<br/>
+                  多数の渦潮＆高速機雷・重慣性
+                </div>
+              </button>
+
+              <button
+                type="button"
+                data-diff="nightmare"
+                class="btn-maritime diff-card sm:col-span-2 md:col-span-2 p-3 rounded-2xl border bg-slate-900/65 border-slate-700 hover:border-slate-500 text-left transition"
+              >
+                <div class="flex items-center justify-between">
+                  <span class="font-bold text-sm text-fuchsia-300">悪夢の航路</span>
+                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-fuchsia-500/15 text-fuchsia-200">★★★★★ 極限</span>
+                </div>
+                <div class="text-[10px] text-slate-300 mt-1 leading-snug">
+                  航行 4000m / 推定 8.5〜10分<br/>
+                  極限の濃霧（視程 17m）・高ダメージ・緻密な連携必須
                 </div>
               </button>
             </div>
           </div>
 
           <!-- Difficulty Spec Summary -->
-          <div id="diffSpecBox" class="bg-slate-900/60 border border-slate-800 rounded-2xl px-4 py-2.5 text-xs text-slate-300 flex flex-wrap items-center justify-between gap-2">
-            <span>コース長: <strong id="specLength" class="text-white">650m</strong></span>
-            <span>障害物: <strong id="specObstacles" class="text-white">24基</strong></span>
-            <span>制限時間: <strong id="specTime" class="text-white">150秒</strong></span>
+          <div id="diffSpecBox" class="bg-slate-900/70 border border-slate-800 rounded-2xl px-4 py-3 text-xs text-slate-300 grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div>コース長: <strong id="specLength" class="text-white">1400m</strong></div>
+            <div>障害物: <strong id="specObstacles" class="text-white">48基</strong></div>
+            <div>推定クリア: <strong id="specEstTime" class="text-emerald-300">2.5〜3.5分</strong></div>
+            <div>制限時間: <strong id="specTime" class="text-amber-300">240秒</strong></div>
           </div>
         </div>
       </div>
@@ -379,7 +411,6 @@
   <section id="gameScreen" class="hidden fixed inset-0 w-screen h-screen flex flex-col bg-[#061018] overflow-hidden">
     <!-- Top Shared Telemetry Bar -->
     <header class="h-14 sm:h-16 px-3 sm:px-5 glass-panel border-b border-slate-700/70 flex items-center justify-between gap-2 z-20 shrink-0">
-      <!-- Left: Role & Room -->
       <div class="flex items-center gap-2 sm:gap-3 min-w-0">
         <span id="hudRoleBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-400/40 shrink-0">
           操船役
@@ -392,7 +423,6 @@
         </div>
       </div>
 
-      <!-- Center: HP, Distance to Goal, Timer -->
       <div class="flex items-center gap-3 sm:gap-6">
         <!-- HP -->
         <div class="flex items-center gap-2">
@@ -406,17 +436,16 @@
         <!-- Remaining Distance -->
         <div class="text-center">
           <div class="text-[10px] text-slate-400 leading-none">ゴールまで</div>
-          <div id="hudDistText" class="text-xs sm:text-sm font-bold text-sky-300 tabular-nums mt-0.5">650m</div>
+          <div id="hudDistText" class="text-xs sm:text-sm font-bold text-sky-300 tabular-nums mt-0.5">1400m</div>
         </div>
 
         <!-- Timer -->
         <div class="text-center">
           <div class="text-[10px] text-slate-400 leading-none">残り時間</div>
-          <div id="hudTimeText" class="text-xs sm:text-sm font-bold text-amber-300 tabular-nums mt-0.5">02:30</div>
+          <div id="hudTimeText" class="text-xs sm:text-sm font-bold text-amber-300 tabular-nums mt-0.5">04:00</div>
         </div>
       </div>
 
-      <!-- Right: Sound & Return to Menu -->
       <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
         <button id="gameSoundBtn" type="button" class="btn-maritime px-2.5 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-700 text-xs text-slate-200">
           <span id="gameSoundIcon">🔊</span>
@@ -427,17 +456,16 @@
       </div>
     </header>
 
-    <!-- Main Workspace (Switches / Adapts cleanly for Helmsman vs Map Navigator) -->
+    <!-- Main Workspace -->
     <main class="flex-1 relative w-full h-full overflow-hidden">
 
-      <!-- HELMSMAN VIEW (3D Foggy Sea + Controls) -->
+      <!-- HELMSMAN VIEW -->
       <div id="helmsmanView" class="hidden w-full h-full relative">
         <div id="threeCanvasHost"></div>
 
-        <!-- Fog & Compass Overlay Info -->
         <div class="absolute top-3 left-3 sm:top-4 sm:left-4 pointer-events-none flex flex-col gap-2 z-10">
           <div class="glass-panel px-3.5 py-2 rounded-2xl text-xs">
-            <div class="text-[10px] text-sky-300 font-semibold uppercase tracking-wider">濃霧視界（視程約26m）</div>
+            <div id="helmFogLabel" class="text-[10px] text-sky-300 font-semibold uppercase tracking-wider">濃霧視界（視程約26m）</div>
             <div class="flex items-center gap-3 mt-1 text-slate-200 tabular-nums">
               <span>方位: <strong id="helmHeadingText" class="text-amber-300">北 (000°)</strong></span>
               <span>速力: <strong id="helmSpeedText" class="text-sky-300">0.0 kt</strong></span>
@@ -448,9 +476,8 @@
           </div>
         </div>
 
-        <!-- Bottom Helm Controls (Telegraph + Steering + Touch/Mouse buttons) -->
+        <!-- Bottom Helm Controls -->
         <div class="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 w-[95vw] max-w-2xl glass-panel rounded-2xl p-2.5 sm:p-3.5 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <!-- Steering -->
           <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
             <button id="steerLeftBtn" type="button" class="btn-maritime flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-sky-500/30 border border-slate-600 text-xs sm:text-sm font-bold text-white flex items-center justify-center gap-1.5">
               <span>◀</span> 左旋回 <span class="text-[10px] text-slate-400 hidden md:inline">(A/←)</span>
@@ -460,7 +487,6 @@
             </button>
           </div>
 
-          <!-- Throttle / Telegraph -->
           <div class="flex items-center gap-2 w-full sm:w-auto justify-center">
             <button id="throttleDownBtn" type="button" class="btn-maritime px-3 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs font-bold text-slate-200">
               ▼ 減速/後進 <span class="text-[10px] text-slate-400 hidden md:inline">(S/↓)</span>
@@ -476,11 +502,9 @@
         </div>
       </div>
 
-      <!-- MAP NAVIGATOR VIEW (2D Top-Down Radar + Scan Ability + Optional 3D View Switch) -->
+      <!-- MAP NAVIGATOR VIEW -->
       <div id="navigatorView" class="hidden w-full h-full relative flex flex-col">
-        <!-- Top Navigator Toolbar -->
         <div class="p-2.5 sm:p-3.5 flex flex-wrap items-center justify-between gap-2 z-10 pointer-events-none">
-          <!-- Map Controls -->
           <div class="glass-panel rounded-2xl p-1.5 flex items-center gap-1.5 pointer-events-auto">
             <button id="zoomInBtn" type="button" title="拡大" class="btn-maritime w-9 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 border border-slate-600 font-bold text-sm text-white">
               ＋
@@ -494,7 +518,6 @@
             </button>
           </div>
 
-          <!-- Support Ability: 危険スキャン強調 & 3D視点切替 -->
           <div class="flex items-center gap-2 pointer-events-auto">
             <button
               id="scanHazardBtn"
@@ -516,11 +539,10 @@
           </div>
         </div>
 
-        <!-- Radar Canvas Area -->
         <div class="flex-1 relative w-full h-full">
           <canvas id="radarCanvas"></canvas>
 
-          <!-- Legend Card (Bottom Left) -->
+          <!-- Legend Card -->
           <div class="hidden sm:flex flex-col gap-1.5 glass-panel rounded-2xl p-3 text-[11px] text-slate-300 absolute bottom-4 left-4 pointer-events-none">
             <div class="font-bold text-sky-300 mb-0.5">レーダー凡例</div>
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full bg-sky-400 inline-block"></span> 自船（進行方向コーン表示）</div>
@@ -530,7 +552,7 @@
             <div class="flex items-center gap-2"><span class="w-3 h-3 rounded-full border-2 border-cyan-300 inline-block"></span> 渦潮（引き寄せ＋損傷）</div>
           </div>
 
-          <!-- Scan Callout Feed (Bottom Right) -->
+          <!-- Scan Callout Feed -->
           <div id="scanCalloutPanel" class="glass-panel rounded-2xl p-3 text-xs max-w-[270px] sm:max-w-xs absolute bottom-4 right-4 pointer-events-none">
             <div class="font-bold text-amber-300 flex items-center justify-between gap-2 mb-1">
               <span>航路情報・危険察知</span>
@@ -601,47 +623,95 @@
       'use strict';
 
       // -----------------------------------------------------------
-      // 1. CONSTANTS & DIFFICULTY CONFIGURATIONS
+      // 1. CONSTANTS & 5-TIER DIFFICULTY CONFIGURATIONS
       // -----------------------------------------------------------
-      const STORAGE_KEY = 'mist_compass_profile_v1';
+      const STORAGE_KEY = 'mist_compass_profile_v2';
+      const VALID_DIFFS = ['normal', 'hard', 'squall', 'abyss', 'nightmare'];
 
       const DIFFICULTY_CONFIG = {
-        easy: {
-          label: 'かんたん',
-          courseLength: 520,       // meters (z from 0 to -520)
-          corridorHalfWidth: 70,
-          timeLimit: 180,          // seconds
-          reefCount: 10,
-          mineCount: 5,
-          whirlpoolCount: 4,
-          driftSpeedMult: 0.45,
-          damageMult: 0.75
-        },
         normal: {
           label: 'ふつう',
-          courseLength: 750,
-          corridorHalfWidth: 65,
-          timeLimit: 165,
-          reefCount: 16,
-          mineCount: 11,
-          whirlpoolCount: 7,
+          courseLength: 1400,
+          corridorHalfWidth: 72,
+          timeLimit: 240,
+          estClearText: '2.5〜3.5分',
+          fogDensity: 0.044,
+          fogColor: 0x9fb8c4,
+          visRangeText: '視程約26m',
+          inertiaFactor: 1.0,
+          reefCount: 22,
+          mineCount: 15,
+          whirlpoolCount: 11,
           driftSpeedMult: 1.0,
           damageMult: 1.0
         },
         hard: {
           label: 'むずかしい',
-          courseLength: 1000,
+          courseLength: 2100,
+          corridorHalfWidth: 68,
+          timeLimit: 330,
+          estClearText: '4〜5分',
+          fogDensity: 0.049,
+          fogColor: 0x93aebc,
+          visRangeText: '視程約23m',
+          inertiaFactor: 1.12,
+          reefCount: 36,
+          mineCount: 26,
+          whirlpoolCount: 18,
+          driftSpeedMult: 1.35,
+          damageMult: 1.25
+        },
+        squall: {
+          label: '激流・濃霧',
+          courseLength: 2700,
+          corridorHalfWidth: 64,
+          timeLimit: 420,
+          estClearText: '5.5〜6.5分',
+          fogDensity: 0.055,
+          fogColor: 0x84a1b0,
+          visRangeText: '視程約21m',
+          inertiaFactor: 1.24,
+          reefCount: 48,
+          mineCount: 38,
+          whirlpoolCount: 26,
+          driftSpeedMult: 1.75,
+          damageMult: 1.45
+        },
+        abyss: {
+          label: '深海迷路',
+          courseLength: 3300,
           corridorHalfWidth: 60,
-          timeLimit: 150,
-          reefCount: 24,
-          mineCount: 18,
-          whirlpoolCount: 11,
-          driftSpeedMult: 1.55,
-          damageMult: 1.35
+          timeLimit: 510,
+          estClearText: '7〜8分',
+          fogDensity: 0.061,
+          fogColor: 0x7692a1,
+          visRangeText: '視程約19m',
+          inertiaFactor: 1.35,
+          reefCount: 62,
+          mineCount: 50,
+          whirlpoolCount: 34,
+          driftSpeedMult: 2.15,
+          damageMult: 1.7
+        },
+        nightmare: {
+          label: '悪夢の航路',
+          courseLength: 4000,
+          corridorHalfWidth: 56,
+          timeLimit: 600,
+          estClearText: '8.5〜10分',
+          fogDensity: 0.068,
+          fogColor: 0x678291,
+          visRangeText: '視程約17m',
+          inertiaFactor: 1.48,
+          reefCount: 78,
+          mineCount: 64,
+          whirlpoolCount: 44,
+          driftSpeedMult: 2.6,
+          damageMult: 2.0
         }
       };
 
-      const SCAN_COOLDOWN_SEC = 12;
+      const SCAN_COOLDOWN_SEC = 13;
       const SCAN_HIGHLIGHT_DURATION_SEC = 6.5;
 
       // -----------------------------------------------------------
@@ -651,8 +721,8 @@
         return {
           playerName: '',
           passphrase: '',
-          role: 'helmsman', // 'helmsman' | 'navigator'
-          difficulty: 'easy', // 'easy' | 'normal' | 'hard'
+          role: 'helmsman',
+          difficulty: 'normal',
           playCount: 0,
           clearCount: 0,
           soundEnabled: true
@@ -661,9 +731,15 @@
 
       let profile = loadProfile();
 
+      function normalizeDifficulty(key) {
+        if (VALID_DIFFS.includes(key)) return key;
+        if (key === 'easy') return 'normal';
+        return 'normal';
+      }
+
       function loadProfile() {
         try {
-          const raw = localStorage.getItem(STORAGE_KEY);
+          const raw = localStorage.getItem(STORAGE_KEY) || localStorage.getItem('mist_compass_profile_v1');
           if (!raw) return getDefaultProfile();
           const parsed = JSON.parse(raw);
           return {
@@ -671,7 +747,7 @@
             playerName: typeof parsed.playerName === 'string' ? parsed.playerName : '',
             passphrase: typeof parsed.passphrase === 'string' ? parsed.passphrase : '',
             role: parsed.role === 'navigator' ? 'navigator' : 'helmsman',
-            difficulty: ['easy', 'normal', 'hard'].includes(parsed.difficulty) ? parsed.difficulty : 'easy',
+            difficulty: normalizeDifficulty(parsed.difficulty),
             playCount: Number.isFinite(parsed.playCount) ? Math.max(0, Math.floor(parsed.playCount)) : 0,
             clearCount: Number.isFinite(parsed.clearCount) ? Math.max(0, Math.floor(parsed.clearCount)) : 0,
             soundEnabled: typeof parsed.soundEnabled === 'boolean' ? parsed.soundEnabled : true
@@ -691,7 +767,7 @@
       }
 
       // -----------------------------------------------------------
-      // 3. SYNTHESIZED SOUND EFFECTS (Web Audio API, no external URLs)
+      // 3. SYNTHESIZED SOUND EFFECTS (Web Audio API)
       // -----------------------------------------------------------
       const SoundFX = (() => {
         let ctx = null;
@@ -728,9 +804,7 @@
         }
 
         return {
-          click() {
-            playTone(520, 0.06, 'triangle', 0.05);
-          },
+          click() { playTone(520, 0.06, 'triangle', 0.05); },
           scanPing() {
             playTone(880, 0.25, 'sine', 0.09, 0);
             playTone(1318.5, 0.35, 'sine', 0.07, 0.11);
@@ -754,7 +828,7 @@
       })();
 
       // -----------------------------------------------------------
-      // 4. UI TOAST & DOM REFERENCES
+      // 4. UI TOAST HELPER
       // -----------------------------------------------------------
       let toastTimeout = null;
       function showToast(message, tone = 'info') {
@@ -793,13 +867,6 @@
       // -----------------------------------------------------------
       // 5. UNIFIED WORLD STATE (Single Source of Truth: x, z, yaw)
       // -----------------------------------------------------------
-      // Coordinate convention:
-      // - Ship starts near (x = 0, z = 0), yaw = 0 faces toward -Z (North / forward toward Goal).
-      // - Increasing yaw (counter-clockwise in XZ right-handed coords: sin(yaw) is -X or +X; let's define explicitly):
-      //   Forward vector for yaw `theta`: dx = -Math.sin(theta), dz = -Math.cos(theta).
-      //   When theta = 0: forward = (0, 0, -1) (North, -Z).
-      //   When theta > 0 (turn left / counter-clockwise from above): forward = (-sin(theta), 0, -cos(theta)) -> turns West (-X).
-      //   When theta < 0 (turn right / clockwise from above): forward = (-sin(theta), 0, -cos(theta)) -> turns East (+X).
       function getForwardXZ(yaw) {
         return {
           fx: -Math.sin(yaw),
@@ -808,27 +875,28 @@
       }
 
       function createInitialWorldState(difficultyKey, seed = Date.now()) {
-        const cfg = DIFFICULTY_CONFIG[difficultyKey] || DIFFICULTY_CONFIG.easy;
+        const normKey = normalizeDifficulty(difficultyKey);
+        const cfg = DIFFICULTY_CONFIG[normKey];
         return {
-          difficulty: difficultyKey,
+          difficulty: normKey,
           seed,
           courseLength: cfg.courseLength,
           corridorHalfWidth: cfg.corridorHalfWidth,
           timeLimit: cfg.timeLimit,
           elapsedTime: 0,
           remainingTime: cfg.timeLimit,
-          status: 'playing', // 'playing' | 'cleared' | 'gameover'
+          status: 'playing',
           ship: {
             x: 0,
             z: 0,
-            yaw: 0,           // 0 = facing -Z
+            yaw: 0,
             vx: 0,
             vz: 0,
             angularVel: 0,
-            throttle: 0,      // -0.4 (reverse) to +1.0 (full ahead)
+            throttle: 0,
             hp: 100,
             maxHp: 100,
-            invulnTimer: 0,   // brief invulnerability after hit
+            invulnTimer: 0,
             hitFlashTimer: 0
           },
           goal: {
@@ -846,7 +914,6 @@
         };
       }
 
-      // Deterministic PRNG so host and client share identical obstacle layouts when syncing
       function mulberry32(a) {
         return function () {
           let t = (a += 0x6D2B79F5);
@@ -862,14 +929,14 @@
         const hazards = [];
         let idCounter = 1;
 
-        const minZ = -55;
-        const maxZ = -(state.courseLength - 55);
+        const minZ = -65;
+        const maxZ = -(state.courseLength - 65);
         const spanZ = Math.abs(maxZ - minZ);
 
         function isTooCloseToStartOrGoal(x, z, r) {
           const distStart = Math.hypot(x - 0, z - 0);
           const distGoal = Math.hypot(x - state.goal.x, z - state.goal.z);
-          return distStart < 45 + r || distGoal < state.goal.radius + r + 25;
+          return distStart < 50 + r || distGoal < state.goal.radius + r + 30;
         }
 
         function isOverlappingExisting(x, z, r) {
@@ -882,13 +949,13 @@
         }
 
         function placeHazard(type, radius, damage, extra = {}) {
-          for (let attempt = 0; attempt < 60; attempt++) {
+          for (let attempt = 0; attempt < 70; attempt++) {
             const z = minZ - rand() * spanZ;
-            const x = (rand() * 2 - 1) * (state.corridorHalfWidth * 0.88);
+            const x = (rand() * 2 - 1) * (state.corridorHalfWidth * 0.9);
             if (!isTooCloseToStartOrGoal(x, z, radius) && !isOverlappingExisting(x, z, radius)) {
               hazards.push({
                 id: idCounter++,
-                type, // 'reef' | 'mine' | 'whirlpool'
+                type,
                 x,
                 z,
                 baseX: x,
@@ -906,27 +973,24 @@
           }
         }
 
-        // 1. Reefs (岩礁)
         for (let i = 0; i < cfg.reefCount; i++) {
-          const r = 8.5 + rand() * 5.5;
+          const r = 8.5 + rand() * 5.8;
           placeHazard('reef', r, 22);
         }
 
-        // 2. Mines (機雷 - drift gently horizontally)
         for (let i = 0; i < cfg.mineCount; i++) {
-          const r = 6.2 + rand() * 2.2;
+          const r = 6.2 + rand() * 2.4;
           placeHazard('mine', r, 28, {
-            driftAmpX: 8 + rand() * 10,
-            driftSpeed: 0.55 + rand() * 0.55
+            driftAmpX: 9 + rand() * 11,
+            driftSpeed: 0.6 + rand() * 0.6
           });
         }
 
-        // 3. Whirlpools (渦潮 - pull ship inward & damage near center)
         for (let i = 0; i < cfg.whirlpoolCount; i++) {
-          const r = 9.5 + rand() * 4.0;
+          const r = 9.5 + rand() * 4.2;
           placeHazard('whirlpool', r, 18, {
-            pullRadius: r * 2.7,
-            pullStrength: 10.5
+            pullRadius: r * 2.8,
+            pullStrength: 11.0
           });
         }
 
@@ -934,10 +998,13 @@
       }
 
       // -----------------------------------------------------------
-      // 6. SIMULATION STEP (Physics, Inertia, Hazards, Win/Loss)
+      // 6. SIMULATION STEP
       // -----------------------------------------------------------
       function stepSimulation(state, dt, helmInput) {
         if (state.status !== 'playing') return { hit: false, outcome: null };
+
+        const cfg = DIFFICULTY_CONFIG[state.difficulty] || DIFFICULTY_CONFIG.normal;
+        const inertia = cfg.inertiaFactor || 1.0;
 
         state.elapsedTime += dt;
         state.remainingTime = Math.max(0, state.timeLimit - state.elapsedTime);
@@ -951,7 +1018,6 @@
         if (ship.invulnTimer > 0) ship.invulnTimer = Math.max(0, ship.invulnTimer - dt);
         if (ship.hitFlashTimer > 0) ship.hitFlashTimer = Math.max(0, ship.hitFlashTimer - dt);
 
-        // Scan timers
         if (state.scan.cooldownTimer > 0) {
           state.scan.cooldownTimer = Math.max(0, state.scan.cooldownTimer - dt);
         }
@@ -960,61 +1026,49 @@
           state.scan.waveProgress = Math.min(1, state.scan.waveProgress + dt * 0.75);
         }
 
-        // Throttle adjustment from helmInput
         if (helmInput.throttleDelta !== 0) {
           ship.throttle = Math.max(-0.35, Math.min(1.0, ship.throttle + helmInput.throttleDelta * dt * 0.95));
         }
-        if (typeof helmInput.setThrottle === 'number') {
-          ship.throttle = Math.max(-0.35, Math.min(1.0, helmInput.setThrottle));
-        }
 
-        // Turning inertia: steering adjusts angular velocity smoothly; effective even when moving slowly
+        // Turning inertia scales with difficulty
         const turnInput = (helmInput.turnLeft ? 1 : 0) - (helmInput.turnRight ? 1 : 0);
         const speedMag = Math.hypot(ship.vx, ship.vz);
-        const steerAuthority = 0.55 + Math.min(0.65, speedMag / 24);
+        const steerAuthority = (0.55 + Math.min(0.65, speedMag / 24)) / Math.sqrt(inertia);
         const targetAngVel = turnInput * 1.15 * steerAuthority;
-        const angAccel = 3.2;
+        const angAccel = 3.2 / inertia;
         if (ship.angularVel < targetAngVel) {
           ship.angularVel = Math.min(targetAngVel, ship.angularVel + angAccel * dt);
         } else if (ship.angularVel > targetAngVel) {
           ship.angularVel = Math.max(targetAngVel, ship.angularVel - angAccel * dt);
         }
         if (turnInput === 0) {
-          ship.angularVel *= Math.pow(0.18, dt);
+          ship.angularVel *= Math.pow(0.18, dt / inertia);
         }
         ship.yaw += ship.angularVel * dt;
 
-        // Forward propulsion & water drag (inertia)
         const { fx, fz } = getForwardXZ(ship.yaw);
         const maxThrustAccel = ship.throttle >= 0 ? 15.5 : 10.5;
-        const thrustX = fx * ship.throttle * maxThrustAccel;
-        const thrustZ = fz * ship.throttle * maxThrustAccel;
+        ship.vx += fx * ship.throttle * maxThrustAccel * dt;
+        ship.vz += fz * ship.throttle * maxThrustAccel * dt;
 
-        ship.vx += thrustX * dt;
-        ship.vz += thrustZ * dt;
-
-        // Lateral keel resistance (prevents sideways ice-skating while keeping drift feel)
-        const rx = -fz; // right vector in XZ
+        const rx = -fz;
         const rz = fx;
         const lateralSpeed = ship.vx * rx + ship.vz * rz;
-        const keelGrip = Math.min(1, 2.6 * dt);
+        const keelGrip = Math.min(1, (2.6 / inertia) * dt);
         ship.vx -= rx * lateralSpeed * keelGrip;
         ship.vz -= rz * lateralSpeed * keelGrip;
 
-        // Hydrodynamic drag
-        const dragFactor = Math.pow(0.56, dt);
+        const dragFactor = Math.pow(0.56, dt / Math.sqrt(inertia));
         ship.vx *= dragFactor;
         ship.vz *= dragFactor;
 
-        // Cap top speed
-        const maxSpeed = 24.0;
+        const maxSpeed = 24.5;
         const newSpeed = Math.hypot(ship.vx, ship.vz);
         if (newSpeed > maxSpeed) {
           ship.vx = (ship.vx / newSpeed) * maxSpeed;
           ship.vz = (ship.vz / newSpeed) * maxSpeed;
         }
 
-        // Update hazards (drifting mines, whirlpool pull)
         let hitOccurred = false;
         const shipRadius = 3.6;
 
@@ -1028,11 +1082,9 @@
           const dz = h.z - ship.z;
           const dist = Math.hypot(dx, dz);
 
-          // Whirlpool pull effect
           if (h.type === 'whirlpool' && dist > 0.001 && dist < h.pullRadius) {
             const factor = 1 - dist / h.pullRadius;
             const pullForce = h.pullStrength * (0.35 + 0.65 * factor);
-            // Pull inward + tangential swirl
             const nx = dx / dist;
             const nz = dz / dist;
             const tx = -nz;
@@ -1041,7 +1093,6 @@
             ship.vz += (nz * pullForce + tz * pullForce * 0.45) * dt;
           }
 
-          // Collision check
           if (dist < shipRadius + h.radius * 0.85) {
             if (ship.invulnTimer <= 0) {
               ship.hp = Math.max(0, ship.hp - h.damage);
@@ -1049,7 +1100,6 @@
               ship.hitFlashTimer = 0.45;
               hitOccurred = true;
 
-              // Bounce / push away slightly
               if (dist > 0.001) {
                 const pushX = -dx / dist;
                 const pushZ = -dz / dist;
@@ -1063,7 +1113,6 @@
         ship.x += ship.vx * dt;
         ship.z += ship.vz * dt;
 
-        // Soft outer boundary so player doesn't get lost infinitely far off-course
         const maxX = state.corridorHalfWidth + 45;
         if (Math.abs(ship.x) > maxX) {
           ship.x = Math.sign(ship.x) * maxX;
@@ -1074,13 +1123,11 @@
           ship.vz = Math.min(0, ship.vz * -0.3);
         }
 
-        // Check HP <= 0
         if (ship.hp <= 0) {
           state.status = 'gameover';
           return { hit: hitOccurred, outcome: 'gameover_hp' };
         }
 
-        // Check Goal reached
         const distToGoal = Math.hypot(ship.x - state.goal.x, ship.z - state.goal.z);
         if (distToGoal <= state.goal.radius + shipRadius) {
           state.status = 'cleared';
@@ -1096,7 +1143,6 @@
         state.scan.activeTimer = SCAN_HIGHLIGHT_DURATION_SEC;
         state.scan.waveProgress = 0;
 
-        // Find hazards ahead or within 240m
         const ship = state.ship;
         const { fx, fz } = getForwardXZ(ship.yaw);
         const scored = state.hazards
@@ -1107,7 +1153,7 @@
             const dot = dist > 0.001 ? (dx * fx + dz * fz) / dist : 0;
             return { h, dist, dot };
           })
-          .filter(item => item.dist <= 260)
+          .filter(item => item.dist <= 280)
           .sort((a, b) => (b.dot * 80 - b.dist) - (a.dot * 80 - a.dist))
           .slice(0, 5);
 
@@ -1170,7 +1216,7 @@
           conn.on('open', () => {
             partnerConnected = true;
             sendHello();
-            updateStatus('connected', 'パートナーと接続完了！同じ役割が重複していないか確認して出航できます。');
+            updateStatus('connected', 'パートナーと接続完了！役割が重複していないか確認して出航できます。');
           });
 
           conn.on('data', (data) => {
@@ -1222,7 +1268,6 @@
           });
 
           peer.on('error', (err) => {
-            // If host ID is already taken, join as guest
             if (err && (err.type === 'unavailable-id' || String(err).includes('taken'))) {
               if (peer) {
                 try { peer.destroy(); } catch (_) {}
@@ -1247,9 +1292,7 @@
 
         function send(payload) {
           if (conn && conn.open) {
-            try {
-              conn.send(payload);
-            } catch (_) {}
+            try { conn.send(payload); } catch (_) {}
           }
         }
 
@@ -1283,16 +1326,16 @@
       })();
 
       // -----------------------------------------------------------
-      // 8. THREE.JS 3D SCENE RENDERER (Shared by Helmsman & Nav 3D)
+      // 8. THREE.JS 3D SCENE RENDERER
       // -----------------------------------------------------------
-      function createThreeSeaView(containerEl) {
+      function createThreeSeaView(containerEl, diffKey = 'normal') {
         if (!containerEl || typeof THREE === 'undefined') return null;
 
+        const cfg = DIFFICULTY_CONFIG[normalizeDifficulty(diffKey)] || DIFFICULTY_CONFIG.normal;
         const scene = new THREE.Scene();
-        // Very thick maritime fog so distant obstacles are concealed from the helmsman
-        const fogColor = new THREE.Color(0x9fb8c4);
+        const fogColor = new THREE.Color(cfg.fogColor);
         scene.background = fogColor;
-        scene.fog = new THREE.FogExp2(0x9fb8c4, 0.044);
+        scene.fog = new THREE.FogExp2(cfg.fogColor, cfg.fogDensity);
 
         const camera = new THREE.PerspectiveCamera(62, 1, 0.4, 240);
         const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
@@ -1300,14 +1343,12 @@
         containerEl.innerHTML = '';
         containerEl.appendChild(renderer.domElement);
 
-        // Lighting
         const hemiLight = new THREE.HemisphereLight(0xdbeafe, 0x0f293a, 0.95);
         scene.add(hemiLight);
         const dirLight = new THREE.DirectionalLight(0xffffff, 0.75);
         dirLight.position.set(25, 45, 20);
         scene.add(dirLight);
 
-        // Undulating Sea Plane
         const seaGeo = new THREE.PlaneGeometry(420, 420, 64, 64);
         seaGeo.rotateX(-Math.PI / 2);
         const basePos = seaGeo.attributes.position.array.slice();
@@ -1320,14 +1361,12 @@
         const seaMesh = new THREE.Mesh(seaGeo, seaMat);
         scene.add(seaMesh);
 
-        // Stylized Low-Poly Ship Group
         const shipGroup = new THREE.Group();
         const hullMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.6, flatShading: true });
         const hull = new THREE.Mesh(new THREE.BoxGeometry(3.2, 1.4, 7.6), hullMat);
         hull.position.y = 0.6;
         shipGroup.add(hull);
 
-        // Bow taper (pointing toward -Z in local ship space)
         const bowMat = new THREE.MeshStandardMaterial({ color: 0x991b1b, roughness: 0.55, flatShading: true });
         const bow = new THREE.Mesh(new THREE.ConeGeometry(2.25, 3.2, 4), bowMat);
         bow.rotation.x = -Math.PI / 2;
@@ -1336,13 +1375,11 @@
         bow.position.set(0, 0.75, -5.1);
         shipGroup.add(bow);
 
-        // Cabin
         const cabinMat = new THREE.MeshStandardMaterial({ color: 0xf1f5f9, roughness: 0.4, flatShading: true });
         const cabin = new THREE.Mesh(new THREE.BoxGeometry(2.1, 1.3, 2.4), cabinMat);
         cabin.position.set(0, 1.85, 0.5);
         shipGroup.add(cabin);
 
-        // Mast & glowing compass lantern
         const mast = new THREE.Mesh(
           new THREE.CylinderGeometry(0.12, 0.16, 4.2, 6),
           new THREE.MeshStandardMaterial({ color: 0x78350f, roughness: 0.7 })
@@ -1350,14 +1387,15 @@
         mast.position.set(0, 3.2, -0.8);
         shipGroup.add(mast);
 
-        const lanternMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
-        const lantern = new THREE.Mesh(new THREE.SphereGeometry(0.32, 8, 8), lanternMat);
+        const lantern = new THREE.Mesh(
+          new THREE.SphereGeometry(0.32, 8, 8),
+          new THREE.MeshBasicMaterial({ color: 0xfbbf24 })
+        );
         lantern.position.set(0, 5.2, -0.8);
         shipGroup.add(lantern);
 
         scene.add(shipGroup);
 
-        // Goal Beacon / Lighthouse
         const goalGroup = new THREE.Group();
         const tower = new THREE.Mesh(
           new THREE.CylinderGeometry(2.2, 3.8, 22, 8),
@@ -1374,7 +1412,6 @@
         goalGroup.add(beaconLight);
         scene.add(goalGroup);
 
-        // Hazard Meshes pool keyed by hazard id
         const hazardMeshes = new Map();
 
         function createHazardMesh(h) {
@@ -1434,7 +1471,6 @@
 
           const ship = worldState.ship;
 
-          // Animate sea waves around ship
           seaMesh.position.set(ship.x, 0, ship.z);
           const posAttr = seaGeo.attributes.position;
           for (let i = 0; i < posAttr.count; i++) {
@@ -1449,7 +1485,6 @@
           posAttr.needsUpdate = true;
           seaGeo.computeVertexNormals();
 
-          // Update ship transform + subtle roll/pitch
           const bobY = Math.sin(timeSec * 3.0) * 0.14;
           const roll = -ship.angularVel * 0.12 + Math.sin(timeSec * 2.2) * 0.03;
           const pitch = Math.cos(timeSec * 2.5) * 0.025;
@@ -1457,11 +1492,9 @@
           shipGroup.rotation.set(pitch, ship.yaw, roll);
           hullMat.color.setHex(ship.hitFlashTimer > 0 ? 0xf43f5e : 0x1e293b);
 
-          // Update goal
           goalGroup.position.set(worldState.goal.x, 0, worldState.goal.z);
           beaconLight.rotation.y = timeSec * 2;
 
-          // Sync hazards
           const activeIds = new Set(worldState.hazards.map(h => h.id));
           for (const [id, mesh] of hazardMeshes.entries()) {
             if (!activeIds.has(id)) {
@@ -1484,7 +1517,6 @@
             }
           }
 
-          // Chase camera right behind the ship in thick fog
           const { fx, fz } = getForwardXZ(ship.yaw);
           const camDist = 11.5;
           const camHeight = 5.8;
@@ -1511,15 +1543,15 @@
       }
 
       // -----------------------------------------------------------
-      // 9. 2D TOP-DOWN RADAR / MAP RENDERER (Map Navigator)
+      // 9. 2D TOP-DOWN RADAR / MAP RENDERER
       // -----------------------------------------------------------
       const RadarMap = (() => {
         const canvas = document.getElementById('radarCanvas');
         const ctx = canvas.getContext('2d');
 
         let zoom = 1.0;
-        let panX = 0; // world X offset of map center
-        let panZ = 0; // world Z offset of map center
+        let panX = 0;
+        let panZ = 0;
         let followShip = true;
         let isDragging = false;
         let lastPointerX = 0;
@@ -1548,7 +1580,6 @@
           if (el) el.textContent = `${zoom.toFixed(1)}x`;
         }
 
-        // Pointer drag to pan
         canvas.addEventListener('pointerdown', (e) => {
           isDragging = true;
           followShip = false;
@@ -1564,7 +1595,7 @@
           lastPointerX = e.clientX;
           lastPointerY = e.clientY;
 
-          const scale = 2.1 * zoom; // px per meter
+          const scale = 2.1 * zoom;
           panX -= dx / scale;
           panZ -= dy / scale;
         });
@@ -1574,7 +1605,6 @@
           try { canvas.releasePointerCapture(e.pointerId); } catch (_) {}
         });
 
-        // Wheel to zoom
         canvas.addEventListener('wheel', (e) => {
           e.preventDefault();
           const factor = e.deltaY < 0 ? 1.15 : 0.87;
@@ -1603,7 +1633,6 @@
           ctx.save();
           ctx.scale(dpr, dpr);
 
-          // Deep sea radar background
           ctx.fillStyle = '#061522';
           ctx.fillRect(0, 0, w, h);
 
@@ -1624,7 +1653,6 @@
             };
           }
 
-          // Grid lines every 50m
           const gridStep = 50;
           const startX = Math.floor((panX - w / (2 * pxPerMeter)) / gridStep) * gridStep;
           const endX = Math.ceil((panX + w / (2 * pxPerMeter)) / gridStep) * gridStep;
@@ -1648,7 +1676,6 @@
           }
           ctx.stroke();
 
-          // Course corridor guide lines
           const leftCorridor = worldToScreen(-worldState.corridorHalfWidth, 20);
           const rightCorridor = worldToScreen(worldState.corridorHalfWidth, -worldState.courseLength - 20);
           ctx.save();
@@ -1662,7 +1689,6 @@
           );
           ctx.restore();
 
-          // Goal beacon
           const goalPos = worldToScreen(worldState.goal.x, worldState.goal.z);
           const goalRadiusPx = Math.max(10, worldState.goal.radius * pxPerMeter);
           ctx.save();
@@ -1680,7 +1706,6 @@
           ctx.fillText('GOAL 灯台', goalPos.sx, goalPos.sy - goalRadiusPx - 8);
           ctx.restore();
 
-          // Hazards
           const scanActive = worldState.scan.activeTimer > 0;
           const highlightedSet = new Set(worldState.scan.highlightedIds || []);
 
@@ -1714,7 +1739,6 @@
               ctx.fill();
               ctx.stroke();
             } else {
-              // Reef
               ctx.fillStyle = 'rgba(168, 162, 158, 0.35)';
               ctx.strokeStyle = '#d6d3d1';
               ctx.lineWidth = 1.8;
@@ -1724,7 +1748,6 @@
               ctx.stroke();
             }
 
-            // Highlight ring when "危険スキャン強調" is active
             if (isHighlighted) {
               const pulse = 1 + 0.22 * Math.sin(timeSec * 9);
               ctx.strokeStyle = '#fbbf24';
@@ -1743,10 +1766,9 @@
             ctx.restore();
           }
 
-          // Radar scan wave expanding from ship
           if (scanActive) {
             const sPos = worldToScreen(ship.x, ship.z);
-            const waveRadiusPx = worldState.scan.waveProgress * 260 * pxPerMeter;
+            const waveRadiusPx = worldState.scan.waveProgress * 280 * pxPerMeter;
             ctx.save();
             ctx.strokeStyle = `rgba(251, 191, 36, ${Math.max(0, 1 - worldState.scan.waveProgress)})`;
             ctx.lineWidth = 3;
@@ -1756,15 +1778,12 @@
             ctx.restore();
           }
 
-          // Ship position, heading cone, and velocity vector
           const sPos = worldToScreen(ship.x, ship.z);
-          // Heading angle on 2D screen: when yaw = 0, forward is -Z -> up on screen (-PI/2 in canvas coords)
           const screenAngle = -Math.PI / 2 - ship.yaw;
 
           ctx.save();
           ctx.translate(sPos.sx, sPos.sy);
 
-          // Forward cone
           const coneLen = 78 * zoom;
           const grad = ctx.createRadialGradient(0, 0, 4, 0, 0, coneLen);
           grad.addColorStop(0, 'rgba(56, 189, 248, 0.36)');
@@ -1776,7 +1795,6 @@
           ctx.closePath();
           ctx.fill();
 
-          // Velocity vector arrow
           const speed = Math.hypot(ship.vx, ship.vz);
           if (speed > 0.5) {
             const velAngle = Math.atan2(ship.vz, ship.vx);
@@ -1789,7 +1807,6 @@
             ctx.stroke();
           }
 
-          // Ship triangle marker
           ctx.rotate(screenAngle);
           ctx.fillStyle = ship.hitFlashTimer > 0 ? '#fb7185' : '#38bdf8';
           ctx.strokeStyle = '#ffffff';
@@ -1835,7 +1852,6 @@
           throttleDelta: 0
         };
 
-        // DOM Elements
         const menuScreen = document.getElementById('menuScreen');
         const gameScreen = document.getElementById('gameScreen');
         const helmsmanView = document.getElementById('helmsmanView');
@@ -1851,6 +1867,7 @@
         const disconnectBtn = document.getElementById('disconnectBtn');
 
         function syncProfileToMenuUI() {
+          profile.difficulty = normalizeDifficulty(profile.difficulty);
           playerNameInput.value = profile.playerName;
           passphraseInput.value = profile.passphrase;
           roomIdPreview.textContent = `ルーム識別子: ${NetManager.passphraseToRoomBase(profile.passphrase)}`;
@@ -1858,7 +1875,6 @@
           document.getElementById('statPlayCount').textContent = String(profile.playCount);
           document.getElementById('statClearCount').textContent = String(profile.clearCount);
 
-          // Role cards
           document.querySelectorAll('.role-card').forEach(btn => {
             const active = btn.dataset.role === profile.role;
             btn.classList.toggle('border-sky-400', active);
@@ -1868,21 +1884,31 @@
             btn.classList.toggle('border-slate-700', !active);
           });
 
-          // Difficulty cards
+          const activeColors = {
+            normal: 'border-sky-400',
+            hard: 'border-amber-400',
+            squall: 'border-orange-400',
+            abyss: 'border-rose-400',
+            nightmare: 'border-fuchsia-400'
+          };
+
           document.querySelectorAll('.diff-card').forEach(btn => {
-            const active = btn.dataset.diff === profile.difficulty;
-            btn.classList.toggle('border-emerald-400', active && btn.dataset.diff === 'easy');
-            btn.classList.toggle('border-sky-400', active && btn.dataset.diff === 'normal');
-            btn.classList.toggle('border-rose-400', active && btn.dataset.diff === 'hard');
+            const d = btn.dataset.diff;
+            const active = d === profile.difficulty;
+            Object.values(activeColors).forEach(cls => btn.classList.remove(cls));
             btn.classList.toggle('ring-2', active);
             btn.classList.toggle('ring-sky-400/25', active);
             btn.classList.toggle('border-slate-700', !active);
+            if (active && activeColors[d]) {
+              btn.classList.add(activeColors[d]);
+            }
           });
 
           const cfg = DIFFICULTY_CONFIG[profile.difficulty];
           const totalObs = cfg.reefCount + cfg.mineCount + cfg.whirlpoolCount;
           document.getElementById('specLength').textContent = `${cfg.courseLength}m`;
           document.getElementById('specObstacles').textContent = `${totalObs}基`;
+          document.getElementById('specEstTime').textContent = cfg.estClearText;
           document.getElementById('specTime').textContent = `${cfg.timeLimit}秒`;
 
           updateSoundLabels();
@@ -1956,24 +1982,22 @@
         }
 
         function startMatch(overrideSeed = null, overrideDiff = null) {
-          const diff = overrideDiff || profile.difficulty;
+          const diff = normalizeDifficulty(overrideDiff || profile.difficulty);
+          const cfg = DIFFICULTY_CONFIG[diff];
           const seed = overrideSeed || (Date.now() & 0x7fffffff);
 
           worldState = createInitialWorldState(diff, seed);
           generateHazards(worldState);
 
-          // Increment cumulative play count and save
           profile.playCount += 1;
           saveProfile();
           document.getElementById('statPlayCount').textContent = String(profile.playCount);
 
-          // Switch screens
           menuScreen.classList.add('hidden');
           resultModal.classList.add('hidden');
           gameScreen.classList.remove('hidden');
           isInGame = true;
 
-          // Role view setup
           const isHelmsman = profile.role === 'helmsman';
           helmsmanView.classList.toggle('hidden', !isHelmsman);
           navigatorView.classList.toggle('hidden', isHelmsman);
@@ -1982,24 +2006,23 @@
           nav3DOverlay.classList.add('hidden');
           document.getElementById('toggle3DLabel').textContent = '3D視点切替';
 
-          // Cleanup old Three renderers if any
           if (helmsmanThree) { helmsmanThree.dispose(); helmsmanThree = null; }
           if (navigatorThree) { navigatorThree.dispose(); navigatorThree = null; }
 
           if (isHelmsman) {
-            helmsmanThree = createThreeSeaView(document.getElementById('threeCanvasHost'));
+            helmsmanThree = createThreeSeaView(document.getElementById('threeCanvasHost'), diff);
           } else {
             RadarMap.resetView(worldState.ship);
-            navigatorThree = createThreeSeaView(document.getElementById('navThreeCanvasHost'));
+            navigatorThree = createThreeSeaView(document.getElementById('navThreeCanvasHost'), diff);
           }
 
-          // HUD labels
+          document.getElementById('helmFogLabel').textContent = `濃霧視界（${cfg.visRangeText}・${cfg.label}）`;
+
           const pInfo = NetManager.getPartnerInfo();
           document.getElementById('hudRoleBadge').textContent = isHelmsman ? '操船役（3D濃霧）' : 'マップ役（レーダー）';
           document.getElementById('hudRoomLabel').textContent = profile.passphrase.trim() || '---';
           document.getElementById('hudPartnerLabel').textContent = pInfo.partnerName || 'パートナー';
 
-          // Reset scan callout
           document.getElementById('scanCalloutList').textContent =
             '「危険スキャン強調」で前方周辺の危険をハイライト表示できます。ドラッグで地図移動、ホイールで拡大縮小が可能です。';
 
@@ -2069,11 +2092,10 @@
           resultModal.classList.remove('hidden');
         }
 
-        function updateHUD(nowSec) {
+        function updateHUD() {
           if (!worldState) return;
           const ship = worldState.ship;
 
-          // HP
           const hpPct = Math.max(0, Math.min(100, (ship.hp / ship.maxHp) * 100));
           const hpBar = document.getElementById('hudHpBar');
           const hpText = document.getElementById('hudHpText');
@@ -2090,21 +2112,18 @@
             hpText.className = 'text-xs sm:text-sm font-bold text-rose-400 tabular-nums w-9 text-right';
           }
 
-          // Remaining distance
           const remDist = Math.max(0, Math.round(Math.hypot(worldState.goal.x - ship.x, worldState.goal.z - ship.z)));
           document.getElementById('hudDistText').textContent = `${remDist}m`;
 
-          // Timer
           const remTime = Math.ceil(worldState.remainingTime);
           const mins = String(Math.floor(remTime / 60)).padStart(2, '0');
           const secs = String(remTime % 60).padStart(2, '0');
           const timeEl = document.getElementById('hudTimeText');
           timeEl.textContent = `${mins}:${secs}`;
-          timeEl.className = remTime <= 20
+          timeEl.className = remTime <= 25
             ? 'text-xs sm:text-sm font-bold text-rose-400 tabular-nums mt-0.5 animate-pulse'
             : 'text-xs sm:text-sm font-bold text-amber-300 tabular-nums mt-0.5';
 
-          // Helmsman telemetry
           if (profile.role === 'helmsman') {
             const deg = (((-ship.yaw * 180 / Math.PI) % 360) + 360) % 360;
             const dirs = ['北', '北東', '東', '南東', '南', '南西', '西', '北西'];
@@ -2124,7 +2143,6 @@
             alertBanner.classList.toggle('hidden', ship.hitFlashTimer <= 0);
           }
 
-          // Navigator scan button cooldown & active state
           if (profile.role === 'navigator') {
             const scanBtn = document.getElementById('scanHazardBtn');
             const scanBtnText = document.getElementById('scanBtnText');
@@ -2148,7 +2166,7 @@
           const listEl = document.getElementById('scanCalloutList');
           const ids = worldState.scan.highlightedIds || [];
           if (ids.length === 0) {
-            listEl.textContent = 'スキャン範囲（260m以内）に危険は検知されませんでした。このまま前進を指示してください。';
+            listEl.textContent = 'スキャン範囲（280m以内）に危険は検知されませんでした。このまま前進を指示してください。';
             return;
           }
 
@@ -2174,7 +2192,6 @@
           lastFrameTime = nowMs;
           const timeSec = nowMs / 1000;
 
-          // Helmsman simulates & broadcasts authoritative state; Navigator receives sync & interpolates smoothly
           if (profile.role === 'helmsman') {
             const stepRes = stepSimulation(worldState, dt, helmInput);
             if (stepRes.hit) {
@@ -2187,7 +2204,7 @@
             }
 
             syncSendAccum += dt;
-            if (syncSendAccum >= 0.05) { // 20Hz sync
+            if (syncSendAccum >= 0.05) {
               syncSendAccum = 0;
               NetManager.send({
                 type: 'state_sync',
@@ -2201,7 +2218,6 @@
               });
             }
           } else {
-            // Navigator local visual timers & smooth dead-reckoning
             if (worldState.scan.cooldownTimer > 0) {
               worldState.scan.cooldownTimer = Math.max(0, worldState.scan.cooldownTimer - dt);
             }
@@ -2214,7 +2230,6 @@
             }
           }
 
-          // Render views
           if (profile.role === 'helmsman' && helmsmanThree) {
             helmsmanThree.render(worldState, timeSec);
           } else if (profile.role === 'navigator') {
@@ -2224,14 +2239,10 @@
             }
           }
 
-          updateHUD(timeSec);
-
+          updateHUD();
           animFrameId = requestAnimationFrame(gameLoop);
         }
 
-        // -----------------------------------------------------------
-        // EVENT LISTENERS
-        // -----------------------------------------------------------
         function bindEvents() {
           playerNameInput.addEventListener('input', (e) => {
             profile.playerName = e.target.value;
@@ -2272,7 +2283,7 @@
           document.querySelectorAll('.diff-card').forEach(btn => {
             btn.addEventListener('click', () => {
               SoundFX.click();
-              profile.difficulty = btn.dataset.diff;
+              profile.difficulty = normalizeDifficulty(btn.dataset.diff);
               saveProfile();
               syncProfileToMenuUI();
             });
@@ -2352,7 +2363,6 @@
             returnToMenu();
           });
 
-          // Helmsman controls (buttons + keyboard)
           function bindHoldButton(btnId, onDown, onUp) {
             const el = document.getElementById(btnId);
             if (!el) return;
@@ -2385,7 +2395,6 @@
             }
           });
 
-          // Navigator controls
           document.getElementById('zoomInBtn').addEventListener('click', () => {
             SoundFX.click();
             RadarMap.setZoom(RadarMap.getZoom() * 1.25);
@@ -2427,7 +2436,6 @@
             }
           });
 
-          // Network incoming data handler
           NetManager.onStateChange(updateConnectionUI);
           NetManager.onMessage((msg) => {
             if (msg.type === 'start_match') {
