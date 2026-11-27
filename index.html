@@ -697,12 +697,6 @@
       cursor: not-allowed;
     }
 
-    .mini-btn.scan-ready {
-      background: rgba(16, 185, 129, 0.25);
-      border-color: #34d399;
-      color: #a7f3d0;
-    }
-
     #radar-canvas {
       flex: 1;
       width: 100%;
@@ -926,8 +920,8 @@
               <span class="choice-desc">WASD / 矢印キー またはスマホのタッチ操作で前後進・旋回。強い慣性あり。</span>
             </button>
             <button type="button" class="choice-btn role-btn" data-role="mapper">
-              <span class="choice-title">マップ役（2Dレーダー＋3D視界確認＋スキャン）</span>
-              <span class="choice-desc">俯瞰マップで危険を把握しボイスチャットで指示。拡大縮小・パン/ピンチ・操船3D視界確認・危険スキャン。</span>
+              <span class="choice-title">マップ役（2Dレーダー＋3D視界確認）</span>
+              <span class="choice-desc">俯瞰マップで危険や航路端を把握しボイスチャットで指示。拡大縮小・パン/ピンチ・操船3D視界確認が可能。</span>
             </button>
           </div>
         </div>
@@ -968,7 +962,6 @@
         <div class="save-note" id="save-status">プロフィール・戦績はブラウザに自動保存されます</div>
         <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
           <button type="button" class="btn-secondary" id="reset-profile-btn">保存データ初期化</button>
-          <button type="button" class="btn-secondary" id="solo-sail-btn">ひとりで出航（テスト航行）</button>
           <button type="button" class="btn-primary" id="start-match-btn">合言葉でマッチング開始</button>
         </div>
       </div>
@@ -993,7 +986,7 @@
 
       <div style="font-size:11.5px; color:var(--muted); line-height:1.55; margin-bottom:14px;">
         もう1台の端末や別ブラウザで同じ<strong>合言葉</strong>を入力し、もう一方の役割を選んでください。<br/>
-        接続が成立するとボイスチャットと難易度が同期され、「出航開始！」で航行を開始できます。
+        2人の接続が完了するとボイスチャットと難易度が同期され、「出航開始！」で航行を開始できます。
       </div>
 
       <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
@@ -1082,7 +1075,6 @@
         <div class="radar-header">
           <strong>🗺️ 航行レーダー</strong>
           <div class="radar-controls">
-            <button type="button" class="mini-btn" id="scan-btn">📡 危険スキャン強調</button>
             <button type="button" class="mini-btn" id="zoom-in-btn">＋</button>
             <button type="button" class="mini-btn" id="zoom-out-btn">－</button>
             <button type="button" class="mini-btn" id="center-ship-btn">自船中心</button>
@@ -1095,6 +1087,7 @@
           <span><i class="leg-dot" style="background:#94a3b8;"></i>岩礁</span>
           <span><i class="leg-dot" style="background:#f87171;"></i>機雷</span>
           <span><i class="leg-dot" style="background:#c084fc;"></i>渦潮</span>
+          <span><i class="leg-dot" style="background:#fbbf24;"></i>航路端</span>
         </div>
       </div>
 
@@ -1126,8 +1119,8 @@
 
       // ==================== 難易度定義（5段階・推定クリア時間・慣性・霧） ====================
       const DEFAULT_ROOM_CODE = 'mist-compass';
-      const STORAGE_KEY = 'mist_compass_profile_v5';
-      const LEGACY_KEYS = ['mist_compass_profile_v4', 'mist_compass_profile_v3', 'mist_compass_profile_v2', 'mist_compass_profile_v1'];
+      const STORAGE_KEY = 'mist_compass_profile_v6';
+      const LEGACY_KEYS = ['mist_compass_profile_v5', 'mist_compass_profile_v4', 'mist_compass_profile_v3', 'mist_compass_profile_v2', 'mist_compass_profile_v1'];
 
       const DIFFICULTIES = {
         normal: {
@@ -1136,9 +1129,9 @@
           courseLength: 1400,
           timeLimitSec: 210,
           corridorHalfWidth: 150,
-          rockCount: 44,
-          mineCount: 32,
-          vortexCount: 18,
+          rockCount: 52,
+          mineCount: 38,
+          vortexCount: 22,
           fogDensity: 0.042,
           inertia: 0.986,
           turnInertia: 0.968,
@@ -1155,9 +1148,9 @@
           courseLength: 2100,
           timeLimitSec: 300,
           corridorHalfWidth: 134,
-          rockCount: 78,
-          mineCount: 62,
-          vortexCount: 34,
+          rockCount: 90,
+          mineCount: 72,
+          vortexCount: 40,
           fogDensity: 0.052,
           inertia: 0.989,
           turnInertia: 0.974,
@@ -1174,9 +1167,9 @@
           courseLength: 2700,
           timeLimitSec: 390,
           corridorHalfWidth: 122,
-          rockCount: 108,
-          mineCount: 86,
-          vortexCount: 60,
+          rockCount: 124,
+          mineCount: 98,
+          vortexCount: 68,
           fogDensity: 0.061,
           inertia: 0.991,
           turnInertia: 0.978,
@@ -1193,9 +1186,9 @@
           courseLength: 3300,
           timeLimitSec: 480,
           corridorHalfWidth: 112,
-          rockCount: 142,
-          mineCount: 114,
-          vortexCount: 76,
+          rockCount: 162,
+          mineCount: 128,
+          vortexCount: 86,
           fogDensity: 0.068,
           inertia: 0.993,
           turnInertia: 0.981,
@@ -1212,9 +1205,9 @@
           courseLength: 4000,
           timeLimitSec: 600,
           corridorHalfWidth: 102,
-          rockCount: 184,
-          mineCount: 150,
-          vortexCount: 100,
+          rockCount: 208,
+          mineCount: 168,
+          vortexCount: 112,
           fogDensity: 0.076,
           inertia: 0.995,
           turnInertia: 0.984,
@@ -1260,23 +1253,6 @@
             osc.connect(gain).connect(this.ctx.destination);
             osc.start(now);
             osc.stop(now + 0.38);
-          } catch (_) {}
-        }
-        playScan() {
-          this.ensure();
-          if (!this.ctx) return;
-          try {
-            const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(520, now);
-            osc.frequency.exponentialRampToValueAtTime(980, now + 0.28);
-            gain.gain.setValueAtTime(0.16, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
-            osc.connect(gain).connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.31);
           } catch (_) {}
         }
         playGoal() {
@@ -1416,6 +1392,9 @@
           profile.difficulty = btn.dataset.diff;
           diffBtns.forEach(b => b.classList.toggle('active', b === btn));
           saveFormSilently();
+          if (isConnected) {
+            sendNet({ type: 'sync_diff', difficulty: profile.difficulty });
+          }
         });
       });
 
@@ -1447,6 +1426,10 @@
         };
       }
 
+      /**
+       * コース中央航路と左右両端（x = ±corridorHalfWidth）沿いに障害物を配置し、
+       * 端をすり抜けて安全地帯へ逃げることを防ぐ。
+       */
       function generateCourse(roomCode, diffKey) {
         const cfg = DIFFICULTIES[diffKey] || DIFFICULTIES.hard;
         const rng = mulberry32(hashString(`${roomCode}::${diffKey}`));
@@ -1454,7 +1437,8 @@
 
         const safeStartZ = -70;
         const goalZ = -cfg.courseLength;
-        const goalX = (rng() - 0.5) * 140;
+        const goalX = (rng() - 0.5) * Math.min(120, cfg.corridorHalfWidth * 1.1);
+        const halfW = cfg.corridorHalfWidth;
 
         function isFarFromGoal(x, z, pad = 55) {
           return Math.hypot(x - goalX, z - goalZ) > pad;
@@ -1464,14 +1448,71 @@
           return Math.hypot(x - 0, z - safeStartZ) > pad;
         }
 
+        // 左右の航路端（±halfW）に沿って隙間なく境界岩礁・境界機雷・境界渦潮を配置し、端をすり抜ける抜け道を塞ぐ
+        const edgeStep = 36;
+        let edgeIdx = 0;
+        for (let z = -85; z >= goalZ + 35; z -= edgeStep) {
+          for (const side of [-1, 1]) {
+            const jitterZ = z + (rng() - 0.5) * 10;
+            const jitterX = side * (halfW - (2 + rng() * 6));
+            if (!isFarFromStart(jitterX, jitterZ, 45) || !isFarFromGoal(jitterX, jitterZ, 45)) continue;
+
+            const roll = rng();
+            if (roll < 0.62) {
+              const radius = 7.5 + rng() * 5.0;
+              obstacles.push({
+                id: `edge_r_${edgeIdx++}`,
+                type: 'rock',
+                isEdge: true,
+                x: jitterX,
+                z: jitterZ,
+                radius,
+                height: radius * (1.4 + rng() * 0.8),
+                damage: 26,
+                phase: rng() * Math.PI * 2
+              });
+            } else if (roll < 0.86) {
+              const radius = 4.4 + rng() * 1.4;
+              obstacles.push({
+                id: `edge_m_${edgeIdx++}`,
+                type: 'mine',
+                isEdge: true,
+                x: jitterX,
+                z: jitterZ,
+                baseX: jitterX,
+                radius,
+                damage: 22,
+                phase: rng() * Math.PI * 2,
+                driftAmp: 2.5 + rng() * 3.0,
+                driftSpeed: 0.7 + rng() * 0.6
+              });
+            } else {
+              const radius = 11.0 + rng() * 4.5;
+              obstacles.push({
+                id: `edge_v_${edgeIdx++}`,
+                type: 'vortex',
+                isEdge: true,
+                x: jitterX,
+                z: jitterZ,
+                radius,
+                damage: 16,
+                phase: rng() * Math.PI * 2,
+                pullStrength: 14 + rng() * 8
+              });
+            }
+          }
+        }
+
+        // コース内部〜端寄りの岩礁
         for (let i = 0; i < cfg.rockCount; i++) {
           const z = -90 - rng() * (cfg.courseLength - 130);
-          const x = (rng() - 0.5) * cfg.corridorHalfWidth * 2;
+          const x = (rng() - 0.5) * (halfW * 2 - 14);
           if (!isFarFromStart(x, z) || !isFarFromGoal(x, z)) continue;
           const radius = 5.5 + rng() * 7.5;
           obstacles.push({
             id: `r_${i}`,
             type: 'rock',
+            isEdge: false,
             x,
             z,
             radius,
@@ -1481,13 +1522,15 @@
           });
         }
 
+        // 浮遊機雷
         for (let i = 0; i < cfg.mineCount; i++) {
           const z = -110 - rng() * (cfg.courseLength - 150);
-          const x = (rng() - 0.5) * cfg.corridorHalfWidth * 2;
+          const x = (rng() - 0.5) * (halfW * 2 - 14);
           if (!isFarFromStart(x, z) || !isFarFromGoal(x, z)) continue;
           obstacles.push({
             id: `m_${i}`,
             type: 'mine',
+            isEdge: false,
             x,
             z,
             baseX: x,
@@ -1499,13 +1542,15 @@
           });
         }
 
+        // 渦潮
         for (let i = 0; i < cfg.vortexCount; i++) {
           const z = -120 - rng() * (cfg.courseLength - 160);
-          const x = (rng() - 0.5) * cfg.corridorHalfWidth * 2;
+          const x = (rng() - 0.5) * (halfW * 2 - 18);
           if (!isFarFromStart(x, z) || !isFarFromGoal(x, z)) continue;
           obstacles.push({
             id: `v_${i}`,
             type: 'vortex',
+            isEdge: false,
             x,
             z,
             radius: 11 + rng() * 6,
@@ -1531,7 +1576,6 @@
       let remoteVoiceConnected = false;
       let voiceUnavailableReason = '';
       let isConnected = false;
-      let isSoloMode = false;
       let partnerName = 'パートナー';
       let partnerRole = null;
       let remotePeerId = null;
@@ -1562,11 +1606,6 @@
 
       function updateVoiceUI() {
         if (!voiceToggleBtn) return;
-        if (isSoloMode) {
-          voiceToggleBtn.disabled = true;
-          voiceToggleBtn.textContent = '🎙️ VC不可(ソロ)';
-          return;
-        }
         if (voiceUnavailableReason) {
           voiceToggleBtn.disabled = true;
           voiceToggleBtn.textContent = '🎙️ マイク不可';
@@ -1655,7 +1694,7 @@
       }
 
       async function initiateVoiceCallIfReady(targetPeerId) {
-        if (isSoloMode || !peer || !targetPeerId) return;
+        if (!peer || !targetPeerId) return;
         if (activeMediaCall && activeMediaCall.open) return;
         const stream = await ensureLocalAudioStream();
         if (!peer || peer.destroyed || !targetPeerId) return;
@@ -1686,7 +1725,7 @@
 
       if (voiceToggleBtn) {
         voiceToggleBtn.addEventListener('click', async () => {
-          if (isSoloMode || voiceUnavailableReason) return;
+          if (voiceUnavailableReason) return;
           if (!localAudioStream) {
             micEnabled = true;
             const stream = await ensureLocalAudioStream();
@@ -1763,7 +1802,7 @@
       }
 
       function sendNet(payload) {
-        if (!isSoloMode && conn && conn.open) {
+        if (conn && conn.open) {
           try {
             conn.send(payload);
           } catch (_) {}
@@ -1902,7 +1941,6 @@
       }
 
       function startMatchmaking() {
-        isSoloMode = false;
         saveFormSilently();
         const code = normalizePassphrase(profile.roomCode);
         profile.roomCode = code;
@@ -2006,8 +2044,6 @@
             gameState.ship.hp = msg.hp;
             gameState.elapsed = msg.elapsed;
           }
-        } else if (msg.type === 'scan_pulse') {
-          triggerScanHighlight(false);
         } else if (msg.type === 'game_end') {
           if (gameState.active) {
             finishGame(msg.victory, msg.reason, false);
@@ -2022,20 +2058,13 @@
         lobbyOverlay.style.display = 'none';
       });
 
-      document.getElementById('solo-sail-btn').addEventListener('click', () => {
-        saveFormSilently();
-        teardownPeer();
-        isSoloMode = true;
-        enterGameScene(true);
-      });
-
       launchGameBtn.addEventListener('click', () => {
         sendNet({ type: 'start_game', difficulty: profile.difficulty });
         enterGameScene(true);
       });
 
       // ==================== THREE.JS 3Dシーン & 2Dレーダー ====================
-      let scene, camera, renderer, shipMesh, waterMesh, goalGroup;
+      let scene, camera, renderer, shipMesh, waterMesh, goalGroup, boundaryGroup;
       let subRenderer, subCamera;
       const obstacleMeshes = new Map();
 
@@ -2045,8 +2074,6 @@
         course: null,
         ship: { x: 0, z: -70, yaw: 0, yawRate: 0, speed: 0, hp: 100, invulnTimer: 0 },
         elapsed: 0,
-        scanActiveUntil: 0,
-        scanCooldownUntil: 0,
         radarZoom: 1.0,
         radarPanX: 0,
         radarPanZ: 0,
@@ -2176,6 +2203,9 @@
         waterMesh.position.set(0, 0, -2600);
         scene.add(waterMesh);
 
+        boundaryGroup = new THREE.Group();
+        scene.add(boundaryGroup);
+
         shipMesh = new THREE.Group();
         const hullGeo = new THREE.ConeGeometry(2.3, 9.5, 6);
         hullGeo.rotateX(-Math.PI / 2);
@@ -2217,6 +2247,9 @@
 
         scene.add(goalGroup);
 
+        boundaryGroup = new THREE.Group();
+        scene.add(boundaryGroup);
+
         const subMount = document.getElementById('subview-mount');
         subRenderer = new THREE.WebGLRenderer({ antialias: true });
         subRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
@@ -2232,18 +2265,52 @@
           camera.updateProjectionMatrix();
           resizeSubView();
           resizeRadarCanvas();
-          refreshHelmsmanControlsVisibility();
-        });
-      }
+      function rebuildBoundaries3D(course) {
+        if (!scene || !boundaryGroup) return;
+        while (boundaryGroup.children.length > 0) {
+          boundaryGroup.remove(boundaryGroup.children[0]);
+        }
 
-      function resizeSubView() {
-        if (!subRenderer || !subCamera) return;
-        const box = document.getElementById('helmsman-subview-box');
-        const w = Math.max(1, box.clientWidth);
-        const h = Math.max(1, box.clientHeight);
-        subRenderer.setSize(w, h);
-        subCamera.aspect = w / h;
-        subCamera.updateProjectionMatrix();
+        const halfW = course.cfg.corridorHalfWidth;
+        const startZ = -60;
+        const endZ = course.goal.z - 30;
+        const spanZ = Math.abs(startZ - endZ);
+        const centerZ = (startZ + endZ) * 0.5;
+
+        // 左右の航路端を示す半透明の警戒ウォール＆ブイポストを明確に設置
+        const wallGeo = new THREE.BoxGeometry(1.4, 9.0, spanZ);
+        const wallMat = new THREE.MeshBasicMaterial({
+          color: 0xfbbf24,
+          transparent: true,
+          opacity: 0.22
+        });
+
+        for (const side of [-1, 1]) {
+          const wall = new THREE.Mesh(wallGeo, wallMat);
+          wall.position.set(side * halfW, 4.5, centerZ);
+          boundaryGroup.add(wall);
+        }
+
+        const postGeo = new THREE.CylinderGeometry(0.9, 1.3, 14, 8);
+        const postMat = new THREE.MeshStandardMaterial({
+          color: 0xf59e0b,
+          emissive: 0x92400e,
+          roughness: 0.4
+        });
+        const capGeo = new THREE.ConeGeometry(1.6, 3.2, 8);
+        const capMat = new THREE.MeshBasicMaterial({ color: 0xfde047 });
+
+        for (let z = startZ; z >= endZ; z -= 40) {
+          for (const side of [-1, 1]) {
+            const post = new THREE.Mesh(postGeo, postMat);
+            post.position.set(side * halfW, 7.0, z);
+            boundaryGroup.add(post);
+
+            const cap = new THREE.Mesh(capGeo, capMat);
+            cap.position.set(side * halfW, 15.5, z);
+            boundaryGroup.add(cap);
+          }
+        }
       }
 
       function rebuildObstacles3D(course) {
@@ -2252,12 +2319,17 @@
           scene.remove(mesh);
         }
         obstacleMeshes.clear();
+        rebuildBoundaries3D(course);
 
         for (const obs of course.obstacles) {
           let obj;
           if (obs.type === 'rock') {
             const geo = new THREE.DodecahedronGeometry(obs.radius, 0);
-            const mat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.85, flatShading: true });
+            const mat = new THREE.MeshStandardMaterial({
+              color: obs.isEdge ? 0x94a3b8 : 0x64748b,
+              roughness: 0.85,
+              flatShading: true
+            });
             obj = new THREE.Mesh(geo, mat);
             obj.scale.set(1, obs.height / obs.radius, 1);
             obj.position.set(obs.x, obs.height * 0.35, obs.z);
@@ -2315,8 +2387,6 @@
           invulnTimer: 0
         };
         gameState.elapsed = 0;
-        gameState.scanActiveUntil = 0;
-        gameState.scanCooldownUntil = 0;
         gameState.radarZoom = 1.0;
         gameState.radarPanX = 0;
         gameState.radarPanZ = 0;
@@ -2336,10 +2406,7 @@
       function updatePartnerHud() {
         const el = document.getElementById('hud-partner-info');
         if (!el) return;
-        if (isSoloMode) {
-          el.textContent = 'テスト航行（ソロ）';
-          el.style.color = '#94a3b8';
-        } else if (isConnected) {
+        if (isConnected) {
           const pRoleLabel = partnerRole === 'helmsman' ? '操船役' : partnerRole === 'mapper' ? 'マップ役' : '乗組員';
           el.textContent = `接続中: ${partnerName}（${pRoleLabel}）`;
           el.style.color = '#34d399';
@@ -2359,21 +2426,6 @@
           banner.style.display = 'none';
         }, 2200);
       }
-
-      function triggerScanHighlight(broadcast) {
-        const now = performance.now();
-        gameState.scanActiveUntil = now + 5500;
-        gameState.scanCooldownUntil = now + 10000;
-        sfx.playScan();
-        if (broadcast) {
-          sendNet({ type: 'scan_pulse' });
-        }
-      }
-
-      document.getElementById('scan-btn').addEventListener('click', () => {
-        if (performance.now() < gameState.scanCooldownUntil) return;
-        triggerScanHighlight(true);
-      });
 
       document.getElementById('zoom-in-btn').addEventListener('click', () => {
         gameState.radarZoom = Math.min(3.2, gameState.radarZoom * 1.25);
@@ -2493,12 +2545,26 @@
         const scale = 2.2 * gameState.radarZoom;
         const centerX = gameState.ship.x + gameState.radarPanX;
         const centerZ = gameState.ship.z + gameState.radarPanZ;
+        const halfW = gameState.course.cfg.corridorHalfWidth;
+        const courseLen = gameState.course.cfg.courseLength;
 
         function worldToRadar(wx, wz) {
           return {
             x: cw / 2 + (wx - centerX) * scale,
             y: ch / 2 + (wz - centerZ) * scale
           };
+        }
+
+        // 航路外エリアを暗く塗り分け
+        const leftEdgeP = worldToRadar(-halfW, 0);
+        const rightEdgeP = worldToRadar(halfW, 0);
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.08)';
+        if (leftEdgeP.x > 0) {
+          ctx.fillRect(0, 0, Math.min(cw, leftEdgeP.x), ch);
+        }
+        if (rightEdgeP.x < cw) {
+          const rx = Math.max(0, rightEdgeP.x);
+          ctx.fillRect(rx, 0, cw - rx, ch);
         }
 
         ctx.strokeStyle = 'rgba(125, 211, 252, 0.08)';
@@ -2526,8 +2592,33 @@
           ctx.stroke();
         }
 
-        const now = performance.now();
-        const scanBoost = now < gameState.scanActiveUntil;
+        // 航路の左右の端（±corridorHalfWidth）をレーダー上で明確に描画
+        const halfW = gameState.course.cfg.corridorHalfWidth;
+        const startBoundZ = -50;
+        const endBoundZ = gameState.course.goal.z - 25;
+        ctx.save();
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 6]);
+        for (const side of [-1, 1]) {
+          const b1 = worldToRadar(side * halfW, startBoundZ);
+          const b2 = worldToRadar(side * halfW, endBoundZ);
+          ctx.beginPath();
+          ctx.moveTo(b1.x, b1.y);
+          ctx.lineTo(b2.x, b2.y);
+          ctx.stroke();
+
+          ctx.fillStyle = '#fde047';
+          ctx.font = 'bold 10px sans-serif';
+          for (let bz = Math.max(endBoundZ, startGridZ); bz <= Math.min(startBoundZ, endGridZ); bz += 200) {
+            const mp = worldToRadar(side * halfW, bz);
+            ctx.beginPath();
+            ctx.arc(mp.x, mp.y, 4, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+        ctx.setLineDash([]);
+        ctx.restore();
 
         const goalPos = worldToRadar(gameState.course.goal.x, gameState.course.goal.z);
         ctx.save();
@@ -2550,28 +2641,20 @@
           const r = Math.max(4, obs.radius * scale);
           ctx.save();
           if (obs.type === 'rock') {
-            ctx.fillStyle = scanBoost ? '#cbd5e1' : '#64748b';
+            ctx.fillStyle = obs.isEdge ? '#cbd5e1' : '#64748b';
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
             ctx.fill();
           } else if (obs.type === 'mine') {
-            ctx.fillStyle = scanBoost ? '#ff6b6b' : '#f87171';
+            ctx.fillStyle = '#f87171';
             ctx.beginPath();
             ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
             ctx.fill();
           } else {
-            ctx.strokeStyle = scanBoost ? '#e879f9' : '#c084fc';
-            ctx.lineWidth = scanBoost ? 2.5 : 1.6;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-            ctx.stroke();
-          }
-
-          if (scanBoost) {
-            ctx.strokeStyle = 'rgba(52, 211, 153, 0.85)';
+            ctx.strokeStyle = '#c084fc';
             ctx.lineWidth = 1.6;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, r + 6 + Math.sin(now * 0.01) * 2, 0, Math.PI * 2);
+            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
             ctx.stroke();
           }
           ctx.restore();
@@ -2593,18 +2676,6 @@
         ctx.fill();
         ctx.stroke();
         ctx.restore();
-
-        const scanBtn = document.getElementById('scan-btn');
-        if (now < gameState.scanCooldownUntil) {
-          const rem = ((gameState.scanCooldownUntil - now) / 1000).toFixed(1);
-          scanBtn.disabled = true;
-          scanBtn.classList.remove('scan-ready');
-          scanBtn.textContent = `📡 スキャン ${rem}s`;
-        } else {
-          scanBtn.disabled = false;
-          scanBtn.classList.add('scan-ready');
-          scanBtn.textContent = '📡 危険スキャン強調';
-        }
       }
 
       function finishGame(victory, reason, broadcast) {
@@ -2716,11 +2787,14 @@
           ship.x += -Math.sin(ship.yaw) * ship.speed * dt;
           ship.z += -Math.cos(ship.yaw) * ship.speed * dt;
 
-          const maxX = cfg.corridorHalfWidth + 60;
+          // 航路境界（x = ±corridorHalfWidth）の明確な反発・接触ダメージ
+          const maxX = cfg.corridorHalfWidth;
           if (Math.abs(ship.x) > maxX) {
             ship.x = Math.sign(ship.x) * maxX;
             ship.speed *= 0.65;
             ship.yawRate *= -0.35;
+          }
+            }
           }
 
           if (ship.invulnTimer > 0) {
