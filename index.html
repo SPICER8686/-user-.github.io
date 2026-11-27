@@ -923,11 +923,11 @@
           <div class="choice-row">
             <button type="button" class="choice-btn role-btn active" data-role="helmsman">
               <span class="choice-title">操船役（3D操舵・濃霧視界）</span>
-              <span class="choice-desc">WASD / 矢印キー またはスマホのタッチ操作で前後進・旋回。慣性あり。</span>
+              <span class="choice-desc">WASD / 矢印キー またはスマホのタッチ操作で前後進・旋回。強い慣性あり。</span>
             </button>
             <button type="button" class="choice-btn role-btn" data-role="mapper">
               <span class="choice-title">マップ役（2Dレーダー＋3D視界確認＋スキャン）</span>
-              <span class="choice-desc">俯瞰マップで危険を把握し声で指示。拡大縮小・パン/ピンチ・操船3D視界確認・危険スキャン。</span>
+              <span class="choice-desc">俯瞰マップで危険を把握しボイスチャットで指示。拡大縮小・パン/ピンチ・操船3D視界確認・危険スキャン。</span>
             </button>
           </div>
         </div>
@@ -937,28 +937,28 @@
           <div class="diff-grid">
             <button type="button" class="choice-btn diff-btn" data-diff="normal">
               <span class="choice-title">ふつう</span>
-              <span class="choice-desc">距離 1,650m / 制限 04:00<br/>基本の岩礁・機雷・渦潮</span>
-              <span class="diff-badge">推定 3〜4分</span>
+              <span class="choice-desc">距離 1,400m / 制限 03:30<br/>基本の岩礁・機雷・渦潮</span>
+              <span class="diff-badge">推定 2.5〜3.5分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="hard">
               <span class="choice-title">むずかしい</span>
-              <span class="choice-desc">距離 2,500m / 制限 06:00<br/>高密度配置・強めの霧と慣性</span>
-              <span class="diff-badge">推定 5〜6分</span>
+              <span class="choice-desc">距離 2,100m / 制限 05:00<br/>高密度配置・強めの霧と慣性</span>
+              <span class="diff-badge">推定 4〜5分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="maelstrom">
               <span class="choice-title">激流・濃霧</span>
-              <span class="choice-desc">距離 3,300m / 制限 08:00<br/>渦潮多発・視界限界クラスの霧</span>
-              <span class="diff-badge">推定 7〜8分</span>
+              <span class="choice-desc">距離 2,700m / 制限 06:30<br/>渦潮多発・視界限界クラスの霧</span>
+              <span class="diff-badge">推定 5.5〜6.5分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="abyss">
               <span class="choice-title">深海迷路</span>
-              <span class="choice-desc">距離 4,200m / 制限 11:00<br/>長距離スラローム・機雷群</span>
-              <span class="diff-badge">推定 9〜11分</span>
+              <span class="choice-desc">距離 3,300m / 制限 08:00<br/>長距離スラローム・機雷群</span>
+              <span class="diff-badge">推定 7〜8分</span>
             </button>
             <button type="button" class="choice-btn diff-btn" data-diff="nightmare">
               <span class="choice-title">悪夢の航路</span>
-              <span class="choice-desc">距離 5,400m / 制限 15:00<br/>極限の濃霧・重慣性・高密度</span>
-              <span class="diff-badge">推定 12〜15分</span>
+              <span class="choice-desc">距離 4,000m / 制限 10:00<br/>極限の濃霧・重慣性・高密度</span>
+              <span class="diff-badge">推定 8.5〜10分</span>
             </button>
           </div>
         </div>
@@ -993,7 +993,7 @@
 
       <div style="font-size:11.5px; color:var(--muted); line-height:1.55; margin-bottom:14px;">
         もう1台の端末や別ブラウザで同じ<strong>合言葉</strong>を入力し、もう一方の役割を選んでください。<br/>
-        接続が成立すると難易度が同期され、「出航開始！」で2人同時に航行を開始できます。
+        接続が成立するとボイスチャットと難易度が同期され、「出航開始！」で航行を開始できます。
       </div>
 
       <div style="display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
@@ -1025,28 +1025,30 @@
       <div class="hud-panel hud-metrics">
         <div class="metric-item">
           <span id="hud-diff-name">難易度</span>
-          <strong id="hud-progress">0m / 1650m</strong>
+          <strong id="hud-progress">0m / 1400m</strong>
         </div>
         <div class="metric-item">
           <span>残り時間</span>
-          <strong id="hud-timer">04:00</strong>
+          <strong id="hud-timer">03:30</strong>
         </div>
         <div class="metric-item">
           <span>速力</span>
           <strong id="hud-speed">0.0 kt</strong>
         </div>
+        <button type="button" class="btn-secondary" id="voice-toggle-btn" title="マイクのオン/オフ">🎙️ VC待機</button>
         <button type="button" class="btn-secondary" id="quit-to-menu-btn">中断</button>
       </div>
     </div>
 
     <div id="alert-banner">⚠️ 障害物に衝突！船体HPが減少しました</div>
+    <audio id="remote-voice-audio" autoplay playsinline></audio>
 
     <!-- 操船役PC操作ヒント -->
     <div id="helmsman-controls">
       <span><kbd>W</kbd>/<kbd>↑</kbd> 前進</span>
       <span><kbd>S</kbd>/<kbd>↓</kbd> 後進・ブレーキ</span>
       <span><kbd>A</kbd><kbd>D</kbd> / <kbd>←</kbd><kbd>→</kbd> 旋回</span>
-      <span style="color:#7dd3fc;">濃霧のためマップ役の指示に従って航行してください</span>
+      <span style="color:#7dd3fc;">慣性が大きいため早めの舵と減速・VC指示が重要です</span>
     </div>
 
     <!-- 操船役スマホマルチタッチパッド -->
@@ -1122,85 +1124,105 @@
     (() => {
       'use strict';
 
-      // ==================== 難易度定義（5段階・推定クリア時間高め） ====================
+      // ==================== 難易度定義（5段階・推定クリア時間・慣性・霧） ====================
       const DEFAULT_ROOM_CODE = 'mist-compass';
-      const STORAGE_KEY = 'mist_compass_profile_v4';
-      const LEGACY_KEYS = ['mist_compass_profile_v3', 'mist_compass_profile_v2', 'mist_compass_profile_v1'];
+      const STORAGE_KEY = 'mist_compass_profile_v5';
+      const LEGACY_KEYS = ['mist_compass_profile_v4', 'mist_compass_profile_v3', 'mist_compass_profile_v2', 'mist_compass_profile_v1'];
 
       const DIFFICULTIES = {
         normal: {
           label: 'ふつう',
-          estTime: '推定 3〜4分',
-          courseLength: 1650,
-          timeLimitSec: 240,
+          estTime: '推定 2.5〜3.5分',
+          courseLength: 1400,
+          timeLimitSec: 210,
           corridorHalfWidth: 150,
-          rockCount: 46,
-          mineCount: 34,
-          vortexCount: 20,
-          fogDensity: 0.040,
-          inertia: 0.972,
-          turnRate: 1.36,
-          maxSpeed: 27.5,
+          rockCount: 44,
+          mineCount: 32,
+          vortexCount: 18,
+          fogDensity: 0.042,
+          inertia: 0.986,
+          turnInertia: 0.968,
+          turnAccel: 1.55,
+          maxTurnRate: 0.98,
+          accelRate: 13.5,
+          brakeRate: 11.5,
+          maxSpeed: 28.0,
           hpMax: 100
         },
         hard: {
           label: 'むずかしい',
-          estTime: '推定 5〜6分',
-          courseLength: 2500,
-          timeLimitSec: 360,
+          estTime: '推定 4〜5分',
+          courseLength: 2100,
+          timeLimitSec: 300,
           corridorHalfWidth: 134,
-          rockCount: 82,
-          mineCount: 66,
-          vortexCount: 36,
-          fogDensity: 0.050,
-          inertia: 0.978,
-          turnRate: 1.26,
-          maxSpeed: 27.0,
+          rockCount: 78,
+          mineCount: 62,
+          vortexCount: 34,
+          fogDensity: 0.052,
+          inertia: 0.989,
+          turnInertia: 0.974,
+          turnAccel: 1.38,
+          maxTurnRate: 0.88,
+          accelRate: 12.8,
+          brakeRate: 10.5,
+          maxSpeed: 27.5,
           hpMax: 100
         },
         maelstrom: {
           label: '激流・濃霧',
-          estTime: '推定 7〜8分',
-          courseLength: 3300,
-          timeLimitSec: 480,
+          estTime: '推定 5.5〜6.5分',
+          courseLength: 2700,
+          timeLimitSec: 390,
           corridorHalfWidth: 122,
-          rockCount: 112,
-          mineCount: 90,
-          vortexCount: 64,
-          fogDensity: 0.059,
-          inertia: 0.982,
-          turnRate: 1.19,
-          maxSpeed: 26.5,
+          rockCount: 108,
+          mineCount: 86,
+          vortexCount: 60,
+          fogDensity: 0.061,
+          inertia: 0.991,
+          turnInertia: 0.978,
+          turnAccel: 1.24,
+          maxTurnRate: 0.80,
+          accelRate: 12.2,
+          brakeRate: 9.8,
+          maxSpeed: 27.0,
           hpMax: 100
         },
         abyss: {
           label: '深海迷路',
-          estTime: '推定 9〜11分',
-          courseLength: 4200,
-          timeLimitSec: 660,
+          estTime: '推定 7〜8分',
+          courseLength: 3300,
+          timeLimitSec: 480,
           corridorHalfWidth: 112,
-          rockCount: 148,
-          mineCount: 120,
-          vortexCount: 80,
-          fogDensity: 0.066,
-          inertia: 0.985,
-          turnRate: 1.13,
-          maxSpeed: 26.0,
+          rockCount: 142,
+          mineCount: 114,
+          vortexCount: 76,
+          fogDensity: 0.068,
+          inertia: 0.993,
+          turnInertia: 0.981,
+          turnAccel: 1.12,
+          maxTurnRate: 0.73,
+          accelRate: 11.6,
+          brakeRate: 9.2,
+          maxSpeed: 26.5,
           hpMax: 100
         },
         nightmare: {
           label: '悪夢の航路',
-          estTime: '推定 12〜15分',
-          courseLength: 5400,
-          timeLimitSec: 900,
+          estTime: '推定 8.5〜10分',
+          courseLength: 4000,
+          timeLimitSec: 600,
           corridorHalfWidth: 102,
-          rockCount: 192,
-          mineCount: 158,
-          vortexCount: 106,
-          fogDensity: 0.074,
-          inertia: 0.988,
-          turnRate: 1.07,
-          maxSpeed: 25.5,
+          rockCount: 184,
+          mineCount: 150,
+          vortexCount: 100,
+          fogDensity: 0.076,
+          inertia: 0.995,
+          turnInertia: 0.984,
+          turnAccel: 1.02,
+          maxTurnRate: 0.66,
+          accelRate: 11.0,
+          brakeRate: 8.6,
+          maxSpeed: 26.0,
           hpMax: 100
         }
       };
@@ -1500,13 +1522,19 @@
         };
       }
 
-      // ==================== オンラインマッチング（PeerJS + STUN） ====================
+      // ==================== オンラインマッチング（PeerJS + STUN + ボイスチャット） ====================
       let peer = null;
       let conn = null;
+      let activeMediaCall = null;
+      let localAudioStream = null;
+      let micEnabled = true;
+      let remoteVoiceConnected = false;
+      let voiceUnavailableReason = '';
       let isConnected = false;
       let isSoloMode = false;
       let partnerName = 'パートナー';
       let partnerRole = null;
+      let remotePeerId = null;
       let retryTimer = null;
       let matchSessionId = 0;
 
@@ -1529,6 +1557,153 @@
       const lobbyRoomLabel = document.getElementById('lobby-room-label');
       const lobbyRoleLabel = document.getElementById('lobby-role-label');
       const lobbyDiffLabel = document.getElementById('lobby-diff-label');
+      const voiceToggleBtn = document.getElementById('voice-toggle-btn');
+      const remoteVoiceAudio = document.getElementById('remote-voice-audio');
+
+      function updateVoiceUI() {
+        if (!voiceToggleBtn) return;
+        if (isSoloMode) {
+          voiceToggleBtn.disabled = true;
+          voiceToggleBtn.textContent = '🎙️ VC不可(ソロ)';
+          return;
+        }
+        if (voiceUnavailableReason) {
+          voiceToggleBtn.disabled = true;
+          voiceToggleBtn.textContent = '🎙️ マイク不可';
+          return;
+        }
+        voiceToggleBtn.disabled = false;
+        if (!micEnabled) {
+          voiceToggleBtn.textContent = '🔇 ミュート中';
+          voiceToggleBtn.style.borderColor = 'rgba(248, 113, 113, 0.55)';
+          voiceToggleBtn.style.color = '#fca5a5';
+        } else if (remoteVoiceConnected) {
+          voiceToggleBtn.textContent = '🎙️ VC通話中';
+          voiceToggleBtn.style.borderColor = 'rgba(52, 211, 153, 0.65)';
+          voiceToggleBtn.style.color = '#6ee7b7';
+        } else if (localAudioStream) {
+          voiceToggleBtn.textContent = '🎙️ マイクON';
+          voiceToggleBtn.style.borderColor = 'rgba(56, 189, 248, 0.55)';
+          voiceToggleBtn.style.color = '#bae6fd';
+        } else {
+          voiceToggleBtn.textContent = '🎙️ VC接続中';
+          voiceToggleBtn.style.borderColor = 'rgba(148, 163, 184, 0.35)';
+          voiceToggleBtn.style.color = '#e6f1f8';
+        }
+      }
+
+      function attachRemoteAudioStream(remoteStream) {
+        if (!remoteStream) return;
+        remoteVoiceConnected = true;
+        if (remoteVoiceAudio) {
+          remoteVoiceAudio.srcObject = remoteStream;
+          remoteVoiceAudio.play().catch(() => {});
+        }
+        updateVoiceUI();
+      }
+
+      function bindMediaCallEvents(call) {
+        if (!call) return;
+        if (activeMediaCall && activeMediaCall !== call) {
+          try { activeMediaCall.close(); } catch (_) {}
+        }
+        activeMediaCall = call;
+        call.on('stream', (remoteStream) => {
+          attachRemoteAudioStream(remoteStream);
+        });
+        call.on('close', () => {
+          remoteVoiceConnected = false;
+          updateVoiceUI();
+        });
+        call.on('error', () => {
+          remoteVoiceConnected = false;
+          updateVoiceUI();
+        });
+      }
+
+      async function ensureLocalAudioStream() {
+        if (localAudioStream) {
+          return localAudioStream;
+        }
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          voiceUnavailableReason = 'このブラウザはマイク通話に未対応です';
+          updateVoiceUI();
+          return null;
+        }
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: {
+              echoCancellation: true,
+              noiseSuppression: true,
+              autoGainControl: true
+            },
+            video: false
+          });
+          localAudioStream = stream;
+          stream.getAudioTracks().forEach(track => {
+            track.enabled = micEnabled;
+          });
+          voiceUnavailableReason = '';
+          updateVoiceUI();
+          return stream;
+        } catch (_) {
+          voiceUnavailableReason = 'マイクが許可されていないか利用できません';
+          updateVoiceUI();
+          showAlert('🎙️ マイクが無効です（相手音声の受信や航行同期は継続します）');
+          return null;
+        }
+      }
+
+      async function initiateVoiceCallIfReady(targetPeerId) {
+        if (isSoloMode || !peer || !targetPeerId) return;
+        if (activeMediaCall && activeMediaCall.open) return;
+        const stream = await ensureLocalAudioStream();
+        if (!peer || peer.destroyed || !targetPeerId) return;
+        try {
+          const callStream = stream || new MediaStream();
+          const call = peer.call(targetPeerId, callStream);
+          bindMediaCallEvents(call);
+        } catch (_) {}
+      }
+
+      function teardownVoice() {
+        remoteVoiceConnected = false;
+        if (activeMediaCall) {
+          try { activeMediaCall.close(); } catch (_) {}
+          activeMediaCall = null;
+        }
+        if (localAudioStream) {
+          try {
+            localAudioStream.getTracks().forEach(t => t.stop());
+          } catch (_) {}
+          localAudioStream = null;
+        }
+        if (remoteVoiceAudio) {
+          remoteVoiceAudio.srcObject = null;
+        }
+        updateVoiceUI();
+      }
+
+      if (voiceToggleBtn) {
+        voiceToggleBtn.addEventListener('click', async () => {
+          if (isSoloMode || voiceUnavailableReason) return;
+          if (!localAudioStream) {
+            micEnabled = true;
+            const stream = await ensureLocalAudioStream();
+            if (stream && conn && conn.peer && (!activeMediaCall || !activeMediaCall.open)) {
+              initiateVoiceCallIfReady(conn.peer);
+            }
+            updateVoiceUI();
+            return;
+          }
+          micEnabled = !micEnabled;
+          localAudioStream.getAudioTracks().forEach(track => {
+            track.enabled = micEnabled;
+          });
+          updateVoiceUI();
+          showAlert(micEnabled ? '🎙️ マイクをオンにしました' : '🔇 マイクをミュートしました');
+        });
+      }
 
       function normalizePassphrase(roomCode) {
         const cleaned = String(roomCode || '')
@@ -1571,6 +1746,9 @@
           clearTimeout(retryTimer);
           retryTimer = null;
         }
+        remotePeerId = null;
+        voiceUnavailableReason = '';
+        teardownVoice();
         isConnected = false;
         launchGameBtn.disabled = true;
         if (conn) {
@@ -1598,10 +1776,12 @@
           try { conn.close(); } catch (_) {}
         }
         conn = dc;
+        remotePeerId = dc.peer || null;
 
         const onReady = () => {
           if (sessionId !== matchSessionId) return;
           isConnected = true;
+          remotePeerId = dc.peer || remotePeerId;
           if (retryTimer) {
             clearTimeout(retryTimer);
             retryTimer = null;
@@ -1613,9 +1793,15 @@
             name: profile.playerName || '乗組員',
             role: profile.role,
             difficulty: profile.difficulty,
-            isHostSide: Boolean(isHostSide)
+            isHostSide: Boolean(isHostSide),
+            peerId: peer ? peer.id : null
           });
           updatePartnerHud();
+          if (remotePeerId && (!isHostSide || (peer && peer.id > remotePeerId))) {
+            initiateVoiceCallIfReady(remotePeerId);
+          } else {
+            ensureLocalAudioStream();
+          }
         };
 
         if (dc.open) {
@@ -1672,6 +1858,15 @@
           return;
         }
         peer = guestPeer;
+
+        guestPeer.on('call', async (incomingCall) => {
+          if (sessionId !== matchSessionId) return;
+          const stream = await ensureLocalAudioStream();
+          try {
+            incomingCall.answer(stream || new MediaStream());
+            bindMediaCallEvents(incomingCall);
+          } catch (_) {}
+        });
 
         guestPeer.on('open', () => {
           if (sessionId !== matchSessionId || isConnected) return;
@@ -1735,6 +1930,15 @@
         }
         peer = hostPeer;
 
+        hostPeer.on('call', async (incomingCall) => {
+          if (sessionId !== matchSessionId) return;
+          const stream = await ensureLocalAudioStream();
+          try {
+            incomingCall.answer(stream || new MediaStream());
+            bindMediaCallEvents(incomingCall);
+          } catch (_) {}
+        });
+
         hostPeer.on('open', () => {
           if (sessionId !== matchSessionId || isConnected) return;
           setConnectingUI('wait', '接続中・・・', `合言葉「${code}」で相手を待っています`);
@@ -1767,10 +1971,18 @@
         if (msg.type === 'hello') {
           partnerName = msg.name || 'パートナー';
           partnerRole = msg.role;
+          if (msg.peerId) {
+            remotePeerId = msg.peerId;
+          }
           if (msg.isHostSide && msg.difficulty && VALID_DIFFS.includes(msg.difficulty)) {
             applyDifficultyToUI(msg.difficulty);
           }
           updatePartnerHud();
+          if (remotePeerId && (!activeMediaCall || !activeMediaCall.open)) {
+            if (peer && peer.id && peer.id > remotePeerId) {
+              initiateVoiceCallIfReady(remotePeerId);
+            }
+          }
           if (msg.role === profile.role) {
             showAlert(`⚠️ 注意: 相手も同じ「${msg.role === 'helmsman' ? '操船役' : 'マップ役'}」です`);
           }
@@ -1831,7 +2043,7 @@
         active: false,
         diffKey: 'hard',
         course: null,
-        ship: { x: 0, z: -70, yaw: 0, speed: 0, hp: 100, invulnTimer: 0 },
+        ship: { x: 0, z: -70, yaw: 0, yawRate: 0, speed: 0, hp: 100, invulnTimer: 0 },
         elapsed: 0,
         scanActiveUntil: 0,
         scanCooldownUntil: 0,
@@ -2097,6 +2309,7 @@
           x: 0,
           z: -70,
           yaw: 0,
+          yawRate: 0,
           speed: 0,
           hp: cfg.hpMax,
           invulnTimer: 0
@@ -2110,6 +2323,7 @@
 
         const isHelmsman = profile.role === 'helmsman';
         refreshHelmsmanControlsVisibility();
+        updateVoiceUI();
         document.getElementById('map-role-ui').style.display = isHelmsman ? 'none' : 'block';
         document.getElementById('hud-my-role').textContent = isHelmsman ? '操船役' : 'マップ役';
         document.getElementById('hud-diff-name').textContent = `難易度: ${cfg.label}`;
@@ -2420,7 +2634,7 @@
         endModal.style.display = 'flex';
       }
 
-      // ==================== メインループ ====================
+      // ==================== メインループ（慣性シミュレーション＋描画） ====================
       let lastFrameTime = performance.now();
       let lastNetSendTime = 0;
 
@@ -2460,13 +2674,30 @@
           const turnInput = (keys.has('KeyA') || keys.has('ArrowLeft') || touchControls.turnLeft ? 1 : 0)
                           - (keys.has('KeyD') || keys.has('ArrowRight') || touchControls.turnRight ? 1 : 0);
 
-          const accel = forwardInput >= 0 ? 22 : 16;
-          ship.speed += forwardInput * accel * dt;
-          ship.speed *= Math.pow(cfg.inertia, dt * 60);
-          ship.speed = Math.max(-10, Math.min(cfg.maxSpeed, ship.speed));
+          // 前後進の慣性：急には加速・減速できず、舵を離しても惰性で滑走する
+          const thrust = forwardInput > 0
+            ? forwardInput * cfg.accelRate
+            : forwardInput < 0
+              ? forwardInput * cfg.brakeRate
+              : 0;
+          ship.speed += thrust * dt;
+          const glideDamping = forwardInput === 0
+            ? Math.pow(cfg.inertia, dt * 60)
+            : Math.pow(Math.min(0.997, cfg.inertia + 0.002), dt * 60);
+          ship.speed *= glideDamping;
+          ship.speed = Math.max(-9.5, Math.min(cfg.maxSpeed, ship.speed));
 
-          const turnFactor = Math.min(1, Math.abs(ship.speed) / 6 + 0.35);
-          ship.yaw += turnInput * cfg.turnRate * turnFactor * dt;
+          // 旋回の慣性（角速度 yawRate）：舵を切ってもすぐには曲がりきらず、戻しても余韻が残る
+          const speedRatio = Math.min(1, Math.abs(ship.speed) / 9.0);
+          const steerAuthority = 0.25 + speedRatio * 0.75;
+          const reverseSign = ship.speed < -0.5 ? -1 : 1;
+          ship.yawRate += turnInput * cfg.turnAccel * steerAuthority * reverseSign * dt;
+          const yawDamping = turnInput === 0
+            ? Math.pow(cfg.turnInertia, dt * 60)
+            : Math.pow(Math.min(0.994, cfg.turnInertia + 0.006), dt * 60);
+          ship.yawRate *= yawDamping;
+          ship.yawRate = Math.max(-cfg.maxTurnRate, Math.min(cfg.maxTurnRate, ship.yawRate));
+          ship.yaw += ship.yawRate * dt;
 
           for (const obs of course.obstacles) {
             if (obs.type === 'vortex') {
@@ -2477,7 +2708,7 @@
                 const pull = (1 - dist / (obs.radius * 2.1)) * obs.pullStrength * dt;
                 ship.x += (dx / dist) * pull;
                 ship.z += (dz / dist) * pull;
-                ship.yaw += 0.55 * dt;
+                ship.yawRate += 0.45 * dt;
               }
             }
           }
@@ -2488,7 +2719,8 @@
           const maxX = cfg.corridorHalfWidth + 60;
           if (Math.abs(ship.x) > maxX) {
             ship.x = Math.sign(ship.x) * maxX;
-            ship.speed *= 0.6;
+            ship.speed *= 0.65;
+            ship.yawRate *= -0.35;
           }
 
           if (ship.invulnTimer > 0) {
@@ -2499,7 +2731,8 @@
               if (dist < obs.radius + 2.4) {
                 ship.hp -= obs.damage;
                 ship.invulnTimer = 1.1;
-                ship.speed *= 0.45;
+                ship.speed *= 0.55;
+                ship.yawRate *= 0.6;
                 sfx.playHit();
                 const label = obs.type === 'rock' ? '岩礁' : obs.type === 'mine' ? '機雷' : '渦潮';
                 showAlert(`💥 ${label}に接触！HP -${obs.damage}`);
@@ -2533,8 +2766,9 @@
         }
 
         if (shipMesh) {
+          const targetRoll = Math.max(-0.22, Math.min(0.22, -gameState.ship.yawRate * 0.24));
           shipMesh.position.set(ship.x, Math.sin(gameState.elapsed * 2.2) * 0.22, ship.z);
-          shipMesh.rotation.set(0, ship.yaw, Math.cos(gameState.elapsed * 1.8) * 0.04);
+          shipMesh.rotation.set(0, ship.yaw, targetRoll + Math.cos(gameState.elapsed * 1.8) * 0.03);
         }
 
         const camBack = 12;
@@ -2614,6 +2848,7 @@
       });
 
       syncMenuFromProfile();
+      updateVoiceUI();
       requestAnimationFrame(animate);
     })();
   </script>
